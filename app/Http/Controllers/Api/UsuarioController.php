@@ -41,6 +41,15 @@ class UsuarioController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        $usuario = Usuario::findOrFail($id);
+        return response()->json($usuario);
+    }
+
+    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
@@ -104,5 +113,24 @@ class UsuarioController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Sesión cerrada correctamente'], 200);
+    }
+
+    public function checkAuth(Request $request)
+    {
+        $usuario = $request->user();
+
+        if ($usuario) {
+            // Retornamos un mensaje indicando que el usuario está autenticado junto con el token (si lo deseas)
+            // El token actual no se almacena en el modelo, pero puedes obtener el token enviado en el header con $request->bearerToken()
+            return response()->json([
+                'message' => 'Usuario autenticado',
+                'access_token' => $request->bearerToken(),  // Token enviado en la petición
+                'usuario' => $usuario
+            ], 200);
+        }
+
+        return response()->json([
+            'message' => 'Usuario no autenticado, por favor inicie sesión'
+        ], 401);
     }
 }
