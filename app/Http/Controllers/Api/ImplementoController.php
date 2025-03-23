@@ -43,6 +43,14 @@ class ImplementoController extends Controller
         return response()->json($implemento);
     }
 
+    public function getByAulaId(string|int $aulaId) {
+        $implementos = Implemento::where('idAula', $aulaId)
+        ->with('aula')
+        ->get();
+
+        return response()->json($implementos);
+    }
+
     /**
      * Update the specified resource in storage.
      */
