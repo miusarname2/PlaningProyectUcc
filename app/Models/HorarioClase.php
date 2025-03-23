@@ -21,4 +21,18 @@ class HorarioClase extends Model
         'idHora'
     ];
 
+    public function clase()
+    {
+        return $this->belongsTo(Clase::class);
+    }
+
+    public function dia()
+    {
+        return $this->belongsTo(Dia::class);
+    }
+
+    public function hora()
+    {
+        return $this->belongsTo(Hora::class);
+    }
 }
