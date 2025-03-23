@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Clase;
 use App\Models\HorarioClase;
 use Illuminate\Http\Request;
 
@@ -98,5 +99,84 @@ class HorarioClaseController extends Controller
         $horario->delete();
 
         return response()->json(['Message' => 'HorarioClase successfully eliminated', 'status' => 200]);
+    }
+
+    public function getScheduleByUser($idUsuario)
+    {
+        // Obtenemos todos los horarios (con relaciones) de las clases que pertenecen al usuario
+        $horarios = HorarioClase::with(['dia', 'hora', 'clase.aula', 'clase'])
+            ->whereHas('clase', function ($query) use ($idUsuario) {
+                $query->where('idUsuario', $idUsuario);
+            })
+            ->get();
+
+        if ($horarios->isEmpty()) {
+            return response()->json([
+                'message' => 'No se encontraron horarios para este usuario.'
+            ], 404);
+        }
+
+        // Agrupamos por la clase (por idClase) para organizar los horarios
+        $grouped = $horarios->groupBy('idClase');
+
+        $result = [];
+
+        foreach ($grouped as $idClase => $horariosGroup) {
+            // Extraemos la información de la clase (asumimos que todas las entradas tienen la misma clase)
+            $clase = $horariosGroup->first()->clase;
+            // Obtenemos los días únicos para esta clase
+            $dias = $horariosGroup->pluck('dia')->unique('idDia')->values();
+            // Obtenemos las horas únicas para esta clase
+            $horas = $horariosGroup->pluck('hora')->unique('idHora')->values();
+
+            $result[] = [
+                'clase' => $clase,
+                'aula'  => $clase->aula,
+                'dias'  => $dias,
+                'horas' => $horas,
+            ];
+        }
+
+        return response()->json($result, 200);
+    }
+
+    public function getFullScheduleByUser($idUsuario)
+    {
+        // Obtenemos todas las clases asignadas al usuario, con sus relaciones: materia, grupo y aula.
+        $clases = Clase::with(['materia', 'grupo', 'aula'])
+            ->where('idUsuario', $idUsuario)
+            ->get();
+
+        if ($clases->isEmpty()) {
+            return response()->json([
+                'message' => 'No se encontraron clases para este usuario.'
+            ], 404);
+        }
+
+        $result = [];
+
+        // Para cada clase, obtenemos los horarios (días y horas) en que se imparte.
+        foreach ($clases as $clase) {
+            // Se cargan los horarios de la clase, junto con la información de día y hora.
+            $horarios = HorarioClase::with(['dia', 'hora'])
+                ->where('idClase', $clase->idClase)
+                ->get();
+
+            // Extraemos días y horas únicos, en caso de que se repitan.
+            $dias = $horarios->pluck('dia')->unique('idDia')->values();
+            $horas = $horarios->pluck('hora')->unique('idHora')->values();
+
+            $result[] = [
+                'clase'    => $clase,
+                'materia'  => $clase->materia,
+                'grupo'    => $clase->grupo,
+                'aula'     => $clase->aula,
+                'dias'     => $dias,
+                'horas'    => $horas,
+                'horarios' => $horarios,
+            ];
+        }
+
+        return response()->json($result, 200);
     }
 }
