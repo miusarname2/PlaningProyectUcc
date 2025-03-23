@@ -23,17 +23,35 @@ class ReservaController extends Controller
      */
     public function store(Request $request)
     {
+        // Se valida la información, incluyendo el formato de la hora y la duración
         $validateData = $request->validate([
             'idUsuario'     => 'required|integer|exists:Usuario,idUsuario',
             'idImplemento'  => 'required|integer|exists:Implemento,idImplemento',
             'fecha'         => 'required|date',
-            'hora'          => 'required|string', // Ajusta la validación si tienes un formato específico
-            'estado'        => 'required|string|max:50', // O el tipo de validación que prefieras
+            'hora'          => 'required|date_format:H:i', // Formato 24 horas, e.g. "07:00"
+            'duracion'      => 'required|integer|min:1|max:8', // Duración en horas, máximo 8
+            'estado'        => 'required|string|max:50',
         ]);
-
-        $reserva = Reserva::create($validateData);
-
-        return response()->json($reserva, 201);
+    
+        $reservas = [];
+        // Convertir la hora de inicio a un objeto Carbon para facilitar la suma de horas
+        $startTime = \Carbon\Carbon::createFromFormat('H:i', $validateData['hora']);
+    
+        // Se crea un registro por cada hora reservada
+        for ($i = 0; $i < $validateData['duracion']; $i++) {
+            $horaReserva = $startTime->copy()->addHours($i)->format('H:i');
+            $reservaData = [
+                'idUsuario'    => $validateData['idUsuario'],
+                'idImplemento' => $validateData['idImplemento'],
+                'fecha'        => $validateData['fecha'],
+                'hora'         => $horaReserva,
+                'estado'       => $validateData['estado']
+            ];
+            $reserva = Reserva::create($reservaData);
+            $reservas[] = $reserva;
+        }
+    
+        return response()->json($reservas, 201);
     }
 
     /**
