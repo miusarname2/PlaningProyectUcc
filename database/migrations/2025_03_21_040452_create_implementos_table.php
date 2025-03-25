@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('idAula')
-            ->references('idAula')->on('Aulas')
+            ->references('idAula')->on('Aula')
             ->onDelete('cascade');
         });
     }

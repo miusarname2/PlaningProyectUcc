@@ -19,15 +19,15 @@ return new class extends Migration
             $table->primary(['idClase', 'idDia', 'idHora']);
 
             $table->foreign('idClase')
-                ->references('idClase')->on('Clases')
+                ->references('idClase')->on('Clase')
                 ->onDelete('cascade');
 
             $table->foreign('idDia')
-                ->references('idDia')->on('Dias')
+                ->references('idDia')->on('Dia')
                 ->onDelete('cascade');
 
             $table->foreign('idHora')
-                ->references('idHora')->on('Horas')
+                ->references('idHora')->on('Hora')
                 ->onDelete('cascade');
         });
     }

@@ -19,10 +19,10 @@ return new class extends Migration
             $table->unsignedInteger('idAula');
             $table->timestamps();
 
-            $table->foreign('idMateria')->references('idMateria')->on('Materias')->onDelete('cascade');
-            $table->foreign('idGrupo')->references('idGrupo')->on('Grupos')->onDelete('cascade');
-            $table->foreign('idUsuario')->references('idUsuario')->on('Usuarios')->onDelete('cascade');
-            $table->foreign('idAula')->references('idAula')->on('Aulas')->onDelete('cascade');
+            $table->foreign('idMateria')->references('idMateria')->on('Materia')->onDelete('cascade');
+            $table->foreign('idGrupo')->references('idGrupo')->on('Grupo')->onDelete('cascade');
+            $table->foreign('idUsuario')->references('idUsuario')->on('Usuario')->onDelete('cascade');
+            $table->foreign('idAula')->references('idAula')->on('Aula')->onDelete('cascade');
         });
     }
 

@@ -21,10 +21,10 @@ return new class extends Migration
             $table->timestamps();
             
             $table->foreign('idUsuario')
-                ->references('idUsuario')->on('Usuarios')
+                ->references('idUsuario')->on('Usuario')
                 ->onDelete('cascade');
             $table->foreign('idImplemento')
-                ->references('idImplemento')->on('Implementos')
+                ->references('idImplemento')->on('Implemento')
                 ->onDelete('cascade');
         });
     }

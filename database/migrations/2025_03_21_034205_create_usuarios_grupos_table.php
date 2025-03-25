@@ -19,8 +19,8 @@ return new class extends Migration
             $table->primary(['idUsuario', 'idGrupo']);
 
             // Claves foráneas
-            $table->foreign('idUsuario')->references('idUsuario')->on('Usuarios')->onDelete('cascade');
-            $table->foreign('idGrupo')->references('idGrupo')->on('Grupos')->onDelete('cascade');
+            $table->foreign('idUsuario')->references('idUsuario')->on('Usuario')->onDelete('cascade');
+            $table->foreign('idGrupo')->references('idGrupo')->on('Grupo')->onDelete('cascade');
         });
     }
 
