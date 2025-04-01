@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
+import ButtonGradient from '@/Components/ButtonGradient';
 import TextInput from '@/Components/TextInput';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -107,9 +107,9 @@ export default function Register() {
                         Already registered?
                     </Link>
 
-                    <PrimaryButton className="ms-4" disabled={processing}>
+                    <ButtonGradient className="ms-4" disabled={processing}>
                         Register
-                    </PrimaryButton>
+                    </ButtonGradient>
                 </div>
             </form>
         </GuestLayout>
