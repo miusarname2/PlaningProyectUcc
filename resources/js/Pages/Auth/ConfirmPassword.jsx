@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
+import ButtonGradient from '@/Components/ButtonGradient';
 import TextInput from '@/Components/TextInput';
 import { Head, useForm } from '@inertiajs/react';
 
@@ -49,9 +49,9 @@ export default function ConfirmPassword() {
                 </div>
 
                 <div className="flex items-center justify-end mt-4">
-                    <PrimaryButton className="ms-4" disabled={processing}>
+                    <ButtonGradient className="ms-4" disabled={processing}>
                         Confirm
-                    </PrimaryButton>
+                    </ButtonGradient>
                 </div>
             </form>
         </GuestLayout>
