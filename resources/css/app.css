@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root{
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --input: 214.3 31.8% 91.4%;
+}
+
+html {
+    font-size: 1.167rem;
+}
+
+.text-muted-foreground {
+    color: hsl(var(--muted-foreground));
+}
+
+.border-input {
+    border-color: hsl(var(--input));
+  }
