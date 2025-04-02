@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('Hora', function (Blueprint $table) {
-            $table->increments('idHora');
-            $table->time('hora');
+        Schema::create('regions', function (Blueprint $table) {
+            $table->id();
             $table->timestamps();
         });
     }
@@ -23,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('Hora');
+        Schema::dropIfExists('regions');
     }
 };

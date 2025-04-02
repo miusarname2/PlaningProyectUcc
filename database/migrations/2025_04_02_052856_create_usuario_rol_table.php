@@ -11,16 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('Usuarios_Grupos', function (Blueprint $table) {
+        Schema::create('usuario_rol', function (Blueprint $table) {
             $table->unsignedInteger('idUsuario');
-            $table->unsignedInteger('idGrupo');
+            $table->unsignedInteger('idRol');
+            $table->primary(['idUsuario','idRol']);
 
-            // Definir la llave primaria compuesta
-            $table->primary(['idUsuario', 'idGrupo']);
-
-            // Claves foráneas
             $table->foreign('idUsuario')->references('idUsuario')->on('Usuario')->onDelete('cascade');
-            $table->foreign('idGrupo')->references('idGrupo')->on('Grupo')->onDelete('cascade');
+            $table->foreign('idRol')->references('idRol')->on('Rol')->onDelete('cascade');
         });
     }
 
@@ -29,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('Usuarios_Grupos');
+        Schema::dropIfExists('usuario_rol');
     }
 };

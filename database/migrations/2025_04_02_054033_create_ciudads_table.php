@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('Dia', function (Blueprint $table) {
-            $table->increments('idDia');
-            $table->string('nombre', 100)->unique();
+        Schema::create('ciudads', function (Blueprint $table) {
+            $table->id();
             $table->timestamps();
         });
     }
@@ -23,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('Dia');
+        Schema::dropIfExists('ciudads');
     }
 };

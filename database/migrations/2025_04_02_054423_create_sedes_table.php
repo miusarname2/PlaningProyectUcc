@@ -11,10 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('rol', function (Blueprint $table) {
-            $table->increments('idRol');
-            $table->string('nombre', 100)->unique();
-            $table->text('descripcion')->nullable();
+        Schema::create('sedes', function (Blueprint $table) {
+            $table->id();
             $table->timestamps();
         });
     }
@@ -24,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('rol');
+        Schema::dropIfExists('sedes');
     }
 };

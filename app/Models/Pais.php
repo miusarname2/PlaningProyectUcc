@@ -5,21 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Aula extends Model
+class Pais extends Model
 {
     use HasFactory;
 
-    protected $table = 'Aula';
+    protected $table ='Pais';
 
-    protected $primaryKey = 'idAula';
+    protected $primaryKey = 'idPais';
 
     protected $fillable = [
         'nombre',
         'descripcion'
     ];
 
-    public function usuarios()
+    public function regiones()
     {
-        return $this->belongsToMany(Usuario::class, 'Usuarios_Grupos', 'idGrupo', 'idUsuario');
+        return $this->hasMany(Region::class,'idPais','idPais');
     }
+
 }

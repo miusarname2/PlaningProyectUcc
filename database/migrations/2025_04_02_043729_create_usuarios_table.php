@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('usuario', function (Blueprint $table) {
+        Schema::create('Usuario', function (Blueprint $table) {
             $table->increments('idUsuario');
-            $table->string('nombre', 100);
-            $table->string('password', 255);
-            $table->unsignedInteger('idRol');
-            $table->foreign('idRol')->references('idRol')->on('rol')->onDelete('cascade');
+            $table->string('username',50);
+            $table->string('email',100)->unique();
+            $table->enum('estado', ['Activo','Inactivo']);
+            $table->dateTime('ultimoAcceso');
+            $table->string('nombreCompleto',100);
+            $table->string('password');
             $table->timestamps();
         });
     }
@@ -26,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('usuario');
+        Schema::dropIfExists('Usuario');
     }
 };

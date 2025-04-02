@@ -14,19 +14,26 @@ class Usuario extends Model
     protected $primaryKey = 'idUsuario';
 
     protected $fillable = [
-        'nombre',
+        'username',
+        'email',
+        'estado',
         'password',
-        'idRol'
+        'nombreCompleto',
+        'ultimoAcceso'
     ];
 
-    public function rol()
+    protected $hidden = [
+        'password',
+    ];
+
+    public function roles()
     {
-        return $this->belongsTo(Rol::class, 'idRol', 'idRol');
+        return $this->belongsToMany(Rol::class,'usuario_rol','idUsuario','idRol');
     }
 
-    public function grupos()
+    public function usuarioPerfil()
     {
-        return $this->belongsToMany(Grupo::class, 'Usuarios_Grupos', 'idUsuario', 'idGrupo');
+        return $this->hasOne(UsuarioPerfil::class,'idUsuario','idUsuario');
     }
 
 }
