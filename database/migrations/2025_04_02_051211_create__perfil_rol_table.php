@@ -15,8 +15,8 @@ return new class extends Migration
             $table->unsignedInteger('idPerfil');
             $table->unsignedInteger('idRol');
 
-            $table->foreign('idPerfil')->references('idPerfil')->on('Perfil')->onDelete('cascade');
-            $table->foreign('idRol')->references('idRol')->on('Rol')->onDelete('cascade');
+            $table->foreign('idPerfil')->references('idPerfil')->on('perfil')->onDelete('cascade');
+            $table->foreign('idRol')->references('idRol')->on('rol')->onDelete('cascade');
         });
     }
 
