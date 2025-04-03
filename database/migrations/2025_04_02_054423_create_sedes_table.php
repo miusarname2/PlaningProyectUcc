@@ -19,7 +19,7 @@ return new class extends Migration
             $table->enum('tipo', ['Virtual', 'Física']);
             $table->string('acceso', 255)->nullable();
             $table->unsignedInteger('idCiudad')->nullable();
-            $table->foreign('idCiudad')->references('idCiudad')->on('ciudades')->onDelete('set null');
+            $table->foreign('idCiudad')->references('idCiudad')->on('ciudad')->onDelete('set null');
             $table->timestamps();
         });
     }

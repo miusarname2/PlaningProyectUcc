@@ -13,10 +13,9 @@ return new class extends Migration
     {
         Schema::create('usuario_perfil', function (Blueprint $table) {
             $table->unsignedInteger('idUsuario')->primary();
-            $table->unsignedInteger('idPerfil')->primary();
-
-            $table->foreign('idUsuario')->references('idUsuario')->on('Usuario')->onDelete('cascade');
-            $table->foreign('idPerfil')->references('idPerfil')->on('Perfil')->onDelete('cascade');
+            $table->unsignedInteger('idPerfil')->nullable();
+            $table->foreign('idUsuario')->references('idUsuario')->on('usuario')->onDelete('cascade');
+            $table->foreign('idPerfil')->references('idPerfil')->on('perfil')->onDelete('set null');
         });
     }
 
