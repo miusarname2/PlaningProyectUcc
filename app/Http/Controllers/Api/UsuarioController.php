@@ -6,7 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\PersonalAccessToken;
+
 
 class UsuarioController extends Controller
 {
@@ -15,8 +19,15 @@ class UsuarioController extends Controller
      */
     public function index()
     {
-        $usuarios = Usuario::with('roles')->get();
-        return response()->json($usuarios);
+        try {
+            $usuarios = Usuario::with('roles')->get();
+            return response()->json($usuarios);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Ocurrió un error al obtener los usuarios',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -24,16 +35,26 @@ class UsuarioController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'nombre_usuario' => 'required|string|max:50',
-            'email'          => 'required|email|max:100|unique:usuarios,email',
-            'password'       => 'required|string|min:6', // campo password
-            'estado'         => 'required|in:Activo,Inactivo',
-            // Si deseas agregar ultimo_acceso, se puede enviar o asignar null
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'username' => 'required|string|max:50',
+                'nombreCompleto'=>'required|string|max:60',
+                'email'          => 'required|email|max:100|unique:usuario,email',
+                'password'       => 'required|string|min:6',
+                'estado'         => 'required|in:Activo,Inactivo',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $e->errors()
+            ], 422);
+        }
 
         // Hashea la contraseña antes de guardarla
         $validatedData['password'] = Hash::make($validatedData['password']);
+
+        $validatedData['ultimoAcceso'] = now();
 
         $usuario = Usuario::create($validatedData);
         return response()->json($usuario, 201);
@@ -56,7 +77,8 @@ class UsuarioController extends Controller
         $usuario = Usuario::findOrFail($id);
 
         $rules = [
-            'nombre_usuario' => 'sometimes|required|string|max:50',
+            'username'  => 'sometimes|required|string|max:50',
+            'nombreCompleto' =>'sometimes|required|string|max:60',
             'email'          => "sometimes|required|email|max:100|unique:usuarios,email,{$usuario->id_usuario},idUsuario",
             'estado'         => 'sometimes|required|in:Activo,Inactivo',
             'password'       => 'sometimes|required|string|min:6'
@@ -93,27 +115,34 @@ class UsuarioController extends Controller
             'email'    => 'required|email',
             'password' => 'required|string'
         ]);
-
+        
         // Buscar el usuario por email
         $usuario = Usuario::where('email', $credentials['email'])->first();
 
         // Verificar que el usuario exista y que la contraseña sea correcta
         if (!$usuario || !Hash::check($credentials['password'], $usuario->password)) {
-            // Puedes optar por arrojar una excepción de validación
-            throw ValidationException::withMessages([
-                'message' => ['Las credenciales son incorrectas.'],
-            ]);
-        }
+            return response()->json([
+                'success' => false,
+                'message' => 'Las credenciales proporcionadas son incorrectas.',
+                'errors' => [
+                    'email' => ['Verifica tu correo y contraseña e intenta nuevamente.']
+                ]
+            ], 401);
+        }        
 
         // Actualizar el último acceso
-        $usuario->ultimo_acceso = now();
+        $usuario->ultimoAcceso = now();
         $usuario->save();
+
+        $token = $usuario->createToken('auth_token')->plainTextToken;
 
         // Aquí podrías generar y devolver un token de autenticación (ej. JWT o Sanctum)
         // En este ejemplo retornamos el usuario autenticado junto con sus roles
         return response()->json([
             'message' => 'Login exitoso',
-            'usuario' => $usuario->load('roles')
+            'usuario' => $usuario->load('roles'),
+            'token' => $token,
+            'token_type' => 'Bearer'
         ]);
     }
 
