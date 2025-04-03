@@ -26,7 +26,7 @@ class Ciudad extends Model
 
     public function sedes()
     {
-        return $this->hasMany(Sedes::class,'idCiudad','idCiudad');
+        return $this->hasMany(Sede::class,'idCiudad','idCiudad');
     }
 
 }

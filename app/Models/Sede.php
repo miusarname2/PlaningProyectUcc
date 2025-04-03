@@ -8,4 +8,23 @@ use Illuminate\Database\Eloquent\Model;
 class Sede extends Model
 {
     use HasFactory;
+
+    protected $table = 'Sede';
+
+    protected $primaryKey = 'idSede';
+
+    protected $fillable = [
+        'codigo',
+        'nombre',
+        'descripcion',
+        'tipo',
+        'acceso',
+        'idCiudad'
+    ];
+
+    public function ciudad()
+    {
+        return $this->belongsTo(Sede::class,'idCiudad','idCiudad');
+    }
+
 }
