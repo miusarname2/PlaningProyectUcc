@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('Perfil', function (Blueprint $table) {
+        Schema::create('perfil', function (Blueprint $table) {
             $table->increments('idPerfil');
             $table->string('nombre',50);
             $table->text('descripcion')->nullable();
