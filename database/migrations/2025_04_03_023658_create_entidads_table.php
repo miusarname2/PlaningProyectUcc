@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sede', function (Blueprint $table) {
-            $table->increments('idSede');
+        Schema::create('entidad', function (Blueprint $table) {
+            $table->increments('idEntidad');
             $table->string('codigo', 20)->unique();
             $table->string('nombre', 100);
             $table->text('descripcion')->nullable();
-            $table->enum('tipo', ['Virtual', 'Física']);
-            $table->string('acceso', 255)->nullable();
-            $table->unsignedInteger('idCiudad')->nullable();
-            $table->foreign('idCiudad')->references('idCiudad')->on('ciudades')->onDelete('set null');
+            $table->enum('estado', ['Activo', 'Inactivo']);
+            $table->string('contacto', 100)->nullable();
             $table->timestamps();
         });
     }
@@ -29,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sede');
+        Schema::dropIfExists('entidad');
     }
 };
