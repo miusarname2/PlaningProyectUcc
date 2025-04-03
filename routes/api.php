@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\UsuarioController;
+use App\Http\Controllers\Api\VariablesEntornoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -16,12 +17,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('login', [UsuarioController::class, 'login']);
-Route::post('register', [UsuarioController::class, 'store']);
+Route::post('register',[UsuarioController::class,'store']);
 Route::middleware('auth:sanctum')->group(function () {
-    Route::put('user/{id}', [UsuarioController::class, 'update']);
-    Route::delete('user/{id}', [UsuarioController::class, 'destroy']);
-    Route::post('logout', [UsuarioController::class, 'closeSession']);
-});
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    Route::resource('user',UsuarioController::class);
+    
+    // Si tienes rutas adicionales que quieras proteger, como por ejemplo:
+    Route::get('users/{user}/permisos', [UsuarioController::class, 'permisos']);
 });
