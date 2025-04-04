@@ -39,7 +39,7 @@ class UsuarioController extends Controller
         try {
             $validatedData = $request->validate([
                 'username' => 'required|string|max:50',
-                'nombreCompleto'=>'required|string|max:60',
+                'nombreCompleto' => 'required|string|max:60',
                 'email'          => 'required|email|max:100|unique:usuario,email',
                 'password'       => 'required|string|min:6',
                 'estado'         => 'required|in:Activo,Inactivo',
@@ -79,7 +79,7 @@ class UsuarioController extends Controller
 
         $rules = [
             'username'  => 'sometimes|required|string|max:50',
-            'nombreCompleto' =>'sometimes|required|string|max:60',
+            'nombreCompleto' => 'sometimes|required|string|max:60',
             'email'          => "sometimes|required|email|max:100|unique:usuarios,email,{$usuario->id_usuario},idUsuario",
             'estado'         => 'sometimes|required|in:Activo,Inactivo',
             'password'       => 'sometimes|required|string|min:6'
@@ -87,7 +87,7 @@ class UsuarioController extends Controller
 
         $validatedData = $request->validate($rules);
 
-        if(isset($validatedData['password'])) {
+        if (isset($validatedData['password'])) {
             // Hashear nueva contraseña si se envía
             $validatedData['password'] = Hash::make($validatedData['password']);
         }
@@ -116,32 +116,24 @@ class UsuarioController extends Controller
             'email'    => 'required|email',
             'password' => 'required|string'
         ]);
-        
-        // Buscar el usuario por email
-        $usuario = Usuario::where('email', $credentials['email'])->first();
 
-        // Verificar que el usuario exista y que la contraseña sea correcta
-        if (!$usuario || !Hash::check($credentials['password'], $usuario->password)) {
+        // Intenta autenticar al usuario usando la sesión
+        if (!Auth::attempt($credentials)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Las credenciales proporcionadas son incorrectas.',
-                'errors' => [
-                    'email' => ['Verifica tu correo y contraseña e intenta nuevamente.']
-                ]
+                'message' => 'Credenciales incorrectas',
+                'errors' => ['email' => ['Verifica tus credenciales']]
             ], 401);
-        }        
+        }
 
-        // Actualizar el último acceso
+        // Usuario autenticado (sesión activa)
+        $usuario = Auth::user();
         $usuario->ultimoAcceso = now();
         $usuario->save();
 
-        Auth::login($usuario);
-        $request->session()->regenerate();
-
+        // Genera token de API (Sanctum)
         $token = $usuario->createToken('auth_token')->plainTextToken;
 
-        // Aquí podrías generar y devolver un token de autenticación (ej. JWT o Sanctum)
-        // En este ejemplo retornamos el usuario autenticado junto con sus roles
         return response()->json([
             'message' => 'Login exitoso',
             'usuario' => $usuario->load('roles'),
