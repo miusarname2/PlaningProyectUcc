@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post('login', [UsuarioController::class, 'login']);
+Route::post('/login', [UsuarioController::class, 'login'])->middleware('web');
 Route::post('register',[UsuarioController::class,'store']);
 Route::resource('ciudad', CiudadController::class);
 Route::resource('departamento', DepartamentoController::class);
