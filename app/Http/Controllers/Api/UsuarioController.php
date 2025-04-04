@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Usuario;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,7 @@ class UsuarioController extends Controller
         try {
             $usuarios = Usuario::with('roles')->get();
             return response()->json($usuarios);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error' => 'Ocurrió un error al obtener los usuarios',
                 'message' => $e->getMessage()
