@@ -9,7 +9,7 @@ class Region extends Model
 {
     use HasFactory;
 
-    protected $table = 'Region';
+    protected $table = 'region';
 
     protected $primaryKey = 'idRegion';
 

@@ -9,7 +9,7 @@ class Ciudad extends Model
 {
     use HasFactory;
 
-    protected $table = 'Ciudad';
+    protected $table = 'ciudad';
 
     protected $primaryKey = 'idCiudad';
 
