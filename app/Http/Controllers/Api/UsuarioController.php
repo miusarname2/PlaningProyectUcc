@@ -135,6 +135,9 @@ class UsuarioController extends Controller
         $usuario->ultimoAcceso = now();
         $usuario->save();
 
+        Auth::login($usuario);
+        $request->session()->regenerate();
+
         $token = $usuario->createToken('auth_token')->plainTextToken;
 
         // Aquí podrías generar y devolver un token de autenticación (ej. JWT o Sanctum)
