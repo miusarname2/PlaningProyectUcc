@@ -1,42 +1,68 @@
 import { useEffect } from 'react';
-// import Checkbox from '@/Components/Checkbox';
+import axios from "axios";
 import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import ButtonGradient from '@/Components/ButtonGradient';
 import TextInput from '@/Components/TextInput';
 import PasswordInputWithToggle from '@/Components/PasswordInputWithToggle'
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
+import { encrypOrDesencrypAES } from '@/utils/generalFunctions';
+
 
 export default function Login({ status, canResetPassword }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, processing, errors, reset, setError } = useForm({
         email: '',
-        password: '',
-        remember: false,
+        password: ''
     });
 
     useEffect(() => {
         return () => {
+            // reset('email');
             reset('password');
         };
     }, []);
 
-    const submit = (e) => {
+    const submit = async (e) => {
         e.preventDefault();
 
-        post(route('login'));
+        try {
+            axios.defaults.withCredentials = true;
+            const response = await axios.post("http://127.0.0.1:8000/api/login", {
+                email: data.email,
+                password: data.password,
+            })
+            const encryptedToken = await encrypOrDesencrypAES(response.data.token);
+            localStorage.setItem("token", encryptedToken);
+            localStorage.setItem("Username", response.data.usuario.username);
+            localStorage.setItem("Email", response.data.usuario.email);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+            window.location.href = '/dashboard';
+            // router.visit('/dashboard')
+        } catch (error) {
+            if (error.response && error.response.data.errors) {
+                const errors = error.response.data.errors;
+                if (errors.email) {
+                    setError("email", errors.email[0]);
+                }
+    
+                if (errors.password) {
+                    setError("password", errors.password[0]);
+                }
+            } else {
+                console.error("Error inesperado:", error.message);
+                setError("email", "Error de conexión con el servidor");
+            }
+        }
     };
 
     return (
         <GuestLayout>
             <Head title="Log in" />
-
             {status && <div className="mb-4 font-medium text-sm text-green-600">{status}</div>}
-
             <form onSubmit={submit}>
                 <div>
                     <InputLabel htmlFor="email" value="Email" />
-
                     <TextInput
                         id="email"
                         type="email"
