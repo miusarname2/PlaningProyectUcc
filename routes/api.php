@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\CiudadController;
+use App\Http\Controllers\Api\DepartamentoController;
 use App\Http\Controllers\Api\UsuarioController;
 use App\Http\Controllers\Api\VariablesEntornoController;
+use App\Models\Departamento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +21,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('login', [UsuarioController::class, 'login']);
 Route::post('register',[UsuarioController::class,'store']);
+Route::resource('ciudad', CiudadController::class);
+Route::resource('departamento', DepartamentoController::class);
 Route::middleware('auth:sanctum')->group(function () {
     Route::resource('user',UsuarioController::class);
     
