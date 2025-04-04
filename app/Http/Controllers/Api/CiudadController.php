@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Ciudad;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class CiudadController extends Controller
 {
@@ -22,11 +23,19 @@ class CiudadController extends Controller
      */
     public function store(Request $request)
     {
-        $validateData = $request->validate([
-            'nombre'       => 'required|string|max:100',
-            'codigo_postal' => 'nullable|string|max:10',
-            'id_region'    => 'required|exists:regiones,id_region'
-        ]);
+        try {
+            $validateData = $request->validate([
+                'nombre'       => 'required|string|max:100',
+                'codigoPostal' => 'nullable|string|max:10',
+                'idRegion'    => 'required|exists:regiones,id_region'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $e->errors()
+            ], 422);
+        }
 
         $ciudad = Ciudad::create($validateData);
         return response()->json($ciudad, 201);
