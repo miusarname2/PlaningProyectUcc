@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Profesional;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ProfesionalController extends Controller
 {
@@ -22,17 +23,25 @@ class ProfesionalController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'codigo'=> "required|string|max:100",
-            'nombreCompleto'=> "required|string|max:100",
-            'email'=>"required|email|unique:profesional,email",
-            'titulo'=> "required|string|max:200",
-            'experiencia'=> "required|integer",
-            'estado'=> "required|string",
-            'perfil'=> "nullable|string",
-            'especialidades'=> "nullable|array",
-            'especialidades.*' => 'integer|exists:especialidades,idEspecialidad'
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'codigo'=> "required|string|max:100",
+                'nombreCompleto'=> "required|string|max:100",
+                'email'=>"required|email|unique:profesional,email",
+                'titulo'=> "required|string|max:200",
+                'experiencia'=> "required|integer",
+                'estado'=> "required|string",
+                'perfil'=> "nullable|string",
+                'especialidades'=> "nullable|array",
+                'especialidades.*' => 'integer|exists:especialidades,idEspecialidad'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $e->errors()
+            ], 422);
+        }
 
         $profesional = Profesional::create($validatedData);
 

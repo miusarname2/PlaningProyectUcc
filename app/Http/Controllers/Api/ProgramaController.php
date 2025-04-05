@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Programa;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ProgramaController extends Controller
 {
@@ -22,14 +23,22 @@ class ProgramaController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'codigo'        => 'required|string|max:255',
-            'nombre'        => 'required|string|max:255',
-            'descripcion'   => 'nullable|string',
-            'duracion'      => 'required|string|max:255',
-            'idEspecialidad' => 'required|integer|exists:especialidades,idEspecialidad',
-            'estado'        => 'required|string'
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'codigo'        => 'required|string|max:255',
+                'nombre'        => 'required|string|max:255',
+                'descripcion'   => 'nullable|string',
+                'duracion'      => 'required|string|max:255',
+                'idEspecialidad' => 'required|integer|exists:especialidades,idEspecialidad',
+                'estado'        => 'required|string'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $e->errors()
+            ], 422);
+        }
 
         $programa = Programa::create($validatedData);
         $programa->load('especialidad');

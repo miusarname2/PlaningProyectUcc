@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\VariablesEntorno;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class VariablesEntornoController extends Controller
 {
@@ -22,12 +23,20 @@ class VariablesEntornoController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            "nombre"=> "required|string",
-            'valor'=> "required|string"
-        ]);
+        try {
+            $validatedData = $request->validate([
+                "nombre" => "required|string",
+                'valor' => "required|string"
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $e->errors()
+            ], 422);
+        }
 
-        $variableEntorno= VariablesEntorno::create($validatedData);
+        $variableEntorno = VariablesEntorno::create($validatedData);
 
         return response()->json($variableEntorno);
     }
@@ -49,8 +58,8 @@ class VariablesEntornoController extends Controller
         $variableEntorno = VariablesEntorno::findOrFail($id);
 
         $validatedData = $request->validate([
-            'nombre'=> "sometimes|required|string",
-            'valor'=> "sometimes|required|string"
+            'nombre' => "sometimes|required|string",
+            'valor' => "sometimes|required|string"
         ]);
 
         $variableEntorno->update($validatedData);
@@ -66,6 +75,6 @@ class VariablesEntornoController extends Controller
         $variableEntorno = VariablesEntorno::findOrFail($id);
         $variableEntorno->delete();
 
-        return response()->json(["message"=> "VariableEntorno Deleted"]);
+        return response()->json(["message" => "VariableEntorno Deleted"]);
     }
 }

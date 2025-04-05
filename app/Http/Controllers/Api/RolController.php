@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Rol;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class RolController extends Controller
 {
@@ -22,11 +23,19 @@ class RolController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'nombre'      => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'permisos'    => 'required|string'
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'nombre'      => 'required|string|max:255',
+                'descripcion' => 'nullable|string',
+                'permisos'    => 'required|string'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $e->errors()
+            ], 422);
+        }
 
         $rol = Rol::create($validatedData);
 

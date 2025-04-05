@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Pais;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class PaisController extends Controller
 {
@@ -22,10 +23,18 @@ class PaisController extends Controller
      */
     public function store(Request $request)
     {
-        $validateData = $request->validate([
-            'nombre'=> "required|string|max:200",
-            'descripcion' => "nullable|string"
-        ]);
+        try {
+            $validateData = $request->validate([
+                'nombre'=> "required|string|max:200",
+                'descripcion' => "nullable|string"
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $e->errors()
+            ], 422);
+        }
 
         $pais = Pais::create($validateData);
         $pais->load("regiones");

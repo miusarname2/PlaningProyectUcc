@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\UsuarioPerfil;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class UsuarioPerfilController extends Controller
 {
@@ -22,10 +23,18 @@ class UsuarioPerfilController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'idUsuario' => 'required|integer|exists:usuarios,idUsuario',
-            'idPerfil'  => 'required|integer|exists:perfiles,idPerfil'
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'idUsuario' => 'required|integer|exists:usuarios,idUsuario',
+                'idPerfil'  => 'required|integer|exists:perfiles,idPerfil'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $e->errors()
+            ], 422);
+        }
 
         $usuarioPerfil = UsuarioPerfil::create($validatedData);
         $usuarioPerfil->load(['usuario', 'perfil']);

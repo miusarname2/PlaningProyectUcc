@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Especialidad;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class EspecialidadController extends Controller
 {
@@ -23,13 +24,21 @@ class EspecialidadController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'nombre' => "required|string|max:200",
-            'codigo' => "required|string|max:100|unique:epecialidad,codigo",
-            'descripcion' => "nullable|string",
-            'idDepartamento' => "required|exists:departamento,idDepartamento",
-            'estado' => "required|boolean"
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'nombre' => "required|string|max:200",
+                'codigo' => "required|string|max:100|unique:epecialidad,codigo",
+                'descripcion' => "nullable|string",
+                'idDepartamento' => "required|exists:departamento,idDepartamento",
+                'estado' => "required|boolean"
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $e->errors()
+            ], 422);
+        }
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);

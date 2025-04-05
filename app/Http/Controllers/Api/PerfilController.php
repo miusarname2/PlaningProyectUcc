@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Perfil;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class PerfilController extends Controller
 {
@@ -22,10 +23,18 @@ class PerfilController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'nombre'=>"required|string|max:200",
-            'descripcion'=> "nullable|string"
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'nombre'=>"required|string|max:200",
+                'descripcion'=> "nullable|string"
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $e->errors()
+            ], 422);
+        }
 
         $perfil = Perfil::create($validatedData);
 

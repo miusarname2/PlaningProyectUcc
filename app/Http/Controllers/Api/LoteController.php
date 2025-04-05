@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Lote;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class LoteController extends Controller
 {
@@ -22,15 +23,23 @@ class LoteController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'codigo'        => 'required|string|max:255',
-            'nombre'        => 'required|string|max:255',
-            'idPrograma'    => 'required|integer|exists:programas,idPrograma',
-            'fechaInicio'   => 'required|date',
-            'FechaFin'      => 'required|date',
-            'numEstudiantes'=> 'required|integer',
-            'estado'        => 'required|string'
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'codigo'        => 'required|string|max:255',
+                'nombre'        => 'required|string|max:255',
+                'idPrograma'    => 'required|integer|exists:programas,idPrograma',
+                'fechaInicio'   => 'required|date',
+                'FechaFin'      => 'required|date',
+                'numEstudiantes'=> 'required|integer',
+                'estado'        => 'required|string'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $e->errors()
+            ], 422);
+        }
 
         $lote = Lote::create($validatedData);
         // Cargamos la relación del programa
