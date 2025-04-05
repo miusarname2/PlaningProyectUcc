@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Sede;
 use Illuminate\Http\Request;
 
 class SedeController extends Controller
@@ -12,7 +13,9 @@ class SedeController extends Controller
      */
     public function index()
     {
-        //
+        $sede = Sede::with('ciudad')->get();
+
+        return response()->json($sede);
     }
 
     /**
@@ -20,7 +23,19 @@ class SedeController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'codigo'    => 'required|string|max:255',
+            'nombre'    => 'required|string|max:255',
+            'descripcion' => 'nullable|string',
+            'tipo'      => 'required|string',
+            'acceso'    => 'required|string',
+            'idCiudad'  => 'required|integer|exists:ciudades,idCiudad'
+        ]);
+
+        $sede = Sede::create($validatedData);
+        $sede->load('ciudad');
+
+        return response()->json($sede, 201);
     }
 
     /**
@@ -28,7 +43,8 @@ class SedeController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $sede = Sede::with('ciudad')->findOrFail($id);
+        return response()->json($sede);
     }
 
     /**
@@ -36,7 +52,21 @@ class SedeController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $sede = Sede::findOrFail($id);
+
+        $validatedData = $request->validate([
+            'codigo'    => 'sometimes|required|string|max:255',
+            'nombre'    => 'sometimes|required|string|max:255',
+            'descripcion' => 'sometimes|nullable|string',
+            'tipo'      => 'sometimes|required|string',
+            'acceso'    => 'sometimes|required|string',
+            'idCiudad'  => 'sometimes|required|integer|exists:ciudades,idCiudad'
+        ]);
+
+        $sede->update($validatedData);
+        $sede->load('ciudad');
+
+        return response()->json($sede);
     }
 
     /**
@@ -44,6 +74,9 @@ class SedeController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $sede = Sede::findOrFail($id);
+        $sede->delete();
+
+        return response()->json(['message' => 'Sede Deleted Successfully']);
     }
 }

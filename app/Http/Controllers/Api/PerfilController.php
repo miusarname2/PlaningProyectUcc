@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Perfil;
 use Illuminate\Http\Request;
 
 class PerfilController extends Controller
@@ -12,7 +13,8 @@ class PerfilController extends Controller
      */
     public function index()
     {
-        //
+        $perfiles = Perfil::with("roles")->get();
+        return response()->json($perfiles);
     }
 
     /**
@@ -20,7 +22,16 @@ class PerfilController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'nombre'=>"required|string|max:200",
+            'descripcion'=> "nullable|string"
+        ]);
+
+        $perfil = Perfil::create($validatedData);
+
+        $perfil->load("roles");
+
+        return response()->json($perfil,201);
     }
 
     /**
@@ -28,7 +39,8 @@ class PerfilController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $perfil = Perfil::with("roles")->findOrFail($id);
+        return response()->json($perfil);
     }
 
     /**
@@ -36,7 +48,16 @@ class PerfilController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $perfil = Perfil::findOrFail($id);
+        $validatedData = $request->validate([
+            'nombre'=> "sometimes|required|string|200",
+            'descripcion'=> "sometimes|nullable|string|"
+        ]);
+
+        $perfil->update($validatedData);
+        $perfil->load("roles");
+        
+        return response()->json($perfil);
     }
 
     /**
@@ -44,6 +65,10 @@ class PerfilController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $pais = Perfil::findOrFail($id);
+
+        $pais->delete();
+
+        return response()->json(['message'=>"Perfil Deleted"]);
     }
 }

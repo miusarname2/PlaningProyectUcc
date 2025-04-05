@@ -47,8 +47,7 @@ class CursoController extends Controller
 
     /**
      * Display the specified resource.
-     */
-    public function show(string $id)
+     */     public function show(string $id)
     {
         $curso = Curso::findOrFail($id);
         return response()->json($curso);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Pais;
 use Illuminate\Http\Request;
 
 class PaisController extends Controller
@@ -12,7 +13,8 @@ class PaisController extends Controller
      */
     public function index()
     {
-        //
+        $lotes = Pais::with("regiones")->get();
+        return response()->json($lotes);
     }
 
     /**
@@ -20,7 +22,15 @@ class PaisController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validateData = $request->validate([
+            'nombre'=> "required|string|max:200",
+            'descripcion' => "nullable|string"
+        ]);
+
+        $pais = Pais::create($validateData);
+        $pais->load("regiones");
+
+        return response()->json($pais,201);
     }
 
     /**
@@ -28,7 +38,8 @@ class PaisController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $pais = Pais::with("regiones")->findOrFail($id);
+        return response()->json($pais);
     }
 
     /**
@@ -36,7 +47,16 @@ class PaisController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $pais = Pais::findOrFail($id);
+        $validateData = $request->validate([
+            'nombre'=> "sometimes|required|string|max:255",
+            'descripcion'=> "sometimes|nullable|string"
+        ]);
+
+        $pais->update($validateData);
+        $pais->load("regiones");
+
+        return response()->json($pais,200);
     }
 
     /**
@@ -44,6 +64,10 @@ class PaisController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $pais = Pais::findOrFail($id);
+
+        $pais->delete();
+
+        return response()->json(['message'=>"Pais Deleted success"],200);
     }
 }

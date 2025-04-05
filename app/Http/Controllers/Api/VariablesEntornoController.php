@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\VariablesEntorno;
 use Illuminate\Http\Request;
 
 class VariablesEntornoController extends Controller
@@ -12,7 +13,8 @@ class VariablesEntornoController extends Controller
      */
     public function index()
     {
-        return response()->json(['HOla'=>'mundo']);
+        $variableEntorno = VariablesEntorno::all();
+        return response()->json($variableEntorno);
     }
 
     /**
@@ -20,7 +22,14 @@ class VariablesEntornoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            "nombre"=> "required|string",
+            'valor'=> "required|string"
+        ]);
+
+        $variableEntorno= VariablesEntorno::create($validatedData);
+
+        return response()->json($variableEntorno);
     }
 
     /**
@@ -28,7 +37,8 @@ class VariablesEntornoController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $variableEntorno = VariablesEntorno::findOrFail($id);
+        return response()->json($variableEntorno);
     }
 
     /**
@@ -36,7 +46,16 @@ class VariablesEntornoController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $variableEntorno = VariablesEntorno::findOrFail($id);
+
+        $validatedData = $request->validate([
+            'nombre'=> "sometimes|required|string",
+            'valor'=> "sometimes|required|string"
+        ]);
+
+        $variableEntorno->update($validatedData);
+
+        return response()->json($variableEntorno);
     }
 
     /**
@@ -44,6 +63,9 @@ class VariablesEntornoController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $variableEntorno = VariablesEntorno::findOrFail($id);
+        $variableEntorno->delete();
+
+        return response()->json(["message"=> "VariableEntorno Deleted"]);
     }
 }

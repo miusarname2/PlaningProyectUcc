@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Region;
 use Illuminate\Http\Request;
 
 class RegionController extends Controller
@@ -12,7 +13,8 @@ class RegionController extends Controller
      */
     public function index()
     {
-        //
+        $regions = Region::with(['pais', 'Ciudades'])->get();
+        return response()->json($regions);
     }
 
     /**
@@ -20,7 +22,15 @@ class RegionController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'nombre'=> "required|string|max:255",
+            'descripcion'=> "nullable|string",
+            'idPais'=> "required|integer|exists:pais,idPais"
+        ]);
+        $region = Region::create($validatedData);
+        $region->load(['pais','Ciudades']);
+
+        return response()->json($region,201);
     }
 
     /**
@@ -28,7 +38,8 @@ class RegionController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $region = Region::with(['pais', 'Ciudades'])->findOrFail($id);
+        return response()->json($region);
     }
 
     /**
@@ -36,7 +47,17 @@ class RegionController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $region = Region::findOrFail($id);
+        $validatedData = $request->validate([
+            'nombre'      => 'sometimes|required|string|max:255',
+            'descripcion' => 'sometimes|nullable|string',
+            'idPais'      => 'sometimes|required|integer|exists:Pais,idPais'
+        ]);
+
+        $region->update($validatedData);
+        $region->load(['pais','Ciudades']);
+
+        return response()->json($region);
     }
 
     /**
@@ -44,6 +65,9 @@ class RegionController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $region = Region::findOrFail($id);
+        $region->delete();
+
+        return response()->json(['message'=> 'Region Deleted Successfull']);
     }
 }

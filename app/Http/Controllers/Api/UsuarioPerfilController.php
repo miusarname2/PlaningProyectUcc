@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\UsuarioPerfil;
 use Illuminate\Http\Request;
 
 class UsuarioPerfilController extends Controller
@@ -12,7 +13,8 @@ class UsuarioPerfilController extends Controller
      */
     public function index()
     {
-        //
+        $usuarioPerfil = UsuarioPerfil::with(['usuario', 'perfil'])->get();
+        return response()->json($usuarioPerfil);
     }
 
     /**
@@ -20,7 +22,15 @@ class UsuarioPerfilController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'idUsuario' => 'required|integer|exists:usuarios,idUsuario',
+            'idPerfil'  => 'required|integer|exists:perfiles,idPerfil'
+        ]);
+
+        $usuarioPerfil = UsuarioPerfil::create($validatedData);
+        $usuarioPerfil->load(['usuario', 'perfil']);
+
+        return response()->json($usuarioPerfil, 201);
     }
 
     /**
@@ -28,7 +38,8 @@ class UsuarioPerfilController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $usuarioPerfil = UsuarioPerfil::with(['usuario', 'perfil'])->findOrFail($id);
+        return response()->json($usuarioPerfil, 200);
     }
 
     /**
@@ -36,7 +47,17 @@ class UsuarioPerfilController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $usuarioPerfil = UsuarioPerfil::findOrFail($id);
+
+        $validatedData = $request->validate([
+            'idUsuario' => 'sometimes|required|integer|exists:usuarios,idUsuario',
+            'idPerfil'  => 'sometimes|required|integer|exists:perfiles,idPerfil'
+        ]);
+
+        $usuarioPerfil->update($validatedData);
+        $usuarioPerfil->load(['usuario', 'perfil']);
+
+        return response()->json($usuarioPerfil);
     }
 
     /**
@@ -44,6 +65,9 @@ class UsuarioPerfilController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $usuarioPerfil = UsuarioPerfil::findOrFail($id);
+        $usuarioPerfil->delete();
+
+        return response()->json(['message' => "UsuarioPefil deleted successfully"], 200);
     }
 }

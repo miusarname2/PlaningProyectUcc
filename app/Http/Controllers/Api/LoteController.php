@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Lote;
 use Illuminate\Http\Request;
 
 class LoteController extends Controller
@@ -12,7 +13,8 @@ class LoteController extends Controller
      */
     public function index()
     {
-        //
+        $lotes = Lote::with("programa")->get();
+        return response()->json($lotes);
     }
 
     /**
@@ -20,7 +22,21 @@ class LoteController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'codigo'        => 'required|string|max:255',
+            'nombre'        => 'required|string|max:255',
+            'idPrograma'    => 'required|integer|exists:programas,idPrograma',
+            'fechaInicio'   => 'required|date',
+            'FechaFin'      => 'required|date',
+            'numEstudiantes'=> 'required|integer',
+            'estado'        => 'required|string'
+        ]);
+
+        $lote = Lote::create($validatedData);
+        // Cargamos la relación del programa
+        $lote->load('programa');
+
+        return response()->json($lote, 201);
     }
 
     /**
@@ -28,7 +44,8 @@ class LoteController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $lote = Lote::with("programa")->findOrFail($id);
+        return response()->json($lote);
     }
 
     /**
@@ -36,7 +53,22 @@ class LoteController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $lote = Lote::findOrFail($id);
+
+        $validatedData = $request->validate([
+            'codigo'        => 'sometimes|required|string|max:255',
+            'nombre'        => 'sometimes|required|string|max:255',
+            'idPrograma'    => 'sometimes|required|integer|exists:programas,idPrograma',
+            'fechaInicio'   => 'sometimes|required|date',
+            'FechaFin'      => 'sometimes|required|date',
+            'numEstudiantes'=> 'sometimes|required|integer',
+            'estado'        => 'sometimes|required|string'
+        ]);
+
+        $lote->update($validatedData);
+        $lote->load('programa');
+
+        return response()->json($lote,200);
     }
 
     /**
@@ -44,6 +76,10 @@ class LoteController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $lote = Lote::findOrFail($id);
+        $lote->delete();
+        return response()->json([
+            'message'=> "Lote deleted Succesffull"
+        ],200);
     }
 }
