@@ -11,7 +11,7 @@ import { encrypOrDesencrypAES } from '@/utils/generalFunctions';
 
 
 export default function Login({ status, canResetPassword }) {
-    const { data, setData, processing, errors, reset, setError } = useForm({
+    const { data, setData,post, processing, errors, reset, setError } = useForm({
         email: '',
         password: ''
     });
@@ -23,37 +23,32 @@ export default function Login({ status, canResetPassword }) {
         };
     }, []);
 
-    const submit = async (e) => {
+    const submit = (e) => {
         e.preventDefault();
-
-        try {
-            axios.defaults.withCredentials = true;
-            const response = await axios.post("http://127.0.0.1:8000/api/login", {
-                email: data.email,
-                password: data.password,
-            })
-            const encryptedToken = await encrypOrDesencrypAES(response.data.token);
-            localStorage.setItem("token", encryptedToken);
-            localStorage.setItem("Username", response.data.usuario.username);
-            localStorage.setItem("Email", response.data.usuario.email);
-            axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-            window.location.href = '/dashboard';
-            // router.visit('/dashboard')
-        } catch (error) {
-            if (error.response && error.response.data.errors) {
-                const errors = error.response.data.errors;
-                if (errors.email) {
-                    setError("email", errors.email[0]);
-                }
     
-                if (errors.password) {
-                    setError("password", errors.password[0]);
+        post(route('login'), {
+            onSuccess: async () => {
+                try {
+                    const response = await axios.post("http://127.0.0.1:8000/api/login", {
+                        email: data.email,
+                        password: data.password,
+                    })
+                    const encryptedToken = await encrypOrDesencrypAES(response.data.token);
+                    localStorage.setItem("Token", encryptedToken);
+                    localStorage.setItem("Username", response.data.usuario.username);
+                    localStorage.setItem("Email", response.data.usuario.email);
+    
+                    // Te rediriges usando Inertia a una ruta protegida por sesión
+                    router.visit('/dashboard');
+                } catch (err) {
+                    console.error("Error al guardar datos en localStorage:", err);
                 }
-            } else {
-                console.error("Error inesperado:", error.message);
-                setError("email", "Error de conexión con el servidor");
+            },
+            onError: (errors) => {
+                if (errors.email) setError("email", "Estas credenciales no coinciden con nuestros registros");
+                if (errors.password) setError("password", "Estas credenciales no coinciden con nuestros registros");
             }
-        }
+        });
     };
 
     return (
@@ -91,17 +86,6 @@ export default function Login({ status, canResetPassword }) {
                         )}
                     </div>
                     <PasswordInputWithToggle data={data} setData={setData} />
-
-                    {/* <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full placeholder:font-black"
-                        autoComplete="current-password"
-                        placeholder="· · · · · · · ·"
-                        onChange={(e) => setData('password', e.target.value)}
-                    /> */}
 
                     <InputError message={errors.password} className="mt-2" />
                 </div>
