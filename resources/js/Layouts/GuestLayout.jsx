@@ -1,5 +1,6 @@
 import { BookOpen, Calendar, ClipboardList, LayoutGrid, Users } from "lucide-react"
 import InfoCardLogin from "@/Components/InfoCardLogin";
+import ApplicationLogo from "@/Components/ApplicationLogo";
 
 
 export default function Guest({ children }) {
@@ -40,12 +41,8 @@ export default function Guest({ children }) {
                 </div>
             </div>
             <div className="w-full z-100 px-8 justify-center flex flex-col items-center z-100 min-h-screen">
-                <div className="text-center md:text-left w-full max-w-md justify-center md:justify-start flex items-center">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center mr-3">
-                        <LayoutGrid color="white" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-800">PlanningProject</h2>
-                </div>
+                <ApplicationLogo />
+
 
                 <div className='mt-6 text-center md:text-left w-full max-w-md justify-center flex flex-col align-items-center'>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900">Bienvenido de nuevo</h1>
