@@ -1,3 +1,7 @@
+import axios from 'axios';
+
+let instance = null;
+
 const key = import.meta.env.VITE_SECRETKEY;
 export async function encrypOrDesencrypAES(data, option = true){
     if (!key) {
@@ -41,4 +45,30 @@ export async function decryptDataAESWithIV(encryptedHex, key) {
     } catch (error) {
         console.error('Error during decryption:', error);
     }
+}
+
+export function createApiInstance() {
+    const api = axios.create({
+        baseURL: 'http://127.0.0.1:8000/api',
+    });
+
+    api.interceptors.request.use(async config => {
+        const tokenEncrypted = localStorage.getItem('Token');
+        if (tokenEncrypted) {
+            const token = await encrypOrDesencrypAES(tokenEncrypted, false);
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+        }
+        return config;
+    });
+
+    return api;
+}
+
+export function getApi() {
+    if (!instance) {
+        instance = createApiInstance();
+    }
+    return instance;
 }

@@ -12,8 +12,8 @@ export default function CardLinkModule({
     const handleClick = () => router.visit(to);
     return (
         <div className="rounded-lg border bg-white text-card-foreground shadow-sm overflow-hidden hover:shadow-md transition-shadow border-gray-200 hover:border-blue-200">
-            <button onClick={handleClick} className="block h-full">
-                <div className="h-2 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+            <button onClick={handleClick} className="h-full flex flex-col w-full">
+                <div className="h-2 bg-gradient-to-r from-blue-500 to-indigo-600 "></div>
                 <div className="p-6">
                     <div className="flex justify-center mb-6">
                         <div className={`w-24 h-24 ${bgCircle} rounded-full flex items-center justify-center`}>

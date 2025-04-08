@@ -32,7 +32,7 @@ export default function PrincipalUserRole() {
                     to="/usersRole/profile"
                     bgCircle="bg-purple-100"
                     iconColor="text-purple-600"
-                    title="User Management"
+                    title="Gestión de perfiles"
                     description="Añadir, editar o eliminar usuarios y gestionar su información básica y el acceso al sistema."
                 />
             </div>
