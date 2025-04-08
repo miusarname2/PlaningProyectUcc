@@ -30,8 +30,16 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/usersRole', function () {
-    return Inertia::render('UsersRoleManagement');
+    return Inertia::render('UsersRoleManagement/UsersRoleManagement');
 })->middleware(['auth', 'verified'])->name('usersRole');
+
+Route::get('/usersRole/users', function () {
+    return Inertia::render('UsersRoleManagement/UsersManagement');
+})->middleware(['auth', 'verified'])->name('users');
+
+// Route::get('/usersRole/roles', function () {
+//     return Inertia::render('UsersRoleManagement/UsersManagement');
+// })->middleware(['auth', 'verified'])->name('usersRole');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
