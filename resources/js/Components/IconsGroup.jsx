@@ -1,6 +1,6 @@
 import React from "react";
-import CircleIcon from "./CircleIcon";
-import CenterLogo from "./CenterLogo";
+import CircleIcon from "@/Components/CircleIcon";
+import CenterLogo from "@/Components/CenterLogo";
 import {
   Users,
   BookOpen,

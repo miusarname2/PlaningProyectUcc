@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import Dropdown from "@/Components/Dropdown";
+import Footer from "@/Components/Footer";
 import NavLink from "@/Components/NavLink";
 import { Link } from "@inertiajs/react";
 import SideBar from "@/Components/SideBar";
@@ -87,9 +88,7 @@ export default function Authenticated({ user, children }) {
                 />
                 <main className="flex-1 p-4 md:p-6 overflow-auto">{children}</main>
             </div>
-            <footer className="py-2 px-1 text-center text-xs text-gray-500 border-t">
-                <p>Toda imagen, texto e idea intelectual está registrada bajo derechos de Copyright © PlanningProject</p>
-            </footer>
+            <Footer/>
         </div>
     );
 }
