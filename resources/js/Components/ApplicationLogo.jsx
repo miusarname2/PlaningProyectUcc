@@ -11,7 +11,7 @@ export default function ApplicationLogo({
         <LayoutGrid className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
       </div>
       <h2
-        className={`text-lg sm:text-xl md:${textSize} font-bold ${textColor}`}
+        className={`${textSize} font-bold ${textColor}`}
       >
         PlanningProject
       </h2>

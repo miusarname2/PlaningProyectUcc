@@ -8,7 +8,8 @@
 }
 
 html {
-    font-size: 1.167rem;
+    /* font-size: 1.167rem; */
+    font-size: 1.04rem;
 }
 
 .text-muted-foreground {
