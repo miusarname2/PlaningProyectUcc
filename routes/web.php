@@ -37,9 +37,9 @@ Route::get('/usersRole/users', function () {
     return Inertia::render('UsersRoleManagement/UsersManagement');
 })->middleware(['auth', 'verified'])->name('users');
 
-// Route::get('/usersRole/roles', function () {
-//     return Inertia::render('UsersRoleManagement/UsersManagement');
-// })->middleware(['auth', 'verified'])->name('usersRole');
+Route::get('/usersRole/roles', function () {
+    return Inertia::render('UsersRoleManagement/RoleManagement');
+})->middleware(['auth', 'verified'])->name('roles');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

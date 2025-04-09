@@ -80,7 +80,7 @@ class UsuarioController extends Controller
         $rules = [
             'username'  => 'sometimes|required|string|max:50',
             'nombreCompleto' => 'sometimes|required|string|max:60',
-            'email'          => "sometimes|required|email|max:100|unique:usuarios,email,{$usuario->id_usuario},idUsuario",
+            'email'          => "sometimes|required|email|max:100",
             'estado'         => 'sometimes|required|in:Activo,Inactivo',
             'password'       => 'sometimes|required|string|min:6'
         ];

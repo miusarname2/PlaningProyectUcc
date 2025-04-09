@@ -5,26 +5,69 @@ import SelectInput from "@/Components/SelectInput";
 import ButtonGradient from "@/Components/ButtonGradient";
 import CancelButton from "@/Components/CancelButton";
 import { Save } from "lucide-react";
+import { getApi } from "@/utils/generalFunctions";
 
-export default function UserForm({ onCancel, initialData = null }) {
+export default function UserForm({ onCancel, initialData = null, onSubmitSuccess }) {
+    const api = getApi();
     const [formData, setFormData] = useState({
         name: initialData?.nombreCompleto || "",
         email: initialData?.email || "",
         role: initialData?.roles?.[0]?.nombre || "",
-        status: initialData?.estado === "activo" ? "Active" : "Inactive",
+        status: initialData?.estado === "Activo" ? "Activo" : "Inactivo",
     });
+    const [errors, setErrors] = useState({});
     const isEditMode = Boolean(initialData);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(
-            isEditMode ? "Editando usuario:" : "Creando usuario:",
-            formData
-        );
+
+        try {
+            if (!isEditMode) {
+                if (formData.password !== formData.confirmPassword) {
+                    setErrors({ confirmPassword: ["Las contraseñas no coinciden."] });
+                    return;
+                }
+
+                const payload = {
+                    username: formData.name,
+                    nombreCompleto: formData.name,
+                    email: formData.email,
+                    estado: formData.status,
+                    password: formData.password,
+                };
+
+                const response = await api.post("/user", payload);
+
+                setErrors({}); 
+                onSubmitSuccess?.();
+                onCancel();
+            } else {
+                const payload = {
+                    nombreCompleto: formData.name,
+                    email: formData.email,
+                    estado: formData.status,
+                    // roles: [{ nombre: formData.role }],
+                };
+
+                const response = await api.put(`http://127.0.0.1:8000/api/user/${initialData.id}`, payload);
+                console.log("Usuario actualizado con éxito:", response.data);
+
+                setErrors({});
+                onSubmitSuccess?.(); 
+                onCancel(); 
+            }
+        } catch (error) {
+            if (error.response?.status === 422) {
+                setErrors(error.response.data.errors || {});
+                console.error("Errores de validación:", error.response.data.errors);
+            } else {
+                console.error("Error al guardar usuario:", error);
+            }
+        }
     };
 
     return (
@@ -63,6 +106,8 @@ export default function UserForm({ onCancel, initialData = null }) {
                                 placeholder="Enter email address"
                                 required
                             />
+                            {errors.email && <p className="text-sm text-red-500">{errors.email[0]}</p>}
+
                         </div>
 
                         <div className="space-y-2">
@@ -97,7 +142,7 @@ export default function UserForm({ onCancel, initialData = null }) {
                             <SelectInput
                                 id="status"
                                 name="status"
-                                value={formData.estado}
+                                value={formData.status}
                                 onChange={handleChange}
                                 options={[
                                     { value: "Activo", label: "Activo" },
@@ -123,6 +168,7 @@ export default function UserForm({ onCancel, initialData = null }) {
                                         placeholder="Enter password"
                                         required
                                     />
+
                                 </div>
 
                                 <div className="space-y-2">
@@ -140,6 +186,8 @@ export default function UserForm({ onCancel, initialData = null }) {
                                         placeholder="Confirm password"
                                         required
                                     />
+                                    {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword[0]}</p>}
+
                                 </div>
                             </>
                         )}
@@ -149,9 +197,9 @@ export default function UserForm({ onCancel, initialData = null }) {
                         <CancelButton onClick={onCancel}>Cerrar</CancelButton>
                         <ButtonGradient
                             type="submit"
-                            onClick={() => router.visit(exitTo)}
+                        // onClick={() => router.visit(exitTo)}
                         >
-                            <Save className="h-4 w-4 mr-2" /> 
+                            <Save className="h-4 w-4 mr-2" />
                             {isEditMode ? "Guardar Cambios" : "Crear Usuario"}
                         </ButtonGradient>
                     </div>
