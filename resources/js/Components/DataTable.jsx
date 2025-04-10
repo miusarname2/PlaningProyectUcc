@@ -1,10 +1,14 @@
 import RowActionsMenu from "@/Components/RowActionsMenu";
+import { useState, useEffect } from "react";
 
 export default function DataTable({
     columns = [],
     data = [],
     rowActions = () => [],
 }) {
+
+    const [openActionRowId, setOpenActionRowId] = useState(null);
+
     return (
         <div className="border rounded-md">
             <div className="relative w-full overflow-x-auto">
@@ -16,7 +20,7 @@ export default function DataTable({
                                     key={i}
                                     className="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                                 >
-                                    {col.title}
+                                    {col.title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                 </th>
                             ))}
                             <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground w-[80px]">
@@ -55,6 +59,9 @@ export default function DataTable({
                                     <td className="p-4 align-middle">
                                         <RowActionsMenu
                                             actions={rowActions(row)}
+                                            rowId={row.id}
+                                            openActionRowId={openActionRowId}
+                                            setOpenActionRowId={setOpenActionRowId}
                                         />
                                     </td>
                                 </tr>
