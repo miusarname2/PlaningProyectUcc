@@ -21,7 +21,7 @@ class UsuarioController extends Controller
     public function index()
     {
         try {
-            $usuarios = Usuario::with('roles')->get();
+            $usuarios = Usuario::with(['roles','usuarioPerfil'])->get();
             return response()->json($usuarios);
         } catch (Exception $e) {
             return response()->json([

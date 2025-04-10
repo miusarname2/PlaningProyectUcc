@@ -59,8 +59,8 @@ class PerfilController extends Controller
     {
         $perfil = Perfil::findOrFail($id);
         $validatedData = $request->validate([
-            'nombre'=> "sometimes|required|string|200",
-            'descripcion'=> "sometimes|nullable|string|"
+            'nombre'=> "sometimes|required|string|max:200",
+            'descripcion'=> "sometimes|nullable|string"
         ]);
 
         $perfil->update($validatedData);

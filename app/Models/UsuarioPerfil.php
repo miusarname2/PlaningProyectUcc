@@ -9,7 +9,7 @@ class UsuarioPerfil extends Model
 {
     use HasFactory;
 
-    protected $table = 'UsuarioPerfil';
+    protected $table = 'usuario_perfil';
 
     protected $primaryKey = 'idUsuario';
 
