@@ -25,8 +25,8 @@ class UsuarioPerfilController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'idUsuario' => 'required|integer|exists:usuarios,idUsuario',
-                'idPerfil'  => 'required|integer|exists:perfiles,idPerfil'
+                'idUsuario' => 'required|integer|exists:usuario,idUsuario',
+                'idPerfil'  => 'required|integer|exists:perfil,idPerfil'
             ]);
         } catch (ValidationException $e) {
             return response()->json([

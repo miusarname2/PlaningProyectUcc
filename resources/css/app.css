@@ -6,6 +6,7 @@
     --muted-foreground: 215.4 16.3% 46.9%;
     --muted: 210 40% 96.1%;
     --input: 214.3 31.8% 91.4%;
+    --accent: 210 40% 96.1%;
 }
 
 html {
@@ -48,4 +49,8 @@ html {
 
 .hover\:bg-muted\/50:hover {
     background-color: hsl(var(--muted) / 0.5);
-  }
+}
+
+.hover\:bg-accent:hover {
+    background-color: hsl(var(--accent));
+}

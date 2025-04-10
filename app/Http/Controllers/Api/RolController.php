@@ -14,7 +14,7 @@ class RolController extends Controller
      */
     public function index()
     {
-        $rol = Rol::with(['usuario','perfiles'])->get();
+        $rol = Rol::with(['usuarios','perfiles'])->get();
         return response()->json($rol);
     }
 
@@ -68,6 +68,7 @@ class RolController extends Controller
     public function update(Request $request, string $id)
     {
         $rol = Rol::findOrFail($id);
+        $rol->load(['usuarios','perfiles']);
 
         $validatedData = $request->validate([
             'nombre'      => 'sometimes|required|string|max:255',
@@ -84,7 +85,6 @@ class RolController extends Controller
             $rol->perfiles()->sync($request->input('perfiles'));
         }
 
-        $rol->load(['usuario','perfiles']);
 
         return response()->json($rol);
     }

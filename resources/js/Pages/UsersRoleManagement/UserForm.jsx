@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TextInput from "@/Components/TextInput";
 import InputLabel from "@/Components/InputLabel";
 import SelectInput from "@/Components/SelectInput";
@@ -12,11 +12,30 @@ export default function UserForm({ onCancel, initialData = null, onSubmitSuccess
     const [formData, setFormData] = useState({
         name: initialData?.nombreCompleto || "",
         email: initialData?.email || "",
-        role: initialData?.roles?.[0]?.nombre || "",
+        roleId: initialData?.usuario_perfil?.idPerfil || "",
         status: initialData?.estado === "Activo" ? "Activo" : "Inactivo",
+        password: "",
+        confirmPassword: ""
     });
     const [errors, setErrors] = useState({});
+    const [rolesList, setRolesList] = useState([]);
     const isEditMode = Boolean(initialData);
+
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const response = await api.get("/perfil");
+                const options = response.data.map((role) => ({
+                    label: role.nombre,
+                    value: role.idPerfil,
+                }));
+                setRolesList([{ label: "Selecciona un rol", value: "" }, ...options]);
+            } catch (error) {
+                console.error("Error al cargar perfiles:", error);
+            }
+        };
+        fetchRoles();
+    }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -40,9 +59,15 @@ export default function UserForm({ onCancel, initialData = null, onSubmitSuccess
                     password: formData.password,
                 };
 
-                const response = await api.post("/user", payload);
+                const userResponse = await api.post("/user", payload);
+                const userId = userResponse.data.idUsuario;
 
-                setErrors({}); 
+                await api.post("/usuarioPerfil", {
+                    idUsuario: userId,
+                    idPerfil: formData.roleId,
+                });
+
+                setErrors({});
                 onSubmitSuccess?.();
                 onCancel();
             } else {
@@ -50,15 +75,17 @@ export default function UserForm({ onCancel, initialData = null, onSubmitSuccess
                     nombreCompleto: formData.name,
                     email: formData.email,
                     estado: formData.status,
-                    // roles: [{ nombre: formData.role }],
+                    idPerfil: formData.roleId,
                 };
 
-                const response = await api.put(`http://127.0.0.1:8000/api/user/${initialData.id}`, payload);
+                const response = await api.put(`/user/${initialData.id}`, payload);
                 console.log("Usuario actualizado con éxito:", response.data);
-
+                // await api.put("/usuarioPerfil", {
+                //     idPerfil: formData.roleId,
+                // });
                 setErrors({});
-                onSubmitSuccess?.(); 
-                onCancel(); 
+                onSubmitSuccess?.();
+                onCancel();
             }
         } catch (error) {
             if (error.response?.status === 422) {
@@ -69,6 +96,7 @@ export default function UserForm({ onCancel, initialData = null, onSubmitSuccess
             }
         }
     };
+console.log(formData, "sadsasssssssssssssssssssssssssssssssssssssssssssssssssssss");
 
     return (
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 border-gray-200">
@@ -76,11 +104,7 @@ export default function UserForm({ onCancel, initialData = null, onSubmitSuccess
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <InputLabel
-                                htmlFor="name"
-                                value="Full Name"
-                                className="text-sm"
-                            />
+                            <InputLabel htmlFor="name" value="Full Name" className="text-sm" />
                             <TextInput
                                 id="name"
                                 name="name"
@@ -92,11 +116,7 @@ export default function UserForm({ onCancel, initialData = null, onSubmitSuccess
                         </div>
 
                         <div className="space-y-2">
-                            <InputLabel
-                                htmlFor="email"
-                                value="Email Address"
-                                className="text-sm"
-                            />
+                            <InputLabel htmlFor="email" value="Email Address" className="text-sm" />
                             <TextInput
                                 id="email"
                                 name="email"
@@ -107,38 +127,22 @@ export default function UserForm({ onCancel, initialData = null, onSubmitSuccess
                                 required
                             />
                             {errors.email && <p className="text-sm text-red-500">{errors.email[0]}</p>}
-
                         </div>
 
                         <div className="space-y-2">
-                            <InputLabel
-                                htmlFor="role"
-                                value="Role"
-                                className="text-sm"
-                            />
+                            <InputLabel htmlFor="roleId" value="Role" className="text-sm" />
                             <SelectInput
-                                id="role"
-                                name="role"
-                                value={formData.role}
+                                id="roleId"
+                                name="roleId"
+                                value={formData.roleId}
                                 onChange={handleChange}
-                                options={[
-                                    { value: "", label: "Select a role" },
-                                    {
-                                        value: "Administrator",
-                                        label: "Administrator",
-                                    },
-                                    { value: "Teacher", label: "Teacher" },
-                                    { value: "Student", label: "Student" },
-                                ]}
+                                options={rolesList}
+                                required
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <InputLabel
-                                htmlFor="status"
-                                value="Status"
-                                className="text-sm"
-                            />
+                            <InputLabel htmlFor="status" value="Status" className="text-sm" />
                             <SelectInput
                                 id="status"
                                 name="status"
@@ -154,40 +158,32 @@ export default function UserForm({ onCancel, initialData = null, onSubmitSuccess
                         {!isEditMode && (
                             <>
                                 <div className="space-y-2">
-                                    <InputLabel
-                                        htmlFor="password"
-                                        value="Password"
-                                        className="text-sm"
-                                    />
+                                    <InputLabel htmlFor="password" value="Password" className="text-sm" />
                                     <TextInput
                                         id="password"
                                         name="password"
                                         type="password"
-                                        value={formData.password || ""}
+                                        value={formData.password}
                                         onChange={handleChange}
                                         placeholder="Enter password"
                                         required
                                     />
-
                                 </div>
 
                                 <div className="space-y-2">
-                                    <InputLabel
-                                        htmlFor="confirmPassword"
-                                        value="Confirm Password"
-                                        className="text-sm"
-                                    />
+                                    <InputLabel htmlFor="confirmPassword" value="Confirm Password" className="text-sm" />
                                     <TextInput
                                         id="confirmPassword"
                                         name="confirmPassword"
                                         type="password"
-                                        value={formData.confirmPassword || ""}
+                                        value={formData.confirmPassword}
                                         onChange={handleChange}
                                         placeholder="Confirm password"
                                         required
                                     />
-                                    {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword[0]}</p>}
-
+                                    {errors.confirmPassword && (
+                                        <p className="text-sm text-red-500">{errors.confirmPassword[0]}</p>
+                                    )}
                                 </div>
                             </>
                         )}
@@ -195,10 +191,7 @@ export default function UserForm({ onCancel, initialData = null, onSubmitSuccess
 
                     <div className="flex justify-end space-x-2 pt-4">
                         <CancelButton onClick={onCancel}>Cerrar</CancelButton>
-                        <ButtonGradient
-                            type="submit"
-                        // onClick={() => router.visit(exitTo)}
-                        >
+                        <ButtonGradient type="submit">
                             <Save className="h-4 w-4 mr-2" />
                             {isEditMode ? "Guardar Cambios" : "Crear Usuario"}
                         </ButtonGradient>
