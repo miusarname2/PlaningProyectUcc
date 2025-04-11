@@ -24,5 +24,6 @@ class Proceso extends Model
     {
         return $this->belongsTo(Departamento::class, 'idDepartamento', 'idProceso');
     }
+    
 
 }
