@@ -45,6 +45,22 @@ Route::get('/usersRole/profile', function () {
     return Inertia::render('UsersRoleManagement/ProfileManagement');
 })->middleware(['auth', 'verified'])->name('profile');
 
+Route::get('/citiesManagement', function () {
+    return Inertia::render('CityManagement/CityManagement');
+})->middleware(['auth', 'verified'])->name('citiesManagement');
+
+Route::get('/dailyManagement', function () {
+    return Inertia::render('DailyManagement/DailyManagement');
+})->middleware(['auth', 'verified'])->name('dailyManagement');
+
+Route::get('/batchManagement', function () {
+    return Inertia::render('BatchManagement/BatchManagement');
+})->middleware(['auth', 'verified'])->name('batchManagement');
+
+Route::get('/programmeManagement', function () {
+    return Inertia::render('ProgrammeManagement/ProgrammeManagement');
+})->middleware(['auth', 'verified'])->name('programmeManagement');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
