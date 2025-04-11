@@ -7,11 +7,22 @@
     --muted: 210 40% 96.1%;
     --input: 214.3 31.8% 91.4%;
     --accent: 210 40% 96.1%;
+    --primary: 221.2 83.2% 53.3%;
+    --input: 214.3 31.8% 91.4%;
+    --background: 0 0% 100%;
 }
 
 html {
     /* font-size: 1.167rem; */
     font-size: 1.04rem;
+}
+
+.data-\[state\=unchecked\]\:bg-input[data-state="unchecked"] {
+    background-color: hsl(var(--input));
+}
+
+.data-\[state\=checked\]\:bg-primary[data-state="checked"] {
+    background-color: hsl(var(--primary));
 }
 
 .text-muted-foreground {
@@ -20,6 +31,10 @@ html {
 
 .border-input {
     border-color: hsl(var(--input));
+}
+
+.bg-background {
+    background-color: hsl(var(--background));
 }
 
 .bg-yellow-50 {
