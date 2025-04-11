@@ -15,7 +15,7 @@ class EspecialidadController extends Controller
      */
     public function index()
     {
-        $especialidades = Especialidad::with("departamento")->get();
+        $especialidades = Especialidad::with(["departamento","profesionales"])->get();
         return response()->json($especialidades);
     }
 

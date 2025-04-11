@@ -16,7 +16,7 @@ class FranjaHorariaController extends Controller
     public function index()
     {
         try {
-            $franjaHoraria = FranjaHoraria::all();
+            $franjaHoraria = FranjaHoraria::with("horarios")->get();
             return response()->json($franjaHoraria);
         } catch (Exception $e) {
             return response()->json([

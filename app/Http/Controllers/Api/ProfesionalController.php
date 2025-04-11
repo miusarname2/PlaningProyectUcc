@@ -74,7 +74,7 @@ class ProfesionalController extends Controller
             [
                 'codigo'         => 'sometimes|required|string|max:255',
                 'nombreCompleto' => 'sometimes|required|string|max:255',
-                'email'          => 'sometimes|required|email|unique:profesionales,email,'.$id.',idProfesional',
+                'email'          => 'sometimes|required|email|unique:profesional,email,'.$id.',idProfesional',
                 'titulo'         => 'sometimes|required|string|max:255',
                 'experiencia'    => 'sometimes|required|integer',
                 'estado'         => 'sometimes|required|string',

@@ -14,7 +14,7 @@ class ProgramaController extends Controller
      */
     public function index()
     {
-        $programa = Programa::with("especialidad")->get();
+        $programa = Programa::with(["especialidad","lotes","cursos"])->get();
         return response()->json($programa);
     }
 

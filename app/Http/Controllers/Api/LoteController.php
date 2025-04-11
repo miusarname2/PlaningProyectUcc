@@ -14,7 +14,7 @@ class LoteController extends Controller
      */
     public function index()
     {
-        $lotes = Lote::with("programa")->get();
+        $lotes = Lote::with(["programa","programa.cursos"])->get();
         return response()->json($lotes);
     }
 
