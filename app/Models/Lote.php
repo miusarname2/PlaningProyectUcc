@@ -9,7 +9,7 @@ class Lote extends Model
 {
     use HasFactory;
 
-    protected $table = 'lsote';
+    protected $table = 'lote';
     protected $primaryKey = 'idLote';
 
     protected $fillable = [
@@ -26,5 +26,10 @@ class Lote extends Model
     public function programa()
     {
         return $this->belongsTo(Programa::class, 'idPrograma', 'idPrograma');
+    }
+
+    public function cursos()
+    {
+        return $this->hasMany(Curso::class, 'idPrograma', 'idPrograma');
     }
 }

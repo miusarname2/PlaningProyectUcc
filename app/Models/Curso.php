@@ -25,7 +25,7 @@ class Curso extends Model
     // Relación muchos a muchos con Programa
     public function programas()
     {
-        return $this->belongsToMany(Programa::class, 'curso_programa', 'idCuros', 'idPrograma');
+        return $this->belongsToMany(Programa::class, 'curso_programa', 'idCurso', 'idPrograma');
     }
 
     // Relación muchos a muchos con Especialidad

@@ -27,4 +27,13 @@ class Programa extends Model
         return $this->belongsTo(Especialidad::class, 'idEspecialidad', 'idEspecialidad');
     }
 
+    public function lotes()
+    {
+        return $this->hasMany(Lote::class, 'idPrograma', 'idPrograma');
+    }
+
+    public function cursos()
+    {
+        return $this->belongsToMany(Curso::class, 'curso_programa', 'idPrograma', 'idCurso');
+    }
 }
