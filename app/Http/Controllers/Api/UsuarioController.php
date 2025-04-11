@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
 
@@ -157,6 +158,75 @@ class UsuarioController extends Controller
         return response()->json([
             'usuario'   => $usuario->nombre_usuario,
             'permisos'  => $permisos
+        ]);
+    }
+
+    /**
+     * Método para buscar usuarios por username, email, estado, password o nombreCompleto.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function search(Request $request)
+    {
+        // Validación de la entrada: cada campo es opcional y se valida su tipo.
+        $validator = Validator::make($request->all(), [
+            'username'      => 'nullable|string|max:255',
+            'email'         => 'nullable|email|max:255',
+            'estado'        => 'nullable|string|max:50',
+            'password'      => 'nullable|string|max:255',
+            'nombreCompleto'=> 'nullable|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error en los datos ingresados.',
+                'errores' => $validator->errors()
+            ], 422);
+        }
+
+        // Inicializamos la consulta
+        $query = Usuario::query();
+
+        // Aplicamos cada filtro si se encuentra presente en la petición
+        if ($request->filled('username')) {
+            $username = $request->input('username');
+            // Utilizamos like para permitir búsquedas parciales
+            $query->where('username', 'like', '%' . $username . '%');
+        }
+
+        if ($request->filled('email')) {
+            $email = $request->input('email');
+            // Búsqueda exacta o parcial según necesites
+            $query->where('email', 'like', '%' . $email . '%');
+        }
+
+        if ($request->filled('estado')) {
+            $estado = $request->input('estado');
+            $query->where('estado', 'like', '%' . $estado . '%');
+        }
+
+        if ($request->filled('password')) {
+            $password = $request->input('password');
+            // Advertencia: este filtro puede no funcionar correctamente si la contraseña está hasheada.
+            $query->where('password', 'like', '%' . $password . '%');
+        }
+
+        if ($request->filled('nombreCompleto')) {
+            $nombreCompleto = $request->input('nombreCompleto');
+            $query->where('nombreCompleto', 'like', '%' . $nombreCompleto . '%');
+        }
+
+        // Si es necesario, incluir relaciones definidas en el modelo
+        $query->with(['roles', 'usuarioPerfil']);
+
+        // Se recomienda paginar los resultados para no sobrecargar la respuesta
+        $usuarios = $query->paginate(10);
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => $usuarios
         ]);
     }
 }
