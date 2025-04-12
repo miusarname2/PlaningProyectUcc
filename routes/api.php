@@ -56,5 +56,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('VariableEntorno', VariablesEntornoController::class);
 
     // Si tienes rutas adicionales que quieras proteger, como por ejemplo:
-    Route::get('users/{user}/permisos', [UsuarioController::class, 'permisos']);
+    Route::get('user/{user}/permisos', [UsuarioController::class, 'permisos']);
+    Route::get('user/search', [UsuarioController::class, 'search']);
 });
