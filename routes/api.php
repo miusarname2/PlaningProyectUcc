@@ -36,6 +36,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [UsuarioController::class, 'login']);
 Route::post('register', [UsuarioController::class, 'store']);
 Route::middleware(['auth:sanctum', 'throttle:search'])
+    ->withoutMiddleware('throttle:api') // Remueve el throttle definido en el grupo api
     ->get('user/search', [UsuarioController::class, 'search']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::resource('user', UsuarioController::class);
