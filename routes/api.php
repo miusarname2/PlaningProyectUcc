@@ -35,6 +35,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [UsuarioController::class, 'login']);
 Route::post('register', [UsuarioController::class, 'store']);
+Route::middleware(['auth:sanctum', 'throttle:search'])
+    ->get('user/search', [UsuarioController::class, 'search']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::resource('user', UsuarioController::class);
     Route::resource('ciudad', CiudadController::class);
@@ -57,5 +59,4 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Si tienes rutas adicionales que quieras proteger, como por ejemplo:
     Route::get('user/{user}/permisos', [UsuarioController::class, 'permisos']);
-    Route::get('user/search', [UsuarioController::class, 'search']);
 });
