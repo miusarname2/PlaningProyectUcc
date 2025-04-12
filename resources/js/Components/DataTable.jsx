@@ -11,8 +11,8 @@ export default function DataTable({
 
     return (
         <div className="border rounded-md">
-            <div className="relative w-full overflow-x-auto">
-                <table className="w-full caption-bottom text-sm">
+            <div className="relative w-full overflow-x-auto max-h-[384px] overflow-y-auto">
+                <table className="w-full caption-bottom text-sm ">
                     <thead className="[&_tr]:border-b">
                         <tr className="border-b transition-colors hover:bg-muted/50">
                             {columns.map((col, i) => (

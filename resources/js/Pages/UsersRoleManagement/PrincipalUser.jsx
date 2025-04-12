@@ -12,7 +12,6 @@ const columns = [
     {
         title: "Rol",
         key: "rol",
-        render: (value) => value.rol|| "Sin rol",
     },
     {
         title: "Estado",
@@ -31,7 +30,6 @@ export default function PrincipalUser() {
 
 
     function handleEdit(row) {
-        console.log(row);
         setSelectedUser(row);
         setShowForm(true);
     }
@@ -68,13 +66,10 @@ export default function PrincipalUser() {
             const transformed = response.data.map((user) => ({
                 ...user,
                 id: user.idUsuario,
-                rol:user.usuario_perfil?.idPerfil || ''
-                    // user.roles.length > 0
-                    //     ? user.roles.map((r) => r.name).join(", ")
-                    //     : "Sin rol",
+                rol: user.roles?.length > 0 ? user.roles[0].nombre : "Sin rol",
             }));
             console.log(response.data, "------separados----");
-            
+
             setData(transformed);
         } catch (error) {
             console.error("Error fetching users:", error);
@@ -86,6 +81,34 @@ export default function PrincipalUser() {
     useEffect(() => {
         fetchData();
     }, []);
+
+    function getSearchType(value) {
+        if (value.includes("@")) return "email";
+        if (["activo", "inactivo"].includes(value.toLowerCase())) return "estado";
+        return "username";
+    }
+
+    async function handleSearch(value) {
+        if (!value) {
+            fetchData();
+            return;
+        }
+
+        try {
+            const type = getSearchType(value);
+            const response = await api.get(`/user/search?${type}=${encodeURIComponent(value)}`);
+            console.log(response);
+            
+            const transformed = response.data.data.data.map((user) => ({
+                ...user,
+                id: user.idUsuario,
+                rol: user.usuario_perfil?.idPerfil || '',
+            }));
+            setData(transformed);
+        } catch (error) {
+            console.error("Error buscando usuarios:", error);
+        }
+    }
 
     return (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -100,9 +123,7 @@ export default function PrincipalUser() {
                 {!showForm ? (
                     <div className="space-y-4">
                         <InputSearch
-                            onSearchChange={(val) =>
-                                console.log("Valor desde el padre:", val)
-                            }
+                            onSearchChange={(val) => handleSearch(val)}
                         />
                         {loading ? (
                             <p className="text-center text-gray-500">

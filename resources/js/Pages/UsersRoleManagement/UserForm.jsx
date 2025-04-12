@@ -83,6 +83,9 @@ export default function UserForm({ onCancel, initialData = null, onSubmitSuccess
                 // await api.put("/usuarioPerfil", {
                 //     idPerfil: formData.roleId,
                 // });
+                await api.put(`/usuarioPerfil/${initialData.id}`, {
+                    idPerfil: formData.roleId,
+                });
                 setErrors({});
                 onSubmitSuccess?.();
                 onCancel();

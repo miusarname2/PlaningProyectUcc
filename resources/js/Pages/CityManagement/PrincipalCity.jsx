@@ -14,12 +14,9 @@ const columns = [
     { title: "Región", key: "region" },
     { title: "Código postal", key: "codigoPostal" },
     { title: "Sedes", key: "sedes" },
-    {
-        title: "Estado",
-        key: "estado",
-        render: (value) => <StatusBadge status={value} />,
-    },
+   
 ];
+
 
 export default function PrincipalCity() {
     const [showForm, setShowForm] = useState(false);
@@ -49,12 +46,16 @@ export default function PrincipalCity() {
     async function fetchData() {
         try {
             const response = await api.get("/ciudad");
+    
             const transformed = response.data.map((city) => ({
                 ...city,
-                id: city.id, // por si se usa internamente
-                codigoCiudad: city.codigoCiudad || `C${String(city.id).padStart(3, '0')}`,
-                sedes: city.sedes?.length || 0, // cantidad de sedes
+                id: city.idCiudad,
+                codigoCiudad: `C${String(city.idCiudad).padStart(3, '0')}`,
+                pais: city.region?.pais?.nombre || "Sin país",
+                region: city.region?.nombre || "Sin región",
+                sedes: city.sedes?.length || 0,
             }));
+    
             setData(transformed);
         } catch (error) {
             console.error("Error fetching cities:", error);
@@ -83,6 +84,7 @@ export default function PrincipalCity() {
                             onSearchChange={(val) =>
                                 console.log("Filtro buscador:", val)
                             }
+                            placeHolderText="Buscando Ciudades"
                         />
                         {loading ? (
                             <p className="text-center text-gray-500">

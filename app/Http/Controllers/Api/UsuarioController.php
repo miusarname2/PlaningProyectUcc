@@ -172,7 +172,7 @@ class UsuarioController extends Controller
         // Validación de la entrada: cada campo es opcional y se valida su tipo.
         $validator = Validator::make($request->all(), [
             'username'      => 'nullable|string|max:255',
-            'email'         => 'nullable|email|max:255',
+            'email'         => 'nullable|max:255',
             'estado'        => 'nullable|string|max:50',
             'password'      => 'nullable|string|max:255',
             'nombreCompleto'=> 'nullable|string|max:255'

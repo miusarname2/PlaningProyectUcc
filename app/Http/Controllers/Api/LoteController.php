@@ -27,7 +27,7 @@ class LoteController extends Controller
             $validatedData = $request->validate([
                 'codigo'        => 'required|string|max:255',
                 'nombre'        => 'required|string|max:255',
-                'idPrograma'    => 'required|integer|exists:programas,idPrograma',
+                'idPrograma'    => 'required|integer|exists:programa,idPrograma',
                 'fechaInicio'   => 'required|date',
                 'FechaFin'      => 'required|date',
                 'numEstudiantes'=> 'required|integer',
@@ -67,7 +67,7 @@ class LoteController extends Controller
         $validatedData = $request->validate([
             'codigo'        => 'sometimes|required|string|max:255',
             'nombre'        => 'sometimes|required|string|max:255',
-            'idPrograma'    => 'sometimes|required|integer|exists:programas,idPrograma',
+            'idPrograma'    => 'sometimes|required|integer|exists:programa,idPrograma',
             'fechaInicio'   => 'sometimes|required|date',
             'FechaFin'      => 'sometimes|required|date',
             'numEstudiantes'=> 'sometimes|required|integer',

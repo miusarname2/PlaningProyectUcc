@@ -9,61 +9,30 @@ import BatchForm from "@/Pages/BatchManagement/BatchForm";
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [
-    { title: "ID", key: "codigoLote" },
+    { title: "Código", key: "codigo" },
     { title: "Nombre del lote", key: "nombre" },
     { title: "Programa", key: "programa" },
     {
         title: "Intervalo de fechas",
         key: "rangoFechas",
         render: (val, row) => {
-            const inicio = row.fechaInicio ? new Date(row.fechaInicio).toLocaleDateString() : "-";
-            const fin = row.fechaFin ? new Date(row.fechaFin).toLocaleDateString() : "-";
+            const inicio = row.rangoFechas?.inicio ? new Date(row.rangoFechas.inicio).toLocaleDateString() : "-";
+            const fin = row.rangoFechas?.fin ? new Date(row.rangoFechas.fin).toLocaleDateString() : "-";
             return `${inicio} - ${fin}`;
-        }
+        },
     },
     { title: "Estudiantes", key: "estudiantes" },
-    { title: "Cursos", key: "cursos" },
+    {
+        title: "Cursos",
+        key: "cursos"
+    },
     {
         title: "Estado",
         key: "estado",
         render: (value) => <StatusBadge status={value} />,
     },
 ];
-const fakeData = [
-    {
-        id: 1,
-        codigoLote: "B001",
-        nombre: "Lote Alfa",
-        fechaInicio: "2025-04-01",
-        fechaFin: "2025-06-30",
-        estudiantes: 25,
-        cursos: 5,
-        programa: "Desarrollo Web",
-        estado: "Activo",
-    },
-    {
-        id: 2,
-        codigoLote: "B002",
-        nombre: "Lote Beta",
-        fechaInicio: "2025-05-15",
-        fechaFin: "2025-08-15",
-        estudiantes: 30,
-        cursos: 6,
-        programa: "Ciencia de Datos",
-        estado: "Próximamente",
-    },
-    {
-        id: 3,
-        codigoLote: "B003",
-        nombre: "Lote Gamma",
-        fechaInicio: "2025-07-01",
-        fechaFin: "2025-09-30",
-        estudiantes: 20,
-        cursos: 4,
-        programa: "Inteligencia Artificial",
-        estado: "Próximamente",
-    },
-];
+
 
 
 export default function PrincipalBatch() {
@@ -111,19 +80,34 @@ export default function PrincipalBatch() {
     // }
     async function fetchData() {
         try {
-            // Simulando transformación como si vinieran de la API
-            const transformed = fakeData.map((lote) => ({
-                ...lote,
-                estudiantes: lote.estudiantes || 0,
-                cursos: lote.cursos || 0,
+            const response = await api.get("/lote");
+            console.log(response.data[0].programa);
+            
+            const transformed = response.data.map((lote) => ({
+                id: lote.idLote,
+                codigo: lote.codigo,
+                nombre: lote.nombre,
+                programa: lote.programa?.nombre || "Sin programa",
+                rangoFechas: {
+                    inicio: lote.fechaInicio,
+                    fin: lote.fechaFin,
+                },
+                estudiantes: lote.numEstudiantes || 0,
+                cursos: lote.programa?.cursos.length || 0,
+                estado: lote.estado,
+                idPrograma: lote.programa?.idPrograma,
             }));
+
             setData(transformed);
+            console.log(data);
+            
         } catch (error) {
-            console.error("Error simulando datos de lotes:", error);
+            console.error("Error cargando datos de lotes:", error);
         } finally {
             setLoading(false);
         }
     }
+
 
     useEffect(() => {
         fetchData();
@@ -146,6 +130,7 @@ export default function PrincipalBatch() {
                             onSearchChange={(val) =>
                                 console.log("Filtro buscador:", val)
                             }
+                            placeHolderText="Buscando ofertas"
                         />
 
                         {loading ? (
