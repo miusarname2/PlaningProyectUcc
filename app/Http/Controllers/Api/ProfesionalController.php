@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Profesional;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class ProfesionalController extends Controller
@@ -25,14 +27,14 @@ class ProfesionalController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'codigo'=> "required|string|max:100",
-                'nombreCompleto'=> "required|string|max:100",
-                'email'=>"required|email|unique:profesional,email",
-                'titulo'=> "required|string|max:200",
-                'experiencia'=> "required|integer",
-                'estado'=> "required|string",
-                'perfil'=> "nullable|string",
-                'especialidades'=> "nullable|array",
+                'codigo' => "required|string|max:100",
+                'nombreCompleto' => "required|string|max:100",
+                'email' => "required|email|unique:profesional,email",
+                'titulo' => "required|string|max:200",
+                'experiencia' => "required|integer",
+                'estado' => "required|string",
+                'perfil' => "nullable|string",
+                'especialidades' => "nullable|array",
                 'especialidades.*' => 'integer|exists:especialidades,idEspecialidad'
             ]);
         } catch (ValidationException $e) {
@@ -51,7 +53,7 @@ class ProfesionalController extends Controller
 
         $profesional->load('especialidades');
 
-        return response()->json($profesional,201);
+        return response()->json($profesional, 201);
     }
 
     /**
@@ -74,7 +76,7 @@ class ProfesionalController extends Controller
             [
                 'codigo'         => 'sometimes|required|string|max:255',
                 'nombreCompleto' => 'sometimes|required|string|max:255',
-                'email'          => 'sometimes|required|email|unique:profesional,email,'.$id.',idProfesional',
+                'email'          => 'sometimes|required|email|unique:profesional,email,' . $id . ',idProfesional',
                 'titulo'         => 'sometimes|required|string|max:255',
                 'experiencia'    => 'sometimes|required|integer',
                 'estado'         => 'sometimes|required|string',
@@ -92,7 +94,7 @@ class ProfesionalController extends Controller
 
         $profesional->load('especialidades');
 
-        return response()->json($profesional,0);
+        return response()->json($profesional, 0);
     }
 
     /**
@@ -103,6 +105,79 @@ class ProfesionalController extends Controller
         $profesional = Profesional::findOrFail($id);
         $profesional->delete();
 
-        return response()->json(["message"=> "profesional deleted"]);
+        return response()->json(["message" => "profesional deleted"]);
+    }
+
+    public function search(Request $request)
+    {
+        // 1. Validación de la entrada
+        $validator = Validator::make($request->all(), [
+            'codigo'          => 'nullable|string|max:255',
+            'nombreCompleto'  => 'nullable|string|max:255',
+            'email'           => 'nullable|email|max:255',
+            'titulo'          => 'nullable|string|max:255',
+            'experiencia'     => 'nullable|integer|min:0',
+            'estado'          => 'nullable|string|max:50',
+            'perfil'          => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error en los datos ingresados.',
+                'errores' => $validator->errors()
+            ], 422);
+        }
+
+        // 2. Inicializamos el query builder
+        $query = Profesional::query();
+
+        // 3. Aplicamos filtros si vienen en la petición
+        if ($request->filled('codigo')) {
+            $query->where('codigo', 'like', '%' . trim($request->input('codigo')) . '%');
+        }
+
+        if ($request->filled('nombreCompleto')) {
+            $query->where('nombreCompleto', 'like', '%' . trim($request->input('nombreCompleto')) . '%');
+        }
+
+        if ($request->filled('email')) {
+            $query->where('email', 'like', '%' . trim($request->input('email')) . '%');
+        }
+
+        if ($request->filled('titulo')) {
+            $query->where('titulo', 'like', '%' . trim($request->input('titulo')) . '%');
+        }
+
+        if ($request->filled('experiencia')) {
+            $query->where('experiencia', $request->input('experiencia'));
+        }
+
+        if ($request->filled('estado')) {
+            $query->where('estado', 'like', '%' . trim($request->input('estado')) . '%');
+        }
+
+        if ($request->filled('perfil')) {
+            $query->where('perfil', 'like', '%' . trim($request->input('perfil')) . '%');
+        }
+
+        // 4. Cargamos la relación especialidades
+        $query->with('especialidades');
+
+        // 5. Ejecutamos la consulta con paginación
+        try {
+            $profesionales = $query->paginate(10);
+
+            return response()->json([
+                'status' => 'success',
+                'data'   => $profesionales
+            ]);
+        } catch (\Exception $ex) {
+            Log::error('Error en búsqueda de profesionales: ' . $ex->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error interno del servidor.'
+            ], 500);
+        }
     }
 }

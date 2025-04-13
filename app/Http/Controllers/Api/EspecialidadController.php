@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Especialidad;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -15,7 +17,7 @@ class EspecialidadController extends Controller
      */
     public function index()
     {
-        $especialidades = Especialidad::with(["departamento","profesionales"])->get();
+        $especialidades = Especialidad::with(["departamento", "profesionales"])->get();
         return response()->json($especialidades);
     }
 
@@ -104,5 +106,77 @@ class EspecialidadController extends Controller
         }
         $especialidad->delete();
         return response()->json(['message' => 'Especialidad eliminada correctamente']);
+    }
+
+    public function search(Request $request)
+    {
+        // Validación de la entrada: cada campo es opcional y se valida su tipo.
+        $validator = Validator::make($request->all(), [
+            'nombre'        => 'nullable|string|max:255',
+            'codigo'        => 'nullable|string|max:100',
+            'descripcion'   => 'nullable|string|max:1000',
+            'idDepartamento' => 'nullable|integer',
+            'estado'        => 'nullable|string|max:50'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error en los datos ingresados.',
+                'errores' => $validator->errors()
+            ], 422);
+        }
+
+        // Inicializamos la consulta para el modelo Especialidad
+        $query = Especialidad::query();
+
+        // Filtrado por nombre (búsqueda parcial)
+        if ($request->filled('nombre')) {
+            $nombre = trim($request->input('nombre'));
+            $query->where('nombre', 'like', '%' . $nombre . '%');
+        }
+
+        // Filtrado por código (búsqueda parcial)
+        if ($request->filled('codigo')) {
+            $codigo = trim($request->input('codigo'));
+            $query->where('codigo', 'like', '%' . $codigo . '%');
+        }
+
+        // Filtrado por descripción (búsqueda parcial)
+        if ($request->filled('descripcion')) {
+            $descripcion = trim($request->input('descripcion'));
+            $query->where('descripcion', 'like', '%' . $descripcion . '%');
+        }
+
+        // Filtrado por idDepartamento (búsqueda exacta)
+        if ($request->filled('idDepartamento')) {
+            $idDepartamento = $request->input('idDepartamento');
+            $query->where('idDepartamento', $idDepartamento);
+        }
+
+        // Filtrado por estado (búsqueda parcial)
+        if ($request->filled('estado')) {
+            $estado = trim($request->input('estado'));
+            $query->where('estado', 'like', '%' . $estado . '%');
+        }
+
+        // Se incluyen las relaciones definidas en el modelo: departamento, profesionales y programas
+        $query->with(['departamento', 'profesionales', 'programas']);
+
+        try {
+            // Se recomienda paginar los resultados para evitar sobrecargar la respuesta
+            $especialidades = $query->paginate(10);
+
+            return response()->json([
+                'status' => 'success',
+                'data'   => $especialidades
+            ]);
+        } catch (Exception $ex) {
+            Log::error('Error en búsqueda de especialidades: ' . $ex->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error interno del servidor.'
+            ], 500);
+        }
     }
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Pais;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class PaisController extends Controller
@@ -78,5 +80,55 @@ class PaisController extends Controller
         $pais->delete();
 
         return response()->json(['message'=>"Pais Deleted success"],200);
+    }
+
+    public function search(Request $request)
+    {
+        // 1. Validación de la entrada
+        $validator = Validator::make($request->all(), [
+            'nombre'      => 'nullable|string|max:255',
+            'descripcion' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error en los datos ingresados.',
+                'errores' => $validator->errors()
+            ], 422);
+        }
+
+        // 2. Iniciamos el query builder
+        $query = Pais::query();
+
+        // 3. Aplicamos filtros si vienen en la petición
+        if ($request->filled('nombre')) {
+            $nombre = trim($request->input('nombre'));
+            $query->where('nombre', 'like', '%' . $nombre . '%');
+        }
+
+        if ($request->filled('descripcion')) {
+            $descripcion = trim($request->input('descripcion'));
+            $query->where('descripcion', 'like', '%' . $descripcion . '%');
+        }
+
+        // 4. Cargamos la relación regiones
+        $query->with('regiones');
+
+        // 5. Ejecutamos la consulta con paginación
+        try {
+            $paises = $query->paginate(10);
+
+            return response()->json([
+                'status' => 'success',
+                'data'   => $paises
+            ]);
+        } catch (\Exception $ex) {
+            Log::error('Error en búsqueda de países: ' . $ex->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error interno del servidor.'
+            ], 500);
+        }
     }
 }

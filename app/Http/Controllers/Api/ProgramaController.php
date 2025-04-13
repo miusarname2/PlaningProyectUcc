@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Programa;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class ProgramaController extends Controller
@@ -14,7 +17,7 @@ class ProgramaController extends Controller
      */
     public function index()
     {
-        $programa = Programa::with(["especialidad","lotes","cursos"])->get();
+        $programa = Programa::with(["especialidad", "lotes", "cursos"])->get();
         return response()->json($programa);
     }
 
@@ -66,7 +69,7 @@ class ProgramaController extends Controller
             'nombre'        => 'sometimes|required|string|max:255',
             'descripcion'   => 'sometimes|nullable|string',
             'duracion'      => 'sometimes|required|string|max:255',
-            'idEspecialidad'=> 'sometimes|required|integer|exists:especialidad,idEspecialidad',
+            'idEspecialidad' => 'sometimes|required|integer|exists:especialidad,idEspecialidad',
             'estado'        => 'sometimes|required|string'
         ]);
 
@@ -84,5 +87,73 @@ class ProgramaController extends Controller
         $programa = Programa::findOrFail($id);
         $programa->delete();
         return response()->json(["message" => "Programa deleted successfull"]);
+    }
+
+    public function search(Request $request)
+    {
+        // 1. Validación de la entrada
+        $validator = Validator::make($request->all(), [
+            'codigo'           => 'nullable|string|max:255',
+            'nombre'           => 'nullable|string|max:255',
+            'descripcion'      => 'nullable|string|max:1000',
+            'duracion'         => 'nullable|integer|min:0',
+            'idEspecialidad'   => 'nullable|integer|exists:especialidad,idEspecialidad',
+            'estado'           => 'nullable|string|max:50',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error en los datos ingresados.',
+                'errores' => $validator->errors()
+            ], 422);
+        }
+
+        // 2. Inicializamos el query builder
+        $query = Programa::query();
+
+        // 3. Aplicamos filtros si vienen en la petición
+        if ($request->filled('codigo')) {
+            $query->where('codigo', 'like', '%' . trim($request->input('codigo')) . '%');
+        }
+
+        if ($request->filled('nombre')) {
+            $query->where('nombre', 'like', '%' . trim($request->input('nombre')) . '%');
+        }
+
+        if ($request->filled('descripcion')) {
+            $query->where('descripcion', 'like', '%' . trim($request->input('descripcion')) . '%');
+        }
+
+        if ($request->filled('duracion')) {
+            $query->where('duracion', $request->input('duracion'));
+        }
+
+        if ($request->filled('idEspecialidad')) {
+            $query->where('idEspecialidad', $request->input('idEspecialidad'));
+        }
+
+        if ($request->filled('estado')) {
+            $query->where('estado', 'like', '%' . trim($request->input('estado')) . '%');
+        }
+
+        // 4. Cargamos relaciones: especialidad, lotes y cursos
+        $query->with(['especialidad', 'lotes', 'cursos']);
+
+        // 5. Ejecutamos la consulta con paginación
+        try {
+            $programas = $query->paginate(10);
+
+            return response()->json([
+                'status' => 'success',
+                'data'   => $programas
+            ]);
+        } catch (Exception $ex) {
+            Log::error('Error en búsqueda de programas: ' . $ex->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error interno del servidor.'
+            ], 500);
+        }
     }
 }

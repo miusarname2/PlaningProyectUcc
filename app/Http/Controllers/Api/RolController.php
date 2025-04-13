@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Rol;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class RolController extends Controller
@@ -14,7 +17,7 @@ class RolController extends Controller
      */
     public function index()
     {
-        $rol = Rol::with(['usuarios','perfiles'])->get();
+        $rol = Rol::with(['usuarios', 'perfiles'])->get();
         return response()->json($rol);
     }
 
@@ -48,9 +51,9 @@ class RolController extends Controller
             $rol->perfiles()->sync($request->input('perfiles'));
         }
 
-        $rol->load(['usuarios','perfiles']);
+        $rol->load(['usuarios', 'perfiles']);
 
-        return response()->json($rol,201);
+        return response()->json($rol, 201);
     }
 
     /**
@@ -58,7 +61,7 @@ class RolController extends Controller
      */
     public function show(string $id)
     {
-        $rol = Rol::with(['usuario','perfiles'])->findOrFail($id);
+        $rol = Rol::with(['usuario', 'perfiles'])->findOrFail($id);
         return response()->json($rol);
     }
 
@@ -68,7 +71,7 @@ class RolController extends Controller
     public function update(Request $request, string $id)
     {
         $rol = Rol::findOrFail($id);
-        $rol->load(['usuarios','perfiles']);
+        $rol->load(['usuarios', 'perfiles']);
 
         $validatedData = $request->validate([
             'nombre'      => 'sometimes|required|string|max:255',
@@ -98,6 +101,66 @@ class RolController extends Controller
 
         $rol->delete();
 
-        return response()->json(['message'=> "Rol Deleted"]);
+        return response()->json(['message' => "Rol Deleted"]);
+    }
+
+    public function search(Request $request)
+    {
+        // 1. Validación de la entrada
+        $validator = Validator::make($request->all(), [
+            'nombre'      => 'nullable|string|max:255',
+            'descripcion' => 'nullable|string|max:1000',
+            'permisos'    => 'nullable|string',  // o JSON, según tu implementación
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error en los datos ingresados.',
+                'errores' => $validator->errors()
+            ], 422);
+        }
+
+        // 2. Inicializamos el query builder
+        $query = Rol::query();
+
+        // 3. Filtros básicos sobre columnas
+        if ($request->filled('nombre')) {
+            $query->where('nombre', 'like', '%' . trim($request->input('nombre')) . '%');
+        }
+
+        if ($request->filled('descripcion')) {
+            $query->where('descripcion', 'like', '%' . trim($request->input('descripcion')) . '%');
+        }
+
+        if ($request->filled('permisos')) {
+            // Si 'permisos' es un JSON o CSV, podrías usar whereJsonContains o LIKE
+            $query->where('permisos', 'like', '%' . trim($request->input('permisos')) . '%');
+        }
+
+        // 4. Eager‑loading de relaciones y filtros sobre ellas (si fuera necesario)
+        // Para incluir todos los usuarios y perfiles vinculados:
+        $query->with(['usuarios', 'perfiles']);
+
+        // Ejemplo de cómo filtrar por existencia de usuarios con cierta condición:
+        // $query->whereHas('usuarios', function($q) use ($request) {
+        //     $q->where('estado', $request->input('usuario_estado'));
+        // });
+
+        // 5. Ejecución con paginación
+        try {
+            $roles = $query->paginate(10);
+
+            return response()->json([
+                'status' => 'success',
+                'data'   => $roles
+            ]);
+        } catch (Exception $ex) {
+            Log::error('Error en búsqueda de roles: ' . $ex->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error interno del servidor.'
+            ], 500);
+        }
     }
 }

@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Aula;
 use App\Models\Proceso;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class AulaController extends Controller
@@ -89,5 +92,73 @@ class AulaController extends Controller
         $aula->delete();
 
         return response()->json(['message' => "Aula Deleted"]);
+    }
+
+    public function search(Request $request)
+    {
+        // 1. Validación de la entrada
+        $validator = Validator::make($request->all(), [
+            'codigo'      => 'nullable|string|max:255',
+            'nombre'      => 'nullable|string|max:255',
+            'descripcion' => 'nullable|string|max:1000',
+            'idSede'      => 'nullable|integer|exists:sede,idSede',
+            'capacidad'   => 'nullable|integer|min:0',
+            'estado'      => 'nullable|string|max:50',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error en los datos ingresados.',
+                'errores' => $validator->errors(),
+            ], 422);
+        }
+
+        // 2. Inicializamos el query builder
+        $query = Aula::query();
+
+        // 3. Aplicamos filtros condicionales
+        if ($request->filled('codigo')) {
+            $query->where('codigo', 'like', '%' . trim($request->input('codigo')) . '%');
+        }
+
+        if ($request->filled('nombre')) {
+            $query->where('nombre', 'like', '%' . trim($request->input('nombre')) . '%');
+        }
+
+        if ($request->filled('descripcion')) {
+            $query->where('descripcion', 'like', '%' . trim($request->input('descripcion')) . '%');
+        }
+
+        if ($request->filled('idSede')) {
+            $query->where('idSede', $request->input('idSede'));
+        }
+
+        if ($request->filled('capacidad')) {
+            $query->where('capacidad', $request->input('capacidad'));
+        }
+
+        if ($request->filled('estado')) {
+            $query->where('estado', 'like', '%' . trim($request->input('estado')) . '%');
+        }
+
+        // 4. Eager‑loading de la relación sede
+        $query->with('sede');
+
+        // 5. Ejecución con paginación
+        try {
+            $aulas = $query->paginate(10);
+
+            return response()->json([
+                'status' => 'success',
+                'data'   => $aulas,
+            ]);
+        } catch (Exception $ex) {
+            Log::error('Error en búsqueda de aulas: ' . $ex->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error interno del servidor.',
+            ], 500);
+        }
     }
 }
