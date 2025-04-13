@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AulaController;
 use App\Http\Controllers\Api\CiudadController;
 use App\Http\Controllers\Api\CursoController;
 use App\Http\Controllers\Api\DepartamentoController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Api\HorarioController;
 use App\Http\Controllers\Api\LoteController;
 use App\Http\Controllers\Api\PaisController;
 use App\Http\Controllers\Api\PerfilController;
+use App\Http\Controllers\Api\ProcesoController;
 use App\Http\Controllers\Api\ProfesionalController;
 use App\Http\Controllers\Api\ProgramaController;
 use App\Http\Controllers\Api\RegionController;
@@ -36,9 +38,10 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [UsuarioController::class, 'login']);
 Route::post('register', [UsuarioController::class, 'store']);
 Route::middleware(['auth:sanctum', 'throttle:search'])
-    ->withoutMiddleware('throttle:api') // Remueve el throttle definido en el grupo api
+    ->withoutMiddleware('throttle:api')
     ->get('user/search', [UsuarioController::class, 'search']);
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('user/{user}/permisos', [UsuarioController::class, 'permisos']);
     Route::resource('user', UsuarioController::class);
     Route::resource('ciudad', CiudadController::class);
     Route::resource('curso', CursoController::class);
@@ -57,7 +60,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('sede', SedeController::class);
     Route::resource('usuarioPerfil', UsuarioPerfilController::class);
     Route::resource('VariableEntorno', VariablesEntornoController::class);
-
-    // Si tienes rutas adicionales que quieras proteger, como por ejemplo:
-    Route::get('user/{user}/permisos', [UsuarioController::class, 'permisos']);
+    Route::resource('aula',AulaController::class);
+    Route::resource('proceso',ProcesoController::class);
 });
