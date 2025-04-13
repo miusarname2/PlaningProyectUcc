@@ -207,12 +207,6 @@ class UsuarioController extends Controller
             $query->where('estado', 'like', '%' . $estado . '%');
         }
 
-        if ($request->filled('password')) {
-            $password = $request->input('password');
-            // Advertencia: este filtro puede no funcionar correctamente si la contraseña está hasheada.
-            $query->where('password', 'like', '%' . $password . '%');
-        }
-
         if ($request->filled('nombreCompleto')) {
             $nombreCompleto = $request->input('nombreCompleto');
             $query->where('nombreCompleto', 'like', '%' . $nombreCompleto . '%');
@@ -222,11 +216,21 @@ class UsuarioController extends Controller
         $query->with(['roles', 'usuarioPerfil']);
 
         // Se recomienda paginar los resultados para no sobrecargar la respuesta
-        $usuarios = $query->paginate(10);
+        try {
+            // Paginar los resultados
+            $usuarios = $query->paginate(10);
 
-        return response()->json([
-            'status' => 'success',
-            'data'   => $usuarios
-        ]);
+            return response()->json([
+                'status' => 'success',
+                'data'   => $usuarios
+            ]);
+        } catch (Exception $ex) {
+            Log::error('Error en búsqueda de usuarios: ' . $ex->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error interno del servidor.'
+            ], 500);
+        }
+
     }
 }
