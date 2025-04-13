@@ -61,6 +61,40 @@ Route::get('/programmeManagement', function () {
     return Inertia::render('ProgrammeManagement/ProgrammeManagement');
 })->middleware(['auth', 'verified'])->name('programmeManagement');
 
+
+Route::get('/sitesAndEntities', function () {
+    return Inertia::render('SitesAndEntities/SitesAndEntities');
+})->middleware(['auth', 'verified'])->name('sitesAndEntities');
+
+Route::get('sitesAndEntities/sities', function () {
+    return Inertia::render('SitesAndEntities/PrincipalSities');
+})->middleware(['auth', 'verified'])->name('PrincipalSities');
+
+Route::get('sitesAndEntities/entities', function () {
+    return Inertia::render('SitesAndEntities/PrincipalEntitie');
+})->middleware(['auth', 'verified'])->name('PrincipalEntities');
+
+Route::get('specialtyProfessional', function () {
+    return Inertia::render('SpacialityAndProfessionals/SpacialityAndProfessionals');
+})->middleware(['auth', 'verified'])->name('spacialityAndProfessionals');
+
+Route::get('specialtyProfessional/spaciality', function () {
+    return Inertia::render('SpacialityAndProfessionals/PrincipalSpacialyty');
+})->middleware(['auth', 'verified'])->name('PrincipalSpacialyty');
+
+Route::get('specialtyProfessional/professionals', function () {
+    return Inertia::render('SpacialityAndProfessionals/PrincipalProfessonals');
+})->middleware(['auth', 'verified'])->name('PrincipalProfessonals');
+
+Route::get('processManagement', function () {
+    return Inertia::render('ProccessManagement/ProccessManagement');
+})->middleware(['auth', 'verified'])->name('ProccessManagement');
+
+Route::get('course', function () {
+    return Inertia::render('CourseManagement/CourseManagement');
+})->middleware(['auth', 'verified'])->name('CourseManagement');
+
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
