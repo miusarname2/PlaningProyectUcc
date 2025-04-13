@@ -94,6 +94,7 @@ export default function PrincipalProfile() {
                             onSearchChange={(val) =>
                                 console.log("Valor desde el padre:", val)
                             }
+                            placeHolderText="Buscando Perfiles"
                         />
                         {loading ? (
                             <p className="text-center text-gray-500">

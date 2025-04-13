@@ -96,7 +96,7 @@ export default function PrincipalDaily() {
 
     async function fetchData() {
         try {
-            // const response = await api.get("/dia");
+            // const response = await api.get("/daily");
             const response = { data: fakeDaysData }; 
             const transformed = response.data.map((day) => ({
                 ...day,
@@ -135,6 +135,7 @@ export default function PrincipalDaily() {
                             onSearchChange={(val) =>
                                 console.log("Filtro buscador:", val)
                             }
+                            placeHolderText="Buscando fechas"
                         />
 
                         {loading ? (

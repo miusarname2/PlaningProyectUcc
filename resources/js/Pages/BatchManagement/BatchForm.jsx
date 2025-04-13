@@ -14,12 +14,13 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
     const [programOptions, setProgramOptions] = useState([]);
 
     const [formData, setFormData] = useState({
-        id: initialData?.id || "",
-        name: initialData?.name || "",
-        programId: initialData?.programId || "",
-        status: initialData?.status || "Próximamente",
-        startDate: initialData?.startDate || "",
-        endDate: initialData?.endDate || "",
+        idLote: initialData?.id || "",
+        codigo: initialData?.codigo || "",
+        nombre: initialData?.nombre || "",
+        idPrograma: initialData?.idPrograma ,
+        estado: initialData?.estado || "Próximamente",
+        fechaInicio: initialData?.rangoFechas?.inicio || initialData?.rangoFechas?.inicio || "",
+        fechaFin: initialData?.rangoFechas?.fin || initialData?.rangoFechas?.fin || "",
     });
 
     const [errors, setErrors] = useState({});
@@ -51,11 +52,12 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
         e.preventDefault();
         try {
             const payload = { ...formData };
+            console.log(formData);
 
             if (isEditMode) {
-                await api.put(`/batch/${formData.id}`, payload);
+                await api.put(`/lote/${formData.idLote}`, payload);
             } else {
-                await api.post("/batch", payload);
+                await api.post("/lote", payload);
             }
 
             setErrors({});
@@ -98,11 +100,11 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
                             <TextInput
                                 id="name"
                                 name="name"
-                                value={formData.name}
+                                value={formData.nombre}
                                 onChange={handleChange}
                                 placeholder="Introduzca el nombre del lote"
                                 required
-                                error={errors.name}
+                                error={errors.nombre}
                             />
                         </div>
 
@@ -110,12 +112,12 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
                             <InputLabel htmlFor="programId" value="Programa" />
                             <SelectInput
                                 id="programId"
-                                name="programId"
-                                value={formData.programId}
+                                name="idPrograma"
+                                value={formData.idPrograma}
                                 onChange={handleChange}
                                 options={programOptions}
                                 required
-                                error={errors.programId}
+                                error={errors.idPrograma}
                                 placeholder="Seleccionar programa"
                             />
                         </div>
@@ -139,11 +141,11 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
                                 id="startDate"
                                 name="startDate"
                                 type="date"
-                                value={formData.startDate}
+                                value={formData.fechaInicio}
                                 onChange={handleChange}
                                 required
-                                error={errors.startDate}
-                                placeholder="dd/mm/aaaa"
+                                error={errors.fechaInicio}
+                                // placeholder="dd/mm/aaaa"
                             />
                         </div>
 
@@ -153,11 +155,11 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
                                 id="endDate"
                                 name="endDate"
                                 type="date"
-                                value={formData.endDate}
+                                value={formData.fechaFin}
                                 onChange={handleChange}
                                 required
-                                error={errors.endDate}
-                                placeholder="dd/mm/aaaa"
+                                error={errors.fechaFin}
+                                // placeholder="dd/mm/aaaa"
                             />
                         </div>
                     </div>
