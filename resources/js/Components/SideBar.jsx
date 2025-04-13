@@ -5,7 +5,9 @@ import {
     MapPin, Users, BookOpen, Settings, Building,
     Briefcase, Calendar, Layers, Clock, SendToBack,
     LayoutGrid, UserRoundCheck,
-    Timer
+    Timer,
+    Earth,
+    Map
 } from 'lucide-react';
 
 const sections = [
