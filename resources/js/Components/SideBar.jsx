@@ -14,7 +14,7 @@ const sections = [
         options: [
             { text: 'Usuarios y Roles', icon: Users, to: '/usersRole' },
             { text: 'Gestión de Ciudades', icon: MapPin, to:'/citiesManagement' },
-            { text: 'Sedes y Entidades', icon: Building, to:'/locationEntities' },
+            { text: 'Sedes y Entidades', icon: Building, to:'/sitesAndEntities' },
             { text: 'Especialidad y Profesionales', icon: Briefcase, to:'/specialtyProfessional' },
             { text: 'Gestión Diaria', icon: Calendar, to:'/dailyManagement' },
             { text: 'Gestión por Lotes', icon: Layers, to:'/batchManagement' },
@@ -28,7 +28,7 @@ const sections = [
         title: 'Cursos',
         basePath: '/courses/create',
         options: [
-            { text: 'Gestión de Cursos', icon: BookOpen, to: '/courses' },
+            { text: 'Gestión de Cursos', icon: BookOpen, to: '/course' },
             { text: 'Misión Profesional', icon: UserRoundCheck, to:'/professionalMission' },
             { text: 'Gestión del Dia del Curso', icon: Calendar, to:'/courseDayManagement' },
         ],
