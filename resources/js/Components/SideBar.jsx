@@ -14,7 +14,9 @@ const sections = [
         basePath: '/admin/city',
         options: [
             { text: 'Usuarios y Roles', icon: Users, to: '/usersRole' },
+            { text: 'Gestión de Region', icon: Map, to:'/regionManagement' },
             { text: 'Gestión de Ciudades', icon: MapPin, to: '/citiesManagement' },
+            { text: 'Gestión de Pais', icon: Earth, to:'/countriesManagement' },             
             { text: 'Sedes y Entidades', icon: Building, to:'/sitesAndEntities' },
             { text: 'Especialidad y Profesionales', icon: Briefcase, to:'/specialtyProfessional' },
             { text: 'Gestión Diaria', icon: Calendar, to: '/dailyManagement' },
