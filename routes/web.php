@@ -94,6 +94,14 @@ Route::get('course', function () {
     return Inertia::render('CourseManagement/CourseManagement');
 })->middleware(['auth', 'verified'])->name('CourseManagement');
 
+Route::get('regionManagement', function () {
+    return Inertia::render('RegionManagement/RegionManagement');
+})->middleware(['auth', 'verified'])->name('RegionManagement');
+
+Route::get('countriesManagement', function () {
+    return Inertia::render('CountryManagement/CountryManagement');
+})->middleware(['auth', 'verified'])->name('CountryManagement');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
