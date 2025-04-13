@@ -9,14 +9,16 @@ import { getApi } from "@/utils/generalFunctions";
 
 export default function CityForm({ onCancel, initialData = null, onSubmitSuccess }) {
     const api = getApi();
+
     const [formData, setFormData] = useState({
-        id: initialData?.id || "",
-        name: initialData?.name || "",
-        country: initialData?.country || "Colombia",
+        codigoCiudad: initialData?.codigoCiudad || "",
+        idCiudad: initialData?.idCiudad || "",
+        nombre: initialData?.nombre || "",
+        pais: initialData?.pais || "",
         region: initialData?.region || "",
-        postalCode: initialData?.postalCode || "",
-        status: initialData?.status || "Activo",
+        codigoPostal: initialData?.codigoPostal || "",
     });
+
     const [errors, setErrors] = useState({});
     const isEditMode = Boolean(initialData);
 
@@ -29,18 +31,17 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
 
         try {
             const payload = {
-                id: formData.id,
-                name: formData.name,
-                country: formData.country,
+                idCiudad: formData.idCiudad,
+                nombre: formData.nombre,
+                pais: formData.pais,
                 region: formData.region,
-                postalCode: formData.postalCode,
-                status: formData.status,
+                codigoPostal: formData.codigoPostal,
             };
 
             if (isEditMode) {
-                await api.put(`/city/${formData.id}`, payload);
+                await api.put(`/ciudad/${formData.idCiudad}`, payload);
             } else {
-                await api.post("/city", payload);
+                await api.post("/ciudad", payload);
             }
 
             setErrors({});
@@ -61,79 +62,64 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
             <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {!isEditMode && (
+                        {/* {!isEditMode && ( */}
                             <div className="space-y-2">
-                                <InputLabel htmlFor="id" value="City ID" className="text-sm" />
+                                <InputLabel htmlFor="idCiudad" value="ID Ciudad" className="text-sm" />
                                 <TextInput
-                                    id="id"
-                                    name="id"
-                                    value={formData.id}
+                                    id="idCiudad"
+                                    name="idCiudad"
+                                    value={formData.codigoCiudad}
                                     onChange={handleChange}
-                                    placeholder="Enter city ID"
+                                    placeholder="Ej: 101"
                                     required
                                 />
                             </div>
-                        )}
+                        {/* )} */}
 
                         <div className="space-y-2">
-                            <InputLabel htmlFor="name" value="City Name" className="text-sm" />
+                            <InputLabel htmlFor="nombre" value="Nombre de la ciudad" className="text-sm" />
                             <TextInput
-                                id="name"
-                                name="name"
-                                value={formData.name}
+                                id="nombre"
+                                name="nombre"
+                                value={formData.nombre}
                                 onChange={handleChange}
-                                placeholder="Enter city name"
+                                placeholder="Ej: Madrid"
                                 required
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <InputLabel htmlFor="country" value="Country" className="text-sm" />
+                            <InputLabel htmlFor="pais" value="País" className="text-sm" />
                             <TextInput
-                                id="country"
-                                name="country"
-                                value={formData.country}
+                                id="pais"
+                                name="pais"
+                                value={formData.pais}
                                 onChange={handleChange}
-                                placeholder="Enter country"
+                                placeholder="Ej: España"
                                 required
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <InputLabel htmlFor="region" value="Region" className="text-sm" />
+                            <InputLabel htmlFor="region" value="Región" className="text-sm" />
                             <TextInput
                                 id="region"
                                 name="region"
                                 value={formData.region}
                                 onChange={handleChange}
-                                placeholder="Enter region"
+                                placeholder="Ej: Andalucía"
                                 required
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <InputLabel htmlFor="postalCode" value="Postal Code" className="text-sm" />
+                            <InputLabel htmlFor="codigoPostal" value="Código Postal" className="text-sm" />
                             <TextInput
-                                id="postalCode"
-                                name="postalCode"
-                                value={formData.postalCode}
+                                id="codigoPostal"
+                                name="codigoPostal"
+                                value={formData.codigoPostal}
                                 onChange={handleChange}
-                                placeholder="e.g. 28001-28080"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <InputLabel htmlFor="status" value="Status" className="text-sm" />
-                            <SelectInput
-                                id="status"
-                                name="status"
-                                value={formData.status}
-                                onChange={handleChange}
-                                options={[
-                                    { value: "Activo", label: "Activo" },
-                                    { value: "Inactivo", label: "Inactivo" },
-                                ]}
-                                required
+                                placeholder="Ej: 28001"
                             />
                         </div>
                     </div>

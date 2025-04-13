@@ -60,7 +60,7 @@ class UsuarioPerfilController extends Controller
 
         $validatedData = $request->validate([
             'idUsuario' => 'sometimes|required|integer|exists:usuarios,idUsuario',
-            'idPerfil'  => 'sometimes|required|integer|exists:perfiles,idPerfil'
+            'idPerfil'  => 'sometimes|required|integer|exists:perfil,idPerfil'
         ]);
 
         $usuarioPerfil->update($validatedData);

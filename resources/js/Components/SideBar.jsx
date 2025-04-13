@@ -4,7 +4,8 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import {
     MapPin, Users, BookOpen, Settings, Building,
     Briefcase, Calendar, Layers, Clock, SendToBack,
-    LayoutGrid, UserRoundCheck
+    LayoutGrid, UserRoundCheck,
+    Timer
 } from 'lucide-react';
 
 const sections = [
@@ -13,15 +14,17 @@ const sections = [
         basePath: '/admin/city',
         options: [
             { text: 'Usuarios y Roles', icon: Users, to: '/usersRole' },
-            { text: 'Gestión de Ciudades', icon: MapPin, to:'/citiesManagement' },
+            { text: 'Gestión de Ciudades', icon: MapPin, to: '/citiesManagement' },
             { text: 'Sedes y Entidades', icon: Building, to:'/sitesAndEntities' },
             { text: 'Especialidad y Profesionales', icon: Briefcase, to:'/specialtyProfessional' },
-            { text: 'Gestión Diaria', icon: Calendar, to:'/dailyManagement' },
-            { text: 'Gestión por Lotes', icon: Layers, to:'/batchManagement' },
-            { text: 'Gestión de Programas', icon: BookOpen, to:'/programmeManagement' },
-            { text: 'Gestión de Slots', icon: Clock, to:'/slotManagement' },
-            { text: 'Gestión de Procesos', icon: SendToBack, to:'/processManagement' },
+            { text: 'Gestión Diaria', icon: Calendar, to: '/dailyManagement' },
+            { text: 'Gestión por Lotes', icon: Layers, to: '/batchManagement' },
+            { text: 'Gestión de Programas', icon: BookOpen, to: '/programmeManagement' },
+            { text: 'Gestión de Slots', icon: Clock, to: '/slotManagement' },
+            { text: 'Gestión de Procesos', icon: SendToBack, to: '/processManagement' },
             { text: 'Gestión de Aula', icon: LayoutGrid, to:'/classroomManagement' },
+            { text: 'Cronograma de Horarios', icon: Timer, to: '/scheduleTimer' },
+            { text: 'Cronograma de Horarios', icon: Timer, to: '/scheduleTimer' },
         ],
     },
     {
@@ -37,7 +40,7 @@ const sections = [
         title: 'Sistema',
         basePath: '/courses/create',
         options: [
-            { text: 'Ajustes', icon: Settings, to:'/settings' },
+            { text: 'Ajustes', icon: Settings, to: '/settings' },
         ],
     },
 ];

@@ -119,6 +119,7 @@ export default function PrincipalProgramme() {
                             onSearchChange={(val) =>
                                 console.log("Filtro buscador:", val)
                             }
+                            placeHolderText="Buscando programas"
                         />
 
                         {loading ? (
