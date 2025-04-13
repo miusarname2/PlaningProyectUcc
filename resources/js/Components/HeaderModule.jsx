@@ -11,7 +11,7 @@ export default function HeaderModule({ title, description, buttonText, onClick, 
 
       {showButton && (
         <ButtonGradient onClick={onClick}>
-          <CirclePlus className="w-4 h-4" />
+          <CirclePlus className="w-4 h-4 mr-2" />
           {buttonText}
         </ButtonGradient>
       )}
