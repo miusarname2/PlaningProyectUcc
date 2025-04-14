@@ -32,4 +32,14 @@ class Horario extends Model
         return $this->belongsTo(Profesional::class, 'idProfesional', 'idProfesional');
     }
 
+    public function aula()
+    {
+        return $this->belongsTo(Aula::class, 'idAula', 'idAula');
+    }
+
+    public function FranjaHoraria()
+    {
+        return $this->belongsTo(FranjaHoraria::class, 'idFranjaHoraria', 'idFranjaHoraria');
+    }
+
 }

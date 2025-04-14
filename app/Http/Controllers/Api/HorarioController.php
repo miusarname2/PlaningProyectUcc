@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class HorarioController extends Controller
 {
@@ -16,7 +17,8 @@ class HorarioController extends Controller
      */
     public function index()
     {
-        //
+        $horarios = Horario::with(["curso", "profesional", "aula", "FranjaHoraria"])->get();
+        return response()->json($horarios);
     }
 
     /**
@@ -24,7 +26,27 @@ class HorarioController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $validatedData = $request->validate([
+                'idCurso' => "required|numeric|exists:curso,idCurso",
+                'idProfesional' => "required|numeric|exists:profesional,idProfesional",
+                'idAula' => "required|numeric|exists:aula,idAula",
+                'idFranjaHoraria' => "required|numeric|exists:franja_horaria,idFranjaHoraria",
+                'dia' => "required|string"
+            ]);
+        } catch (ValidationException $ex) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $ex->errors()
+            ], 422);
+        }
+
+        $horario = Horario::create($validatedData);
+
+        $horario->load(["curso", "profesional", "aula", "FranjaHoraria"]);
+
+        return response()->json($horario, 201);
     }
 
     /**
@@ -32,7 +54,8 @@ class HorarioController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $horario = Horario::with(["curso", "profesional", "aula", "FranjaHoraria"])->findOrFail($id);
+        return response()->json($horario);
     }
 
     /**
@@ -40,7 +63,27 @@ class HorarioController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        try {
+            $validatedData = $request->validate([
+                'idCurso' => "sometimes|numeric|exists:curso,idCurso",
+                'idProfesional' => "sometimes|numeric|exists:profesional,idProfesional",
+                'idAula' => "sometimes|numeric|exists:aula,idAula",
+                'idFranjaHoraria' => "sometimes|numeric|exists:franja_horaria,idFranjaHoraria",
+                'dia' => "sometimes|string"
+            ]);
+        } catch (ValidationException $ex) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $ex->errors()
+            ], 422);
+        }
+
+        $horario = Horario::create($validatedData);
+
+        $horario->load(["curso", "profesional", "aula", "FranjaHoraria"]);
+
+        return response()->json($horario, 201);
     }
 
     /**
@@ -48,7 +91,11 @@ class HorarioController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $horario = Horario::findOrFail($id);
+
+        $horario->delete();
+
+        return response()->json(["message" => "Horario Deleted"]);
     }
 
     public function search(Request $request)
