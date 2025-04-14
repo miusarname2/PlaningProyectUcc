@@ -23,4 +23,8 @@ class Perfil extends Model
         return $this->belongsToMany(Rol::class,'perfil_rol','idPerfil','idRol');
     }
 
+    public function usuarios()
+    {
+        return $this->belongsToMany(Usuario::class,'usuario_perfil','idPerfil','idUsuario');
+    }
 }
