@@ -28,7 +28,7 @@ const sections = [
             { text: 'Gestión de Procesos', icon: SendToBack, to: '/processManagement' },
             { text: 'Gestión de Aula', icon: LayoutGrid, to:'/classroomManagement' },
             { text: 'Cronograma de Horarios', icon: Timer, to: '/scheduleTimer' },
-            { text: 'Cronograma de Horarios', icon: Timer, to: '/scheduleTimer' },
+            // { text: 'Cronograma de Horarios', icon: Timer, to: '/scheduleTimer' },
         ],
     },
     {

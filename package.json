@@ -20,6 +20,7 @@
         "vite": "^5.0.0"
     },
     "dependencies": {
+        "date-fns": "^4.1.0",
         "lucide-react": "^0.486.0"
     }
 }
