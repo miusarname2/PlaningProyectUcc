@@ -34,7 +34,7 @@ class SedeController extends Controller
                 'descripcion' => 'nullable|string',
                 'tipo'      => 'required|string',
                 'acceso'    => 'required|string',
-                'idCiudad'  => 'required|integer|exists:ciudades,idCiudad'
+                'idCiudad'  => 'required|integer|exists:ciudad,idCiudad'
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -72,7 +72,7 @@ class SedeController extends Controller
             'descripcion' => 'sometimes|nullable|string',
             'tipo'      => 'sometimes|required|string',
             'acceso'    => 'sometimes|required|string',
-            'idCiudad'  => 'sometimes|required|integer|exists:ciudades,idCiudad'
+            'idCiudad'  => 'sometimes|required|integer|exists:ciudad,idCiudad'
         ]);
 
         $sede->update($validatedData);
