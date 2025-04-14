@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Proceso;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class ProcesoController extends Controller
@@ -89,5 +91,73 @@ class ProcesoController extends Controller
         $proceso->delete();
 
         return response()->json(['message' => "Process Deleted"]);
+    }
+
+    public function search(Request $request)
+    {
+        // 1. Validación de la entrada
+        $validator = Validator::make($request->all(), [
+            'codigo'          => 'nullable|string|max:255',
+            'nombre'          => 'nullable|string|max:255',
+            'descripcion'     => 'nullable|string|max:1000',
+            'cantidadPasos'   => 'nullable|integer|min:0',
+            'idDepartamento'  => 'nullable|integer|exists:departamento,idDepartamento',
+            'estado'          => 'nullable|string|max:50',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error en los datos ingresados.',
+                'errores' => $validator->errors(),
+            ], 422);
+        }
+
+        // 2. Iniciamos el query builder
+        $query = Proceso::query();
+
+        // 3. Aplicamos filtros condicionales
+        if ($request->filled('codigo')) {
+            $query->where('codigo', 'like', '%' . trim($request->input('codigo')) . '%');
+        }
+
+        if ($request->filled('nombre')) {
+            $query->where('nombre', 'like', '%' . trim($request->input('nombre')) . '%');
+        }
+
+        if ($request->filled('descripcion')) {
+            $query->where('descripcion', 'like', '%' . trim($request->input('descripcion')) . '%');
+        }
+
+        if ($request->filled('cantidadPasos')) {
+            $query->where('cantidadPasos', $request->input('cantidadPasos'));
+        }
+
+        if ($request->filled('idDepartamento')) {
+            $query->where('idDepartamento', $request->input('idDepartamento'));
+        }
+
+        if ($request->filled('estado')) {
+            $query->where('estado', 'like', '%' . trim($request->input('estado')) . '%');
+        }
+
+        // 4. Eager‑loading de la relación departamento
+        $query->with('departamento');
+
+        // 5. Ejecutamos la consulta con paginación
+        try {
+            $procesos = $query->paginate(10);
+
+            return response()->json([
+                'status' => 'success',
+                'data'   => $procesos,
+            ]);
+        } catch (\Exception $ex) {
+            Log::error('Error en búsqueda de procesos: ' . $ex->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error interno del servidor.',
+            ], 500);
+        }
     }
 }
