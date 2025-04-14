@@ -56,6 +56,7 @@ Route::middleware(['auth:sanctum', 'throttle:search'])
         Route::get('sede/search', [SedeController::class, 'search']);
         Route::get('usuarioPerfil/search', [UsuarioPerfilController::class, 'search']);
         Route::get('aula/search', [AulaController::class, 'search']);
+        Route::get('proceso/search', [ProcesoController::class, 'search']);
     });
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('user/{user}/permisos', [UsuarioController::class, 'permisos']);
