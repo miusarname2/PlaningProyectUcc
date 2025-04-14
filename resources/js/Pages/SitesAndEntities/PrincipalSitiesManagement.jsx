@@ -11,12 +11,16 @@ import LinkConIcono from "@/Components/LinkConIcono";
 
 function verifyUrl(text) {
     try {
+        if (text.startsWith("www")) {
+            text = "http://" + text;
+        }
         new URL(text);
         return true;
     } catch (err) {
         return false;
     }
 }
+
 
 const columns = [
     { title: "ID", key: "codigoSede" },
@@ -36,7 +40,7 @@ const columns = [
     {
         title: "Acceso",
         key: "acceso",
-        render: (value) => (verifyUrl(value) ? <LinkConIcono url={value} icon={ExternalLink}>Entrar al Sitio</LinkConIcono> : <StatusBadge status={value} />),
+        render: (value) => (verifyUrl(value) ? <LinkConIcono url={value.startsWith('http') || value.startsWith('https') ? value : `http://${value}`} icon={ExternalLink}>Entrar al Sitio</LinkConIcono> : <StatusBadge status={value} />),
     }
 ];
 
@@ -72,7 +76,7 @@ export default function PrincipalSitiesManagement() {
             const transformed = response.data.map((sitie) => ({
                 ...sitie,
                 id: sitie.idSede,
-                codigoSede:sitie.codigo,
+                codigoSede: sitie.codigo,
             }));
             setData(transformed);
         } catch (error) {

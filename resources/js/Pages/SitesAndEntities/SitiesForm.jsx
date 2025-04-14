@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import TextInput from "@/Components/TextInput";
 import InputLabel from "@/Components/InputLabel";
+import TextTareaInput from "@/Components/TextTareaInput";
 import SelectInput from "@/Components/SelectInput";
 import ButtonGradient from "@/Components/ButtonGradient";
 import CancelButton from "@/Components/CancelButton";
@@ -8,27 +9,42 @@ import ToggleSwitch from "@/Components/ToggleSwitch"; // lo vamos a crear
 import { Save } from "lucide-react";
 import { getApi } from "@/utils/generalFunctions";
 
-export default function DailyForm({ onCancel, initialData = null, onSubmitSuccess }) {
+export default function SitiesForm({ onCancel, initialData = null, onSubmitSuccess }) {
     const api = getApi();
     const isEditMode = Boolean(initialData);
 
+    // Estado para las ciudades
+    const [cities, setCities] = useState([]);
+    // Estado del formulario, se agrega el campo 'idCiudad'
     const [formData, setFormData] = useState({
-        id: initialData?.id || "",
-        name: initialData?.name || "",
-        shortName: initialData?.shortName || "",
-        status: initialData?.status || "Activo",
-        isWeekend: initialData?.isWeekend || false,
+        codigo: initialData?.codigoSede || "",
+        nombre: initialData?.nombre || "",
+        descripcion: initialData?.descripcion || "",
+        tipo: initialData?.tipo || "Fisica",
+        acceso: initialData?.acceso || "",
+        idCiudad: initialData?.idCiudad || "", // campo para la ciudad
     });
-
     const [errors, setErrors] = useState({});
+
+    // Obtiene las ciudades desde '/ciudad'
+    async function fetchCities() {
+        try {
+            const response = await api.get("/ciudad");
+            (response.data).unshift({ idCiudad: "", nombre: "Seleccionar Ciudad." });
+            setCities(response.data);
+        } catch (error) {
+            console.error("Error fetching cities:", error);
+        }
+    }
+
+    useEffect(() => {
+        fetchCities();
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+        console.log(name, value);
         setFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleToggle = (checked) => {
-        setFormData((prev) => ({ ...prev, isWeekend: checked }));
     };
 
     const handleSubmit = async (e) => {
@@ -38,20 +54,21 @@ export default function DailyForm({ onCancel, initialData = null, onSubmitSucces
             const payload = { ...formData };
 
             if (isEditMode) {
-                await api.put(`/day/${formData.id}`, payload);
+                await api.put(`/sede/${initialData?.id}`, payload);
             } else {
-                await api.post("/day", payload);
+                console.log(payload);
+                await api.post("/sede", payload);
             }
 
             setErrors({});
-            onSubmitSuccess?.();
+            if (typeof onSubmitSuccess === "function") onSubmitSuccess();
             onCancel();
         } catch (error) {
             if (error.response?.status === 422) {
                 setErrors(error.response.data.errors || {});
                 console.error("Validation errors:", error.response.data.errors);
             } else {
-                console.error("Error saving day:", error);
+                console.error("Error saving record:", error);
             }
         }
     };
@@ -61,79 +78,113 @@ export default function DailyForm({ onCancel, initialData = null, onSubmitSucces
             <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {!isEditMode && (
-                            <div className="space-y-2">
-                                <InputLabel htmlFor="id" value="Día ID" />
-                                <TextInput
-                                    id="id"
-                                    name="id"
-                                    value={formData.id}
-                                    onChange={handleChange}
-                                    placeholder="Introduzca el ID del día"
-                                    required
-                                />
-                            </div>
-                        )}
-
+                        {/* Campo para el código */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="name" value="Nombre del día" />
+                            <InputLabel htmlFor="codigo" value="Código" />
                             <TextInput
-                                id="name"
-                                name="name"
-                                value={formData.name}
+                                id="codigo"
+                                name="codigo"
+                                value={formData.codigo}
                                 onChange={handleChange}
-                                placeholder="Introduzca el nombre del día"
+                                placeholder="Ingrese el código"
                                 required
                             />
                         </div>
 
+                        {/* Campo para el nombre */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="shortName" value="Nombre corto" />
+                            <InputLabel htmlFor="nombre" value="Nombre" />
                             <TextInput
-                                id="shortName"
-                                name="shortName"
-                                value={formData.shortName}
+                                id="nombre"
+                                name="nombre"
+                                value={formData.nombre}
                                 onChange={handleChange}
-                                placeholder="Ej: Lun, Mar, Mié"
+                                placeholder="Ingrese el nombre"
                                 required
                             />
                         </div>
 
+                        {/* Campo para la descripción (ocupa dos columnas) */}
+                        <div className="space-y-2 md:col-span-2">
+                            <InputLabel htmlFor="descripcion" value="Descripción" />
+                            <TextTareaInput
+                                id="descripcion"
+                                name="descripcion"
+                                value={formData.descripcion}
+                                onChange={handleChange}
+                                placeholder="Ingrese la descripción"
+                                rows={4}
+                                required
+                            />
+                        </div>
+
+                        {/* Campo para seleccionar la ciudad */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="status" value="Estado" />
+                            <InputLabel htmlFor="idCiudad" value="Ciudad" />
                             <SelectInput
-                                id="status"
-                                name="status"
-                                value={formData.status}
+                                id="idCiudad"
+                                name="idCiudad"
+                                value={formData.idCiudad}
+                                onChange={handleChange}
+                                options={cities.map((city) => ({
+                                    value: city.idCiudad,
+                                    label: city.nombre,
+                                }))}
+                                required
+                            />
+                        </div>
+
+                        {/* Campo para seleccionar el tipo */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="tipo" value="Tipo" />
+                            <SelectInput
+                                id="tipo"
+                                name="tipo"
+                                value={formData.tipo}
                                 onChange={handleChange}
                                 options={[
-                                    { value: "Activo", label: "Activo" },
-                                    { value: "Inactivo", label: "Inactivo" },
+                                    { value: "Fisica", label: "Fisica" },
+                                    { value: "Virtual", label: "Virtual" },
                                 ]}
                                 required
                             />
                         </div>
 
-                        <div className="md:col-span-2 space-y-2">
-                            <div className="flex items-center justify-between">
-                                <InputLabel htmlFor="isWeekend" value="¿Es fin de semana?" />
-                                <ToggleSwitch
-                                    id="isWeekend"
-                                    checked={formData.isWeekend}
-                                    onChange={handleToggle}
-                                />
-                            </div>
-                            <p className="text-sm text-gray-500">
-                                Este día {formData.isWeekend ? "no se considera laborable" : "se considera laborable"}.
-                            </p>
+                        {/* Campo para Dirección/URL según el tipo */}
+                        <div className="space-y-2 md:col-span-2">
+                            {formData.tipo === "Fisica" ? (
+                                <>
+                                    <InputLabel htmlFor="acceso" value="Acceso" />
+                                    <TextInput
+                                        id="acceso"
+                                        name="acceso"
+                                        value={formData.acceso}
+                                        onChange={handleChange}
+                                        placeholder="Ingrese la dirección"
+                                        required
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <InputLabel htmlFor="acceso" value="Acceso" />
+                                    <TextInput
+                                        id="acceso"
+                                        name="acceso"
+                                        value={formData.acceso}
+                                        onChange={handleChange}
+                                        placeholder="Ingrese la URL"
+                                        required
+                                    />
+                                </>
+                            )}
                         </div>
                     </div>
 
+                    {/* Botones de acción */}
                     <div className="flex justify-end space-x-2 pt-4">
                         <CancelButton onClick={onCancel}>Cancelar</CancelButton>
                         <ButtonGradient type="submit">
-                            <Save className="h-4 w-4 mr-2" />
-                            {isEditMode ? "Guardar Cambios" : "Crear Día"}
+                            {isEditMode ? "Guardar Cambios" : "Crear Registro"}
                         </ButtonGradient>
                     </div>
                 </div>
