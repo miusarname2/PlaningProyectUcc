@@ -4,52 +4,50 @@ import DataTable from "@/Components/DataTable";
 import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
-import CityForm from "@/Pages/CityManagement/CityForm";
+import CountryForm from "@/Pages/CountryManagement/CountryForm";
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [
     { title: "Nombre", key: "nombre" },
-    { title: "Descripcion", key: "sedes" },
-    { title: "País", key: "pais" },
+    { title: "Descripcion", key: "descripcion" },
 ];
 
 export default function PrincipalCountry() {
     const [showForm, setShowForm] = useState(false);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedCity, setSelectedCity] = useState(null);
+    const [selectedCountry, setSelectedCountry] = useState(null);
 
     const api = getApi();
 
     function handleEdit(row) {
-        setSelectedCity(row);
+        setSelectedCountry(row);
         setShowForm(true);
     }
 
     async function handleDelete(row) {
-        if (!confirm(`¿Estás seguro de eliminar la ciudad "${row.nombre}"?`)) return;
+        if (!confirm(`¿Estás seguro de eliminar: "${row.nombre}"?`)) return;
 
         try {
-            await api.delete(`/ciudad/${row.id}`);
+            await api.delete(`/pais/${row.id}`);
             fetchData();
         } catch (error) {
-            console.error("Error eliminando ciudad:", error);
-            alert("No se pudo eliminar la ciudad. Intenta más tarde.");
+            console.error("Error eliminando el pais:", error);
+            alert("No se pudo eliminar el pais. Intenta más tarde.");
         }
     }
 
     async function fetchData() {
         try {
-            const response = await api.get("/ciudad");
-            const transformed = response.data.map((city) => ({
-                ...city,
-                id: city.id, // por si se usa internamente
-                codigoCiudad: city.codigoCiudad || `C${String(city.id).padStart(3, '0')}`,
-                sedes: city.sedes?.length || 0, // cantidad de sedes
+            const response = await api.get("/pais");
+            console.log(response.data);
+            const transformed = response.data.map((pais) => ({
+                ...pais,
+                id: pais.idPais,
             }));
             setData(transformed);
         } catch (error) {
-            console.error("Error fetching cities:", error);
+            console.error("Error fetching countries:", error);
         } finally {
             setLoading(false);
         }
@@ -78,7 +76,7 @@ export default function PrincipalCountry() {
                         />
                         {loading ? (
                             <p className="text-center text-gray-500">
-                                Cargando Regiones...
+                                Cargando paises...
                             </p>
                         ) : (
                             <DataTable
@@ -101,12 +99,12 @@ export default function PrincipalCountry() {
                         )}
                     </div>
                 ) : (
-                    <CityForm
+                    <CountryForm
                         onCancel={() => {
                             setShowForm(false);
-                            setSelectedCity(null);
+                            setSelectedCountry(null);
                         }}
-                        initialData={selectedCity}
+                        initialData={selectedCountry}
                         onSubmitSuccess={() => fetchData()}
                     />
                 )}
