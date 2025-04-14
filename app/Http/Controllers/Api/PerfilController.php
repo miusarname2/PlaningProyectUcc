@@ -17,7 +17,7 @@ class PerfilController extends Controller
      */
     public function index()
     {
-        $perfiles = Perfil::with("roles")->get();
+        $perfiles = Perfil::withCount('usuarios')->with('roles')->get();
         return response()->json($perfiles);
     }
 
