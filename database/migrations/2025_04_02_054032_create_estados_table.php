@@ -11,15 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ciudad', function (Blueprint $table) {
-            $table->increments('idCiudad');
+        Schema::create('estado', function (Blueprint $table) {
+            $table->increments('idEstado');
             $table->string('nombre', 100);
-            $table->string('codigoPostal', 10)->nullable();
+            $table->text('descripcion')->nullable();
             $table->unsignedInteger('idRegion');
-            $table->unsignedInteger('idEstado');
             $table->timestamps();
-            $table->foreign('idRegion')->references('idRegion')->on('region')->onDelete('cascade');
-            $table->foreign('idEstado')->references('idEstado')->on('estado')->onDelete('cascade');
+
+
+            $table->foreign('idRegion')
+                ->references('idRegion')
+                ->on('region')
+                ->onDelete('cascade');
         });
     }
 
@@ -28,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ciudad');
+        Schema::dropIfExists('estado');
     }
 };
