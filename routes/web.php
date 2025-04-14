@@ -102,6 +102,10 @@ Route::get('countriesManagement', function () {
     return Inertia::render('CountryManagement/CountryManagement');
 })->middleware(['auth', 'verified'])->name('CountryManagement');
 
+Route::get('/scheduleTimer', function () {
+    return Inertia::render('SheduleManagement/SheduleManagement');
+})->middleware(['auth', 'verified'])->name('scheduleTimer');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
