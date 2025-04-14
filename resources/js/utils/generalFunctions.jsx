@@ -72,3 +72,8 @@ export function getApi() {
     }
     return instance;
 }
+
+export function cn(...classes) {
+    return classes.filter(Boolean).join(" ")
+  }
+  
