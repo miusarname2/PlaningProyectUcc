@@ -16,7 +16,8 @@ class Ciudad extends Model
     protected $fillable = [
         'nombre',
         'codigoPostal',
-        'idRegion'
+        'idRegion',
+        'idEstado'
     ];
 
     public function Region()
