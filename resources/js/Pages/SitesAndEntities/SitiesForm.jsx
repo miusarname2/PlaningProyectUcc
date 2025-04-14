@@ -154,7 +154,7 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
                         <div className="space-y-2 md:col-span-2">
                             {formData.tipo === "Fisica" ? (
                                 <>
-                                    <InputLabel htmlFor="acceso" value="Acceso" />
+                                    <InputLabel htmlFor="acceso" value="Dirrecion/Url" />
                                     <TextInput
                                         id="acceso"
                                         name="acceso"
@@ -166,7 +166,7 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
                                 </>
                             ) : (
                                 <>
-                                    <InputLabel htmlFor="acceso" value="Acceso" />
+                                    <InputLabel htmlFor="acceso" value="Dirrecion/Url" />
                                     <TextInput
                                         id="acceso"
                                         name="acceso"
