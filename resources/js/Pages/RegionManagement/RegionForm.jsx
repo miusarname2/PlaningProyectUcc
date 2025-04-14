@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import TextInput from "@/Components/TextInput";
+import TextTareaInput from "@/Components/TextTareaInput";
 import InputLabel from "@/Components/InputLabel";
 import SelectInput from "@/Components/SelectInput";
 import ButtonGradient from "@/Components/ButtonGradient";
@@ -7,18 +8,31 @@ import CancelButton from "@/Components/CancelButton";
 import { Save } from "lucide-react";
 import { getApi } from "@/utils/generalFunctions";
 
-export default function CityForm({ onCancel, initialData = null, onSubmitSuccess }) {
+export default function RegionForm({ onCancel, initialData = null, onSubmitSuccess }) {
     const api = getApi();
+
+    const [countries, setCountries] = useState([]);
     const [formData, setFormData] = useState({
-        id: initialData?.id || "",
-        name: initialData?.name || "",
-        country: initialData?.country || "Colombia",
-        region: initialData?.region || "",
-        postalCode: initialData?.postalCode || "",
-        status: initialData?.status || "Activo",
+        nombre: initialData?.nombre || "",
+        descripcion: initialData?.descripcion || "",
+        idPais: initialData?.idPais || "",
     });
     const [errors, setErrors] = useState({});
+
     const isEditMode = Boolean(initialData);
+
+    async function fetchCountries() {
+        try {
+            const response = await api.get("/pais");
+            setCountries(response.data);
+        } catch (error) {
+            console.error("Error fetching countries:", error);
+        }
+    }
+
+    useEffect(() => {
+        fetchCountries();
+    }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,29 +43,27 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
 
         try {
             const payload = {
-                id: formData.id,
-                name: formData.name,
-                country: formData.country,
-                region: formData.region,
-                postalCode: formData.postalCode,
-                status: formData.status,
+                nombre: formData.nombre,
+                descripcion: formData.descripcion,
+                idPais: formData.idPais,
             };
 
             if (isEditMode) {
-                await api.put(`/city/${formData.id}`, payload);
+                console.log(initialData);
+                await api.put(`/region/${initialData?.id}`, payload);
             } else {
-                await api.post("/city", payload);
+                await api.post("/region", payload);
             }
 
             setErrors({});
-            onSubmitSuccess?.();
+            if (typeof onSubmitSuccess === "function") onSubmitSuccess();
             onCancel();
         } catch (error) {
             if (error.response?.status === 422) {
                 setErrors(error.response.data.errors || {});
                 console.error("Validation errors:", error.response.data.errors);
             } else {
-                console.error("Error saving city:", error);
+                console.error("Error saving record:", error);
             }
         }
     };
@@ -61,88 +73,55 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
             <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {!isEditMode && (
-                            <div className="space-y-2">
-                                <InputLabel htmlFor="id" value="City ID" className="text-sm" />
-                                <TextInput
-                                    id="id"
-                                    name="id"
-                                    value={formData.id}
-                                    onChange={handleChange}
-                                    placeholder="Enter city ID"
-                                    required
-                                />
-                            </div>
-                        )}
-
+                        {/* Campo de nombre */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="name" value="City Name" className="text-sm" />
+                            <label htmlFor="nombre" className="text-sm">Nombre</label>
                             <TextInput
-                                id="name"
-                                name="name"
-                                value={formData.name}
+                                id="nombre"
+                                name="nombre"
+                                value={formData.nombre}
                                 onChange={handleChange}
-                                placeholder="Enter city name"
+                                placeholder="Ingrese el nombre"
                                 required
                             />
                         </div>
 
+                        {/* Campo para seleccionar país */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="country" value="Country" className="text-sm" />
-                            <TextInput
-                                id="country"
-                                name="country"
-                                value={formData.country}
-                                onChange={handleChange}
-                                placeholder="Enter country"
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <InputLabel htmlFor="region" value="Region" className="text-sm" />
-                            <TextInput
-                                id="region"
-                                name="region"
-                                value={formData.region}
-                                onChange={handleChange}
-                                placeholder="Enter region"
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <InputLabel htmlFor="postalCode" value="Postal Code" className="text-sm" />
-                            <TextInput
-                                id="postalCode"
-                                name="postalCode"
-                                value={formData.postalCode}
-                                onChange={handleChange}
-                                placeholder="e.g. 28001-28080"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <InputLabel htmlFor="status" value="Status" className="text-sm" />
+                            <label htmlFor="idPais" className="text-sm">País</label>
                             <SelectInput
-                                id="status"
-                                name="status"
-                                value={formData.status}
+                                id="idPais"
+                                name="idPais"
+                                value={formData.idPais}
                                 onChange={handleChange}
-                                options={[
-                                    { value: "Activo", label: "Activo" },
-                                    { value: "Inactivo", label: "Inactivo" },
-                                ]}
+                                options={countries.map((pais) => ({
+                                    value: pais.idPais,
+                                    label: pais.nombre,
+                                }))}
+                                required
+                            />
+                        </div>
+
+                        {/* Campo de descripción */}
+                        <div className="space-y-4 md:col-span-2">
+                            <label htmlFor="descripcion" className="text-sm">Descripción</label>
+                            <TextTareaInput
+                                id="descripcion"
+                                name="descripcion"
+                                value={formData.descripcion}
+                                onChange={handleChange}
+                                placeholder="Ingrese la descripción"
+                                rows={4}
                                 required
                             />
                         </div>
                     </div>
 
+                    {/* Botones de acción */}
                     <div className="flex justify-end space-x-2 pt-4">
                         <CancelButton onClick={onCancel}>Cerrar</CancelButton>
                         <ButtonGradient type="submit">
-                            <Save className="h-4 w-4 mr-2" />
-                            {isEditMode ? "Guardar Cambios" : "Crear Ciudad"}
+                            {isEditMode ? "Guardar Cambios" : "Crear Registro"}
                         </ButtonGradient>
                     </div>
                 </div>

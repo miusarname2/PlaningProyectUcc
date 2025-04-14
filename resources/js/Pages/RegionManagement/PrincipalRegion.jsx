@@ -4,13 +4,13 @@ import DataTable from "@/Components/DataTable";
 import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
-import CityForm from "@/Pages/CityManagement/CityForm";
+import RegionForm from "@/Pages/RegionManagement/RegionForm";
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [
     { title: "Nombre", key: "nombre" },
-    { title: "Descripcion", key: "sedes" },
-    { title: "País", key: "pais" },
+    { title: "Descripcion", key: "descripcion" },
+    { title: "País", key: "nombrePais" },
 ];
 
 export default function PrincipalCity() {
@@ -27,29 +27,30 @@ export default function PrincipalCity() {
     }
 
     async function handleDelete(row) {
-        if (!confirm(`¿Estás seguro de eliminar la ciudad "${row.nombre}"?`)) return;
+        console.log(row);
+        if (!confirm(`¿Estás seguro de eliminar la siguiente region: "${row.nombre}"?`)) return;
 
         try {
-            await api.delete(`/ciudad/${row.id}`);
+            await api.delete(`/region/${row.id}`);
             fetchData();
         } catch (error) {
-            console.error("Error eliminando ciudad:", error);
-            alert("No se pudo eliminar la ciudad. Intenta más tarde.");
+            console.error("Error eliminando la region:", error);
+            alert("No se pudo eliminar la region. Intenta más tarde.");
         }
     }
 
     async function fetchData() {
         try {
-            const response = await api.get("/ciudad");
-            const transformed = response.data.map((city) => ({
-                ...city,
-                id: city.id, // por si se usa internamente
-                codigoCiudad: city.codigoCiudad || `C${String(city.id).padStart(3, '0')}`,
-                sedes: city.sedes?.length || 0, // cantidad de sedes
+            const response = await api.get("/region");
+            console.log(response.data);
+            const transformed = response.data.map((region) => ({
+                ...region,
+                id: region.idRegion,
+                nombrePais: region.pais.nombre
             }));
             setData(transformed);
         } catch (error) {
-            console.error("Error fetching cities:", error);
+            console.error("Error fetching regions:", error);
         } finally {
             setLoading(false);
         }
@@ -101,7 +102,7 @@ export default function PrincipalCity() {
                         )}
                     </div>
                 ) : (
-                    <CityForm
+                    <RegionForm
                         onCancel={() => {
                             setShowForm(false);
                             setSelectedCity(null);
