@@ -5,109 +5,78 @@ import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import ContainerShowData from "@/Components/ContainerShowData";
-import DailyForm from "@/Pages/DailyManagement/DailyForm";
-import { Pencil, Trash2 } from "lucide-react";
+import SitiesForm from "@/Pages/SitesAndEntities/SitiesForm";
+import { ExternalLink, Pencil, Trash2 } from "lucide-react";
+import LinkConIcono from "@/Components/LinkConIcono";
+
+function verifyUrl(text) {
+    try {
+        new URL(text);
+        return true;
+    } catch (err) {
+        return false;
+    }
+}
 
 const columns = [
-    { title: "ID", key: "codigoDia" },
+    { title: "ID", key: "codigoSede" },
     { title: "Nombre", key: "nombre" },
-    { title: "Descripción", key: "nombreCorto" },
+    { title: "Descripción", key: "descripcion" },
     {
         title: "Tipo",
-        key: "finDeSemana",
+        key: "tipo",
         render: (value) => (
             <ContainerShowData
-                text={value ? "Sí" : "No"}
-                bg={value ? "bg-green-50" : "bg-red-50"}
-                colortext={value ? "text-green-700" : "text-red-700"}
+                text={value == 'Virtual' ? "Virtual" : "Fisica"}
+                bg={value == 'Virtual' ? "bg-purple-100" : "bg-blue-100"}
+                colortext={value == 'Virtual' ? "text-purple-800" : "text-blue-800"}
             />
         ),
     },
-    { title: "Usuarios", key: "cursos" },
     {
         title: "Acceso",
-        key: "estado",
-        render: (value) => <StatusBadge status={value} />,
+        key: "acceso",
+        render: (value) => (verifyUrl(value) ? <LinkConIcono url={value} icon={ExternalLink}>Entrar al Sitio</LinkConIcono> : <StatusBadge status={value} />),
     }
 ];
-const fakeDaysData = [
-    {
-        id: 1,
-        codigoDia: "D001",
-        nombre: "Lunes",
-        nombreCorto: "Lun",
-        finDeSemana: false,
-        cursos: 5,
-        estado: "Activo",
-    },
-    {
-        id: 2,
-        codigoDia: "D002",
-        nombre: "Martes",
-        nombreCorto: "Mar",
-        finDeSemana: false,
-        cursos: 3,
-        estado: "Activo",
-    },
-    {
-        id: 3,
-        codigoDia: "D003",
-        nombre: "Sábado",
-        nombreCorto: "Sáb",
-        finDeSemana: true,
-        cursos: 0,
-        estado: "inactivo",
-    },
-    {
-        id: 4,
-        codigoDia: "D004",
-        nombre: "Domingo",
-        nombreCorto: "Dom",
-        finDeSemana: true,
-        cursos: 2,
-        estado: "activo",
-    },
-];
 
-export default function PrincipalDaily() {
+export default function PrincipalSitiesManagement() {
     const [showForm, setShowForm] = useState(false);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedDay, setSelectedDay] = useState(null);
+    const [selectedSitie, setSelectedSitie] = useState(null);
 
     const api = getApi();
 
     function handleEdit(row) {
-        setSelectedDay(row);
+        setSelectedSitie(row);
         setShowForm(true);
     }
 
     async function handleDelete(row) {
-        if (!confirm(`¿Estás seguro de eliminar el día "${row.nombre}"?`)) return;
+        if (!confirm(`¿Estás seguro de eliminar la sede: "${row.nombre}"?`)) return;
 
         try {
-            await api.delete(`/dia/${row.id}`);
+            await api.delete(`/sede/${row.id}`);
             fetchData();
         } catch (error) {
-            console.error("Error eliminando día:", error);
-            alert("No se pudo eliminar el día. Intenta más tarde.");
+            console.error("Error eliminando la sede:", error);
+            alert("No se pudo eliminar la sede. Intenta más tarde.");
         }
     }
 
     async function fetchData() {
         try {
-            // const response = await api.get("/dia");
-            const response = { data: fakeDaysData }; 
-            const transformed = response.data.map((day) => ({
-                ...day,
-                id: day.id,
-                codigoDia: day.codigoDia || `D${String(day.id).padStart(3, "0")}`,
-                cursos: day.cursos?.length || 0,
-                finDeSemana: !!day.finDeSemana,
+            const response = await api.get("/sede");
+            console.log(response);
+            const transformed = response.data.map((sitie) => ({
+                ...sitie,
+                id: sitie.idSede,
+                codigoSede:sitie.codigo,
             }));
             setData(transformed);
         } catch (error) {
-            console.error("Error obteniendo días:", error);
+            console.error("Error obteniendo la sede:", error);
         } finally {
             setLoading(false);
         }
@@ -138,7 +107,7 @@ export default function PrincipalDaily() {
 
                         {loading ? (
                             <p className="text-center text-gray-500">
-                                Cargando días...
+                                Cargando Sedes...
                             </p>
                         ) : (
                             <div className="rounded-lg border bg-card text-card-foreground shadow-sm border-gray-200">
@@ -165,12 +134,12 @@ export default function PrincipalDaily() {
                         )}
                     </div>
                 ) : (
-                    <DailyForm
+                    <SitiesForm
                         onCancel={() => {
                             setShowForm(false);
-                            setSelectedDay(null);
+                            setSelectedSitie(null);
                         }}
-                        initialData={selectedDay}
+                        initialData={selectedSitie}
                         onSubmitSuccess={() => fetchData()}
                     />
                 )}
