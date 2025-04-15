@@ -79,8 +79,6 @@ class ProfesionalController extends Controller
                 'experiencia'    => 'sometimes|required|integer',
                 'estado'         => 'sometimes|required|string',
                 'perfil'         => 'sometimes|nullable|string',
-                'especialidades' => 'sometimes|nullable|array',
-                'especialidades.*' => 'integer|exists:especialidades,idEspecialidad'
             ]
         );
 
