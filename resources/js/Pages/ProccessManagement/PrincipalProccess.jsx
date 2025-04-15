@@ -21,41 +21,6 @@ const columns = [
         render: (value) => <StatusBadge status={value} />,
     },
 ];
-const fakeData = [
-    {
-        id: 1,
-        codigoLote: "B001",
-        nombre: "Lote Alfa",
-        fechaInicio: "2025-04-01",
-        fechaFin: "2025-06-30",
-        estudiantes: 25,
-        cursos: 5,
-        programa: "Desarrollo Web",
-        estado: "Activo",
-    },
-    {
-        id: 2,
-        codigoLote: "B002",
-        nombre: "Lote Beta",
-        fechaInicio: "2025-05-15",
-        fechaFin: "2025-08-15",
-        estudiantes: 30,
-        cursos: 6,
-        programa: "Ciencia de Datos",
-        estado: "Próximamente",
-    },
-    {
-        id: 3,
-        codigoLote: "B003",
-        nombre: "Lote Gamma",
-        fechaInicio: "2025-07-01",
-        fechaFin: "2025-09-30",
-        estudiantes: 20,
-        cursos: 4,
-        programa: "Inteligencia Artificial",
-        estado: "Próximamente",
-    },
-];
 
 
 export default function PrincipalProccess() {
@@ -104,8 +69,10 @@ export default function PrincipalProccess() {
     async function fetchData() {
         try {
             // Simulando transformación como si vinieran de la API
-            const transformed = fakeData.map((lote) => ({
-                ...lote,
+            const response = await api.get("/proceso");
+            console.log(response);
+            const transformed = (response.data).map((proceso) => ({
+                ...proceso,
                 estudiantes: lote.estudiantes || 0,
                 cursos: lote.cursos || 0,
             }));

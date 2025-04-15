@@ -4,22 +4,21 @@ import InputLabel from "@/Components/InputLabel";
 import SelectInput from "@/Components/SelectInput";
 import ButtonGradient from "@/Components/ButtonGradient";
 import CancelButton from "@/Components/CancelButton";
+import TextTareaInput from "@/Components/TextTareaInput";
 import ToggleSwitch from "@/Components/ToggleSwitch"; // lo vamos a crear
 import { Save } from "lucide-react";
 import { getApi } from "@/utils/generalFunctions";
 
-export default function DailyForm({ onCancel, initialData = null, onSubmitSuccess }) {
+export default function EntitieForm({ onCancel, initialData = null, onSubmitSuccess }) {
     const api = getApi();
     const isEditMode = Boolean(initialData);
 
     const [formData, setFormData] = useState({
-        id: initialData?.id || "",
-        name: initialData?.name || "",
-        shortName: initialData?.shortName || "",
-        status: initialData?.status || "Activo",
-        isWeekend: initialData?.isWeekend || false,
+        nombre: initialData?.nombre || "",
+        contacto: initialData?.contacto || "",
+        descripcion: initialData?.descripcion || "",
+        estado: initialData?.estado || "Activo",
     });
-
     const [errors, setErrors] = useState({});
 
     const handleChange = (e) => {
@@ -27,31 +26,31 @@ export default function DailyForm({ onCancel, initialData = null, onSubmitSucces
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleToggle = (checked) => {
-        setFormData((prev) => ({ ...prev, isWeekend: checked }));
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         try {
             const payload = { ...formData };
 
             if (isEditMode) {
-                await api.put(`/day/${formData.id}`, payload);
+                await api.put(`/entidad/${initialData.id}`, payload);
             } else {
-                await api.post("/day", payload);
+                const response = await api.get("/entidad");
+                const lengthRes = response.data.length;
+                const nextCodeNumber = lengthRes + 1;
+                const formattedNumber = String(nextCodeNumber).padStart(3, '0');
+                payload.codigo = `ENT${formattedNumber}`;
+                await api.post("/entidad", payload);
             }
 
             setErrors({});
             onSubmitSuccess?.();
             onCancel();
         } catch (error) {
-            if (error.response?.status === 422) {
+            if (error.response?.status == 422) {
                 setErrors(error.response.data.errors || {});
                 console.error("Validation errors:", error.response.data.errors);
             } else {
-                console.error("Error saving day:", error);
+                console.error("Error saving record:", error);
             }
         }
     };
@@ -61,50 +60,53 @@ export default function DailyForm({ onCancel, initialData = null, onSubmitSucces
             <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {!isEditMode && (
-                            <div className="space-y-2">
-                                <InputLabel htmlFor="id" value="Día ID" />
-                                <TextInput
-                                    id="id"
-                                    name="id"
-                                    value={formData.id}
-                                    onChange={handleChange}
-                                    placeholder="Introduzca el ID del día"
-                                    required
-                                />
-                            </div>
-                        )}
-
+                        {/* Campo para el nombre */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="name" value="Nombre del día" />
+                            <InputLabel htmlFor="nombre" value="Nombre" />
                             <TextInput
-                                id="name"
-                                name="name"
-                                value={formData.name}
+                                id="nombre"
+                                name="nombre"
+                                value={formData.nombre}
                                 onChange={handleChange}
-                                placeholder="Introduzca el nombre del día"
+                                placeholder="Ingrese el nombre"
                                 required
                             />
                         </div>
 
+                        {/* Campo para el contacto */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="shortName" value="Nombre corto" />
+                            <InputLabel htmlFor="contacto" value="Contacto" />
                             <TextInput
-                                id="shortName"
-                                name="shortName"
-                                value={formData.shortName}
+                                id="contacto"
+                                name="contacto"
+                                value={formData.contacto}
                                 onChange={handleChange}
-                                placeholder="Ej: Lun, Mar, Mié"
+                                placeholder="Ingrese el contacto"
                                 required
                             />
                         </div>
 
+                        {/* Campo para la descripción (ocupa dos columnas) */}
+                        <div className="space-y-2 md:col-span-2">
+                            <InputLabel htmlFor="descripcion" value="Descripción" />
+                            <TextTareaInput
+                                id="descripcion"
+                                name="descripcion"
+                                value={formData.descripcion}
+                                onChange={handleChange}
+                                placeholder="Ingrese la descripción"
+                                rows={4}
+                                required
+                            />
+                        </div>
+
+                        {/* Campo para el estado */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="status" value="Estado" />
+                            <InputLabel htmlFor="estado" value="Estado" />
                             <SelectInput
-                                id="status"
-                                name="status"
-                                value={formData.status}
+                                id="estado"
+                                name="estado"
+                                value={formData.estado}
                                 onChange={handleChange}
                                 options={[
                                     { value: "Activo", label: "Activo" },
@@ -113,27 +115,13 @@ export default function DailyForm({ onCancel, initialData = null, onSubmitSucces
                                 required
                             />
                         </div>
-
-                        <div className="md:col-span-2 space-y-2">
-                            <div className="flex items-center justify-between">
-                                <InputLabel htmlFor="isWeekend" value="¿Es fin de semana?" />
-                                <ToggleSwitch
-                                    id="isWeekend"
-                                    checked={formData.isWeekend}
-                                    onChange={handleToggle}
-                                />
-                            </div>
-                            <p className="text-sm text-gray-500">
-                                Este día {formData.isWeekend ? "no se considera laborable" : "se considera laborable"}.
-                            </p>
-                        </div>
                     </div>
 
+                    {/* Botones de acción */}
                     <div className="flex justify-end space-x-2 pt-4">
                         <CancelButton onClick={onCancel}>Cancelar</CancelButton>
                         <ButtonGradient type="submit">
-                            <Save className="h-4 w-4 mr-2" />
-                            {isEditMode ? "Guardar Cambios" : "Crear Día"}
+                            {isEditMode ? "Guardar Cambios" : "Crear Registro"}
                         </ButtonGradient>
                     </div>
                 </div>

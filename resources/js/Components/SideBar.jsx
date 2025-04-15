@@ -21,7 +21,6 @@ const sections = [
             { text: 'Gestión de Pais', icon: Earth, to:'/countriesManagement' },             
             { text: 'Sedes y Entidades', icon: Building, to:'/sitesAndEntities' },
             { text: 'Especialidad y Profesionales', icon: Briefcase, to:'/specialtyProfessional' },
-            { text: 'Gestión Diaria', icon: Calendar, to: '/dailyManagement' },
             { text: 'Gestión por Lotes', icon: Layers, to: '/batchManagement' },
             { text: 'Gestión de Programas', icon: BookOpen, to: '/programmeManagement' },
             { text: 'Gestión de Slots', icon: Clock, to: '/slotManagement' },

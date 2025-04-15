@@ -5,18 +5,19 @@ import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import ContainerShowData from "@/Components/ContainerShowData";
-import DailyForm from "@/Pages/DailyManagement/DailyForm";
-import { Pencil, Trash2 } from "lucide-react";
+import ProfessonalForm from "@/Pages/SpacialityAndProfessionals/ProfessonalForm";
+import LinkConIcono from "@/Components/LinkConIcono";
+import { ExternalLink, Pencil, Trash2 } from "lucide-react";
 
 const columns = [
-    { title: "Profesional", key: "codigoDia" },
-    { title: "Email", key: "nombre" },
-    { title: "Especialidad", key: "nombreCorto" },
-    { title: "Cualificación", key: "nombreCorto" },
-    { title: "Experiencia", key: "nombreCorto" },
+    { title: "Id", key: "codigo" },
+    { title: "Profesional", key: "nombreCompleto" },
+    { title: "Email", key: "email" },
+    { title: "Cualificación", key: "titulo" },
+    { title: "Experiencia(Años)", key: "experiencia" },
     {
         title: "Estado",
-        key: "finDeSemana",
+        key: "estado",
         render: (value) => (
             <ContainerShowData
                 text={value ? "Sí" : "No"}
@@ -25,44 +26,8 @@ const columns = [
             />
         ),
     },
-    { title: "Perfil", key: "nombreCorto" },
-];
-const fakeDaysData = [
     {
-        id: 1,
-        codigoDia: "D001",
-        nombre: "Lunes",
-        nombreCorto: "Lun",
-        finDeSemana: false,
-        cursos: 5,
-        estado: "Activo",
-    },
-    {
-        id: 2,
-        codigoDia: "D002",
-        nombre: "Martes",
-        nombreCorto: "Mar",
-        finDeSemana: false,
-        cursos: 3,
-        estado: "Activo",
-    },
-    {
-        id: 3,
-        codigoDia: "D003",
-        nombre: "Sábado",
-        nombreCorto: "Sáb",
-        finDeSemana: true,
-        cursos: 0,
-        estado: "inactivo",
-    },
-    {
-        id: 4,
-        codigoDia: "D004",
-        nombre: "Domingo",
-        nombreCorto: "Dom",
-        finDeSemana: true,
-        cursos: 2,
-        estado: "activo",
+        title: "Perfil", key: "perfil", render: (value) => (<LinkConIcono icon={ExternalLink} base64={value}>Descargar PDF</LinkConIcono>),
     },
 ];
 
@@ -80,31 +45,29 @@ export default function PrincipalProfessonalsManagement() {
     }
 
     async function handleDelete(row) {
-        if (!confirm(`¿Estás seguro de eliminar el día "${row.nombre}"?`)) return;
+        if (!confirm(`¿Estás seguro de eliminar el profesional: "${row.nombre}"?`)) return;
 
         try {
-            await api.delete(`/dia/${row.id}`);
+            await api.delete(`/profesional/${row.id}`);
             fetchData();
         } catch (error) {
-            console.error("Error eliminando día:", error);
-            alert("No se pudo eliminar el día. Intenta más tarde.");
+            console.error("Error eliminando el profesional:", error);
+            alert("No se pudo eliminar el profesional. Intenta más tarde.");
         }
     }
 
     async function fetchData() {
         try {
-            // const response = await api.get("/dia");
-            const response = { data: fakeDaysData }; 
-            const transformed = response.data.map((day) => ({
-                ...day,
-                id: day.id,
-                codigoDia: day.codigoDia || `D${String(day.id).padStart(3, "0")}`,
-                cursos: day.cursos?.length || 0,
-                finDeSemana: !!day.finDeSemana,
+            const response = await api.get("/profesional");
+            console.log(response);
+            const transformed = response.data.map((profesional) => ({
+                ...profesional,
+                id: profesional.idProfesional,
+
             }));
             setData(transformed);
         } catch (error) {
-            console.error("Error obteniendo días:", error);
+            console.error("Error Obteniendo Profesional:", error);
         } finally {
             setLoading(false);
         }
@@ -135,7 +98,7 @@ export default function PrincipalProfessonalsManagement() {
 
                         {loading ? (
                             <p className="text-center text-gray-500">
-                                Cargando días...
+                                Cargando Profesionales...
                             </p>
                         ) : (
                             <div className="rounded-lg border bg-card text-card-foreground shadow-sm border-gray-200">
@@ -162,7 +125,7 @@ export default function PrincipalProfessonalsManagement() {
                         )}
                     </div>
                 ) : (
-                    <DailyForm
+                    <ProfessonalForm
                         onCancel={() => {
                             setShowForm(false);
                             setSelectedDay(null);
