@@ -81,7 +81,7 @@ class EntidadController extends Controller
     {
         $entidad = Entidad::findOrFail($id);
         $entidad->delete();
-        return response()->jsonjson(["Message" => 'Se elimino satisfactoriamente.', "Status" => 200], 200);
+        return response()->json(["Message" => 'Se elimino satisfactoriamente.', "Status" => 200], 200);
     }
 
     public function search(Request $request)
