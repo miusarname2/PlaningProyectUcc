@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('titulo', 100);
             $table->integer('experiencia')->unsigned(); // Se valida en la aplicación o con DB check
             $table->enum('estado', ['Activo', 'Inactivo']);
-            $table->text('perfil')->nullable();
+            $table->mediumText('perfil')->nullable();
             $table->timestamps();
         });
     }
