@@ -42,7 +42,6 @@ export default function PrincipalCity() {
     async function fetchData() {
         try {
             const response = await api.get("/region");
-            console.log(response.data);
             const transformed = response.data.map((region) => ({
                 ...region,
                 id: region.idRegion,
