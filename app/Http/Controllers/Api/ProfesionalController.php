@@ -34,8 +34,6 @@ class ProfesionalController extends Controller
                 'experiencia' => "required|integer",
                 'estado' => "required|string",
                 'perfil' => "nullable|string",
-                'especialidades' => "nullable|array",
-                'especialidades.*' => 'integer|exists:especialidades,idEspecialidad'
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -94,7 +92,7 @@ class ProfesionalController extends Controller
 
         $profesional->load('especialidades');
 
-        return response()->json($profesional, 0);
+        return response()->json($profesional);
     }
 
     /**
