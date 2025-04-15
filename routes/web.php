@@ -49,10 +49,6 @@ Route::get('/citiesManagement', function () {
     return Inertia::render('CityManagement/CityManagement');
 })->middleware(['auth', 'verified'])->name('citiesManagement');
 
-Route::get('/dailyManagement', function () {
-    return Inertia::render('DailyManagement/DailyManagement');
-})->middleware(['auth', 'verified'])->name('dailyManagement');
-
 Route::get('/batchManagement', function () {
     return Inertia::render('BatchManagement/BatchManagement');
 })->middleware(['auth', 'verified'])->name('batchManagement');
