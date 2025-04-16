@@ -10,8 +10,8 @@ import { Pencil, Trash2 } from "lucide-react";
 const columns = [
     { title: "ID", key: "codigoCiudad" },
     { title: "Nombre de la ciudad", key: "nombre" },
-    { title: "Región", key: "regionNombre" },
-    { title: "Departamento", key: "departamento", render: (value) => value[0].nombre },
+    { title: "Región", key: "region" },
+    { title: "Departamento", key: "departamento"},
     { title: "Código postal", key: "codigoPostal" },
     { title: "Sedes", key: "sedes" },
 ];
@@ -45,17 +45,24 @@ export default function PrincipalCity() {
     async function fetchData() {
         try {
             const response = await api.get("/ciudad");
-            const transformed = response.data.map((city) => ({
-                ...city,
-                id: city.idCiudad,
-                codigoCiudad: `C${String(city.idCiudad).padStart(3, '0')}`,
-                pais: city.region?.pais?.nombre || "Sin país",
-                idPais: city.region?.pais?.idPais || "Sin id pais",
-                region: city.region?.nombre || "Sin región",
-                idRegion: city.region?.idRegion || "Sin id region",
-                sedes: city.sedes?.length || 0,
-                departamento: (city.region.estados).filter((estado) => estado.idEstado == city.idEstado)
-            }));
+            const transformed = response.data.map((city) => {
+                const estado = city.region?.estados?.find(
+                    (estado) => estado?.idRegion == city.region?.idRegion
+                );
+
+                return {
+                    ...city,
+                    id: city.idCiudad,
+                    codigoCiudad: `C${String(city.idCiudad).padStart(3, '0')}`,
+                    pais: city.region?.pais?.nombre || "Sin país",
+                    idPais: city.region?.pais?.idPais || "Sin id pais",
+                    region: city.region?.nombre || "Sin región",
+                    idRegion: city.region?.idRegion || "Sin id region",
+                    sedes: city.sedes?.length || 0,
+                    departamento: estado?.nombre || "Sin departamento",
+
+                };
+            });
 
             setData(transformed);
         } catch (error) {

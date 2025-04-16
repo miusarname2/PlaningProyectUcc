@@ -65,11 +65,14 @@ export default function PrincipalProgramme() {
                 programas = response.data; // <-- Aquí asumo que en esta ruta no es paginada
             } else {
                 // Si el query contiene solo números => se asume que busca por código
-                const isCodigo = /^\d+$/.test(query.trim());
-    
+                const trimmed = query.trim();
+                const isCodigo = /^PRG\d+$/i.test(trimmed);
+                const isEstado = /^(Activo|Inactivo)$/i.test(trimmed);
                 const params = isCodigo
-                    ? { codigo: query.trim() }
-                    : { nombre: query.trim() };
+                    ? { codigo: trimmed }
+                    : isEstado
+                        ? { estado: trimmed }
+                        : { nombre: trimmed };
     
                 const response = await api.get("/programa/search", { params });
     
