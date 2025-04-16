@@ -17,6 +17,13 @@ html {
     font-size: 1.04rem;
 }
 
+.scroll-locked, 
+.scroll-locked * {
+  overscroll-behavior: none !important;
+  scroll-behavior: auto !important;
+  overflow: hidden !important;
+}
+
 .data-\[state\=unchecked\]\:bg-input[data-state="unchecked"] {
     background-color: hsl(var(--input));
 }

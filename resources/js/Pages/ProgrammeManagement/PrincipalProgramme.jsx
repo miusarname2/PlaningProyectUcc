@@ -5,7 +5,7 @@ import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import ContainerShowData from "@/Components/ContainerShowData";
-import ProgrammeForm from "@/Pages/ProgrammeManagement/ProgrammeForm"; // Asegúrate de tenerlo creado
+import ProgrammeForm from "@/Pages/ProgrammeManagement/ProgrammeForm";
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [
@@ -27,7 +27,6 @@ const columns = [
     },
 ];
 
-
 export default function PrincipalProgramme() {
     const [showForm, setShowForm] = useState(false);
     const [data, setData] = useState([]);
@@ -42,7 +41,8 @@ export default function PrincipalProgramme() {
     }
 
     async function handleDelete(row) {
-        if (!confirm(`¿Estás seguro de eliminar el programa "${row.nombre}"?`)) return;
+        if (!confirm(`¿Estás seguro de eliminar el programa "${row.nombre}"?`))
+            return;
 
         try {
             await api.delete(`/programa/${row.id}`);
@@ -52,26 +52,52 @@ export default function PrincipalProgramme() {
             alert("No se pudo eliminar el programa. Intenta más tarde.");
         }
     }
-console.log(data);
+    console.log(data);
 
-async function fetchData() {
-    try {
-        const response = await api.get("/programa");
-
-        const transformed = response.data.map((program) => ({
-            ...program,
-            cantidadLotes: program.lotes?.length ?? 0, // Contar los lotes
-            cantidadCursos: program.cursos?.length ?? 0, // Contar los cursos
-            especialidad: program.especialidad?.nombre ?? "N/A", // Mostrar el nombre de la especialidad
-        }));
-
-        setData(transformed);
-    } catch (error) {
-        console.error("Error obteniendo programas:", error);
-    } finally {
-        setLoading(false);
+    async function fetchData(query) {
+        setLoading(true);
+    
+        try {
+            let programas = [];
+    
+            if (!query || query.trim() === "") {
+                const response = await api.get("/programa");
+                programas = response.data; // <-- Aquí asumo que en esta ruta no es paginada
+            } else {
+                // Si el query contiene solo números => se asume que busca por código
+                const isCodigo = /^\d+$/.test(query.trim());
+    
+                const params = isCodigo
+                    ? { codigo: query.trim() }
+                    : { nombre: query.trim() };
+    
+                const response = await api.get("/programa/search", { params });
+    
+                console.log("Respuesta del backend:", response.data);
+                programas = response.data?.data?.data || []; // paginado
+            }
+    
+            const transformed = programas.map((program) => ({
+                ...program,
+                id: program.idPrograma ?? 0,
+                nombre: program.nombre ?? "",
+                descripcion: program.descripcion ?? "",
+                cantidadLotes: program.lotes?.length ?? 0,
+                cantidadCursos: program.cursos?.length ?? 0,
+                especialidad: program.especialidad?.nombre ?? "N/A",
+                idEspecialidad: program.idEspecialidad ?? "N/A",
+                duracion: program.duracion ?? 0,
+                codigo: program.codigo ?? "",
+            }));
+    
+            setData(transformed);
+        } catch (error) {
+            console.error("Error buscando programas:", error);
+        } finally {
+            setLoading(false);
+        }
     }
-}
+    
 
     useEffect(() => {
         fetchData();
@@ -91,10 +117,8 @@ async function fetchData() {
                 {!showForm ? (
                     <div className="space-y-4">
                         <InputSearch
-                            onSearchChange={(val) =>
-                                console.log("Filtro buscador:", val)
-                            }
-                            placeHolderText="Buscando programas"
+                            onSearchChange={(val) => fetchData(val)}
+                            placeHolderText="Buscar por nombre o código"
                         />
 
                         {loading ? (
@@ -116,7 +140,8 @@ async function fetchData() {
                                             {
                                                 icon: Trash2,
                                                 label: "Eliminar",
-                                                onClick: () => handleDelete(row),
+                                                onClick: () =>
+                                                    handleDelete(row),
                                                 danger: true,
                                             },
                                         ]}

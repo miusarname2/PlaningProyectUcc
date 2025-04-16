@@ -45,13 +45,14 @@ export default function PrincipalCity() {
     async function fetchData() {
         try {
             const response = await api.get("/ciudad");
-
-            console.log(response.data)
             const transformed = response.data.map((city) => ({
                 ...city,
                 id: city.idCiudad,
                 codigoCiudad: `C${String(city.idCiudad).padStart(3, '0')}`,
-                regionNombre: city.region?.nombre || "Sin región",
+                pais: city.region?.pais?.nombre || "Sin país",
+                idPais: city.region?.pais?.idPais || "Sin id pais",
+                region: city.region?.nombre || "Sin región",
+                idRegion: city.region?.idRegion || "Sin id region",
                 sedes: city.sedes?.length || 0,
                 departamento: (city.region.estados).filter((estado) => estado.idEstado == city.idEstado)
             }));

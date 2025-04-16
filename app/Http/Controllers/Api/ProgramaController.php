@@ -32,7 +32,7 @@ class ProgramaController extends Controller
                 'nombre'        => 'required|string|max:255',
                 'descripcion'   => 'nullable|string',
                 'duracion'      => 'required|string|max:255',
-                'idEspecialidad' => 'required|integer|exists:especialidades,idEspecialidad',
+                'idEspecialidad' => 'required|integer|exists:especialidad,idEspecialidad',
                 'estado'        => 'required|string'
             ]);
         } catch (ValidationException $e) {
