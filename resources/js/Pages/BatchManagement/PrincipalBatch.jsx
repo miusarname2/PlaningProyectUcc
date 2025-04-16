@@ -1,7 +1,7 @@
 import HeaderModule from "@/Components/HeaderModule";
 import InputSearch from "@/Components/InputSearch";
 import DataTable from "@/Components/DataTable";
-import { getApi } from "@/utils/generalFunctions";
+import { getApi, formatFechaLocal } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import ContainerShowData from "@/Components/ContainerShowData";
@@ -16,15 +16,15 @@ const columns = [
         title: "Intervalo de fechas",
         key: "rangoFechas",
         render: (val, row) => {
-            const inicio = row.rangoFechas?.inicio ? new Date(row.rangoFechas.inicio).toLocaleDateString() : "-";
-            const fin = row.rangoFechas?.fin ? new Date(row.rangoFechas.fin).toLocaleDateString() : "-";
+            const inicio = formatFechaLocal(row.rangoFechas?.inicio);
+            const fin = formatFechaLocal(row.rangoFechas?.fin);
             return `${inicio} - ${fin}`;
         },
     },
     { title: "Estudiantes", key: "estudiantes" },
     {
         title: "Cursos",
-        key: "cursos"
+        key: "cursos",
     },
     {
         title: "Estado",
@@ -32,8 +32,6 @@ const columns = [
         render: (value) => <StatusBadge status={value} />,
     },
 ];
-
-
 
 export default function PrincipalBatch() {
     const [showForm, setShowForm] = useState(false);
@@ -49,7 +47,8 @@ export default function PrincipalBatch() {
     }
 
     async function handleDelete(row) {
-        if (!confirm(`¿Estás seguro de eliminar el lote "${row.nombre}"?`)) return;
+        if (!confirm(`¿Estás seguro de eliminar el lote "${row.nombre}"?`))
+            return;
 
         try {
             await api.delete(`/lote/${row.id}`);
@@ -60,30 +59,32 @@ export default function PrincipalBatch() {
         }
     }
 
-    // async function fetchData() {
-    //     try {
-    //         const response = await api.get("/lote");
-    //         const transformed = response.data.map((lote) => ({
-    //             ...lote,
-    //             id: lote.id,
-    //             codigoLote: lote.codigoLote || `B${String(lote.id).padStart(3, "0")}`,
-    //             estudiantes: lote.estudiantes?.length || 0,
-    //             cursos: lote.cursos?.length || 0,
-    //             programa: lote.programa?.nombre || "Sin asignar",
-    //         }));
-    //         setData(transformed);
-    //     } catch (error) {
-    //         console.error("Error obteniendo lotes:", error);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // }
-    async function fetchData() {
+    async function fetchData(query) {
+        setLoading(true);
+
         try {
-            const response = await api.get("/lote");
-            console.log(response.data[0].programa);
+            let lotes = [];
+
+            if (!query || query.trim() === "") {
+                const response = await api.get("/lote");
+                lotes = response.data; // Asumo que no viene paginada
+            } else {
+                const trimmed = query.trim();
+            const isCodigo = /^\d+$/.test(trimmed);
+            const isEstado = /^(activo|inactivo)$/i.test(trimmed);
             
-            const transformed = response.data.map((lote) => ({
+            const params = isCodigo
+                ? { codigo: trimmed }
+                : isEstado
+                ? { estado: trimmed }
+                : { nombre: trimmed };
+
+            const response = await api.get("/lote/search", { params });
+            console.log("Respuesta del backend:", response.data);
+                lotes = response.data?.data?.data || []; // <-- Acceso a datos paginados
+            }
+
+            const transformed = lotes.map((lote) => ({
                 id: lote.idLote,
                 codigo: lote.codigo,
                 nombre: lote.nombre,
@@ -93,21 +94,18 @@ export default function PrincipalBatch() {
                     fin: lote.fechaFin,
                 },
                 estudiantes: lote.numEstudiantes || 0,
-                cursos: lote.programa?.cursos.length || 0,
+                cursos: lote.programa?.cursos?.length || 0,
                 estado: lote.estado,
-                idPrograma: lote.programa?.idPrograma,
+                idPrograma: lote.idPrograma || 0,
             }));
 
             setData(transformed);
-            console.log(data);
-            
         } catch (error) {
-            console.error("Error cargando datos de lotes:", error);
+            console.error("Error buscando lotes:", error);
         } finally {
             setLoading(false);
         }
     }
-
 
     useEffect(() => {
         fetchData();
@@ -127,10 +125,8 @@ export default function PrincipalBatch() {
                 {!showForm ? (
                     <div className="space-y-4">
                         <InputSearch
-                            onSearchChange={(val) =>
-                                console.log("Filtro buscador:", val)
-                            }
-                            placeHolderText="Buscando ofertas"
+                            onSearchChange={(val) => fetchData(val)}
+                            placeHolderText="Buscar por código, nombre o programa"
                         />
 
                         {loading ? (
@@ -152,7 +148,8 @@ export default function PrincipalBatch() {
                                             {
                                                 icon: Trash2,
                                                 label: "Eliminar",
-                                                onClick: () => handleDelete(row),
+                                                onClick: () =>
+                                                    handleDelete(row),
                                                 danger: true,
                                             },
                                         ]}

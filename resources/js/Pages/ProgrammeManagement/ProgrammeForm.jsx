@@ -14,12 +14,14 @@ export default function ProgrammeForm({ onCancel, initialData = null, onSubmitSu
 
     const [formData, setFormData] = useState({
         id: initialData?.id || "",
-        name: initialData?.name || "",
-        description: initialData?.description || "",
+        nombre: initialData?.nombre || "",
+        descripcion: initialData?.descripcion || "",
         duration: initialData?.duration || "",
         durationUnit: initialData?.durationUnit || "months",
-        specialtyId: initialData?.specialtyId || "",
-        status: initialData?.status || "Activo",
+        idEspecialidad: initialData?.idEspecialidad || "",
+        estado: initialData?.estado || "Activo",
+        duracion: initialData?.duracion || 0,
+        codigo: initialData?.codigo ,
     });
 
     const [specialties, setSpecialties] = useState([]);
@@ -36,9 +38,9 @@ export default function ProgrammeForm({ onCancel, initialData = null, onSubmitSu
             const payload = { ...formData };
 
             if (isEditMode) {
-                await api.put(`/programme/${formData.id}`, payload);
+                await api.put(`/programa/${formData.id}`, payload);
             } else {
-                await api.post("/programme", payload);
+                await api.post("/programa", payload);
             }
 
             setErrors({});
@@ -73,18 +75,7 @@ export default function ProgrammeForm({ onCancel, initialData = null, onSubmitSu
             <div className="p-6">
                 <form onSubmit={handleSubmit}>
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-medium text-gray-900">
-                                {isEditMode ? "Editar programa" : "Añadir nuevo programa"}
-                            </h3>
-                            <button
-                                type="button"
-                                onClick={onCancel}
-                                className="inline-flex items-center justify-center gap-2 text-sm font-medium h-9 rounded-md px-3 hover:bg-accent hover:text-accent-foreground"
-                            >
-                                <X className="h-4 w-4" />
-                            </button>
-                        </div>
+                        
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {!isEditMode && (
@@ -92,10 +83,10 @@ export default function ProgrammeForm({ onCancel, initialData = null, onSubmitSu
                                     <InputLabel htmlFor="id" value="Identificación del programa" />
                                     <TextInput
                                         id="id"
-                                        name="id"
-                                        value={formData.id}
+                                        name="codigo"
+                                        value={formData.codigo}
                                         onChange={handleChange}
-                                        placeholder="Introduzca el ID del programa"
+                                        placeholder="Introduzca el codigo del programa"
                                         required
                                     />
                                 </div>
@@ -105,8 +96,8 @@ export default function ProgrammeForm({ onCancel, initialData = null, onSubmitSu
                                 <InputLabel htmlFor="name" value="Nombre del programa" />
                                 <TextInput
                                     id="name"
-                                    name="name"
-                                    value={formData.name}
+                                    name="nombre"
+                                    value={formData.nombre}
                                     onChange={handleChange}
                                     placeholder="Introduzca el nombre del programa"
                                     required
@@ -117,8 +108,8 @@ export default function ProgrammeForm({ onCancel, initialData = null, onSubmitSu
                                 <InputLabel htmlFor="description" value="Descripción" />
                                 <TextTareaInput
                                     id="description"
-                                    name="description"
-                                    value={formData.description}
+                                    name="descripcion"
+                                    value={formData.descripcion}
                                     onChange={handleChange}
                                     placeholder="Introduzca la descripción del programa..."
                                     rows={3}
@@ -129,16 +120,16 @@ export default function ProgrammeForm({ onCancel, initialData = null, onSubmitSu
                                 <InputLabel htmlFor="duration" value="Duración" />
                                 <TextInput
                                     id="duration"
-                                    name="duration"
+                                    name="duracion"
                                     type="number"
-                                    value={formData.duration}
+                                    value={formData.duracion}
                                     onChange={handleChange}
                                     placeholder="Ej: 12"
                                     required
                                 />
                             </div>
 
-                            <div className="space-y-2">
+                            {/* <div className="space-y-2">
                                 <InputLabel htmlFor="durationUnit" value="Unidad de duración" />
                                 <SelectInput
                                     id="durationUnit"
@@ -153,13 +144,13 @@ export default function ProgrammeForm({ onCancel, initialData = null, onSubmitSu
                                     ]}
                                     required
                                 />
-                            </div>
+                            </div> */}
 
                             <div className="space-y-2">
                                 <InputLabel htmlFor="specialtyId" value="Especialidad" />
                                 <SelectInput
                                     id="specialtyId"
-                                    name="specialtyId"
+                                    name="idEspecialidad"
                                     value={formData.idEspecialidad}
                                     onChange={handleChange}
                                     options={specialties.map((s) => ({
@@ -174,8 +165,8 @@ export default function ProgrammeForm({ onCancel, initialData = null, onSubmitSu
                                 <InputLabel htmlFor="status" value="Estado" />
                                 <SelectInput
                                     id="status"
-                                    name="status"
-                                    value={formData.status}
+                                    name="estado"
+                                    value={formData.estado}
                                     onChange={handleChange}
                                     options={[
                                         { value: "Activo", label: "Activo" },

@@ -12,10 +12,12 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
 
     const [formData, setFormData] = useState({
         codigoCiudad: initialData?.codigoCiudad || "",
-        idCiudad: initialData?.idCiudad || "",
+        idCiudad: initialData?.id || "",
         nombre: initialData?.nombre || "",
         pais: initialData?.pais || "",
+        idPais: initialData?.idPais || "",
         region: initialData?.region || "",
+        idRegion: initialData?.idRegion || "",
         codigoPostal: initialData?.codigoPostal || "",
     });
 
@@ -40,6 +42,12 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
 
             if (isEditMode) {
                 await api.put(`/ciudad/${formData.idCiudad}`, payload);
+                await api.put(`/region/${formData.idRegion}`, {
+                    nombre: formData.region
+                });
+                await api.put(`/pais/${formData.idPais}`, {
+                    nombre: formData.pais
+                });
             } else {
                 await api.post("/ciudad", payload);
             }
@@ -62,7 +70,7 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
             <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* {!isEditMode && ( */}
+                        {/* {isEditMode && (
                             <div className="space-y-2">
                                 <InputLabel htmlFor="idCiudad" value="ID Ciudad" className="text-sm" />
                                 <TextInput
@@ -74,7 +82,7 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
                                     required
                                 />
                             </div>
-                        {/* )} */}
+                         )}  */}
 
                         <div className="space-y-2">
                             <InputLabel htmlFor="nombre" value="Nombre de la ciudad" className="text-sm" />

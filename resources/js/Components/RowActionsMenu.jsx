@@ -22,8 +22,6 @@ export default function RowActionsMenu({ actions = [], rowId, openActionRowId, s
   };
 
   useEffect(() => {
-    if (!isOpen) return;
-
     const handleClickOutside = (event) => {
       if (
         menuRef.current &&
@@ -33,18 +31,27 @@ export default function RowActionsMenu({ actions = [], rowId, openActionRowId, s
         setOpenActionRowId(null);
       }
     };
-
+  
     const handleEscape = (event) => {
       if (event.key === "Escape") setOpenActionRowId(null);
     };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEscape);
+  
+    if (isOpen) {
+      document.documentElement.classList.add("scroll-locked"); // 🔒 Bloquear scroll global
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
+    } else {
+      document.documentElement.classList.remove("scroll-locked"); // 🔓 Restaurar scroll
+    }
+  
     return () => {
+      document.documentElement.classList.remove("scroll-locked");
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     };
   }, [isOpen, setOpenActionRowId]);
+  
+  
 
   return (
     <>

@@ -1,268 +1,139 @@
-"use client"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight, Calendar, Filter, ChevronDown } from "lucide-react"
 import { Button } from "@/Components/Button"
-import { Tabs, TabsList, TabsTrigger } from "@/Components/Tabs"
 import InputSearch from "@/Components/InputSearch"
 import { format, startOfWeek, addWeeks, subWeeks, isSameWeek } from "date-fns"
 import { es } from "date-fns/locale"
+import { getApi } from "@/utils/generalFunctions";
 
 export default function PrincipalShedule() {
   const [viewType, setViewType] = useState("daily")
+  const [scheduleData, setScheduleData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [currentWeekStart, setCurrentWeekStart] = useState(
-    startOfWeek(new Date(), { weekStartsOn: 1 }), // lunes como inicio
-  )
+    startOfWeek(new Date(), { weekStartsOn: 1 })
+  );
 
-  const goToPrevWeek = () => {
-    setCurrentWeekStart((prev) => subWeeks(prev, 1))
-  }
-
-  const goToNextWeek = () => {
-    setCurrentWeekStart((prev) => addWeeks(prev, 1))
-  }
-
-  const goToToday = () => {
-    setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))
-  }
+  const goToPrevWeek = () => setCurrentWeekStart((prev) => subWeeks(prev, 1));
+  const goToNextWeek = () => setCurrentWeekStart((prev) => addWeeks(prev, 1));
+  const goToToday = () => setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
 
   const currentDateRange = `${format(currentWeekStart, "d MMM", {
     locale: es,
   })} - ${format(addWeeks(currentWeekStart, 0.9), "d MMM, yyyy", {
     locale: es,
-  })}`
+  })}`;
 
   const isCurrentWeek = isSameWeek(currentWeekStart, new Date(), {
     weekStartsOn: 1,
-  })
+  });
 
-  const classrooms = [
-    { id: "101", capacity: 38, available: 16 },
-    { id: "102", capacity: 35, available: 16 },
-    { id: "109", capacity: 35, available: 12 },
-    { id: "201", capacity: 38, available: 2 },
-    { id: "202", capacity: 35, available: 3 },
-  ]
+  const convertirHora = (hora24) => {
+    if (!hora24) return "Sin hora";
+    const [hh, mm] = hora24.split(":");
+    const h = parseInt(hh);
+    const ampm = h >= 12 ? "p.m." : "a.m.";
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${mm} ${ampm}`;
+  };
 
-  const scheduleData = [
-    {
-      room: "201",
-      day: "LUNES",
-      startTime: "6:00 a.m.",
-      code: "T05329",
-      name: "Formulación de proyectos",
-      color: "bg-green-100 text-green-800 border-green-300",
-    },
-    {
-      room: "201",
-      day: "LUNES",
-      startTime: "7:00 a.m.",
-      code: "T05329",
-      name: "Formulación de proyectos",
-      color: "bg-green-100 text-green-800 border-green-300",
-    },
-    {
-      room: "201",
-      day: "MARTES",
-      startTime: "6:00 a.m.",
-      code: "O3ENF",
-      name: "obstetricas complejo",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "201",
-      day: "MARTES",
-      startTime: "7:00 a.m.",
-      code: "O3ENF",
-      name: "obstetricas complejo",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "201",
-      day: "MARTES",
-      startTime: "8:00 a.m.",
-      code: "O3ENF",
-      name: "obstetricas complejo",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "201",
-      day: "MIÉRCOLES",
-      startTime: "6:00 a.m.",
-      code: "O3ENF",
-      name: "obstetricas complejo",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "201",
-      day: "MIÉRCOLES",
-      startTime: "7:00 a.m.",
-      code: "O3 ad",
-      name: "gerencia del cuidado",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "201",
-      day: "MIÉRCOLES",
-      startTime: "8:00 a.m.",
-      code: "O3 ad",
-      name: "gerencia del cuidado",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "201",
-      day: "JUEVES",
-      startTime: "6:00 a.m.",
-      code: "O3 ad",
-      name: "gerencia del cuidado",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "201",
-      day: "JUEVES",
-      startTime: "7:00 a.m.",
-      code: "T05829",
-      name: "Legislación Ejecutiva",
-      color: "bg-green-100 text-green-800 border-green-300",
-    },
-    {
-      room: "201",
-      day: "JUEVES",
-      startTime: "8:00 a.m.",
-      code: "T05829",
-      name: "Legislación Ejecutiva",
-      color: "bg-green-100 text-green-800 border-green-300",
-    },
-    {
-      room: "201",
-      day: "VIERNES",
-      startTime: "6:00 a.m.",
-      code: "T0551",
-      name: "Humanidades I",
-      color: "bg-green-100 text-green-800 border-green-300",
-    },
-    {
-      room: "202",
-      day: "LUNES",
-      startTime: "6:00 a.m.",
-      code: "T06174",
-      name: "Ética Básica de Admin Salud",
-      color: "bg-green-100 text-green-800 border-green-300",
-    },
-    {
-      room: "202",
-      day: "LUNES",
-      startTime: "7:00 a.m.",
-      code: "T06174",
-      name: "Ética Básica de Admin Salud",
-      color: "bg-green-100 text-green-800 border-green-300",
-    },
-    {
-      room: "202",
-      day: "MARTES",
-      startTime: "6:00 a.m.",
-      code: "O3ENF",
-      name: "obstetricas complejo",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "202",
-      day: "MARTES",
-      startTime: "7:00 a.m.",
-      code: "O3ENF",
-      name: "obstetricas complejo",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "202",
-      day: "MARTES",
-      startTime: "8:00 a.m.",
-      code: "O3ENF",
-      name: "obstetricas complejo",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "202",
-      day: "MIÉRCOLES",
-      startTime: "6:00 a.m.",
-      code: "O3ENF",
-      name: "obstetricas complejo",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "109",
-      day: "MARTES",
-      startTime: "6:00 a.m.",
-      code: "O3 ENF",
-      name: "ENF major y menor comp",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "109",
-      day: "MARTES",
-      startTime: "7:00 a.m.",
-      code: "O3 ENF",
-      name: "ENF major y menor comp",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "109",
-      day: "MARTES",
-      startTime: "8:00 a.m.",
-      code: "O3 ENF",
-      name: "ENF major y menor comp",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "109",
-      day: "MIÉRCOLES",
-      startTime: "6:00 a.m.",
-      code: "O3 ENF",
-      name: "ENF major y menor comp",
-      color: "bg-blue-100 text-blue-800 border-blue-300",
-    },
-    {
-      room: "202",
-      day: "JUEVES",
-      startTime: "6:00 a.m.",
-      code: "T05344",
-      name: "Microbiología y Biomecanica Dep",
-      color: "bg-green-100 text-green-800 border-green-300",
-    },
-    {
-      room: "202",
-      day: "JUEVES",
-      startTime: "7:00 a.m.",
-      code: "T05344",
-      name: "Microbiología y Biomecanica Dep",
-      color: "bg-green-100 text-green-800 border-green-300",
-    },
-    {
-      room: "202",
-      day: "JUEVES",
-      startTime: "8:00 a.m.",
-      code: "T05344",
-      name: "Microbiología y Biomecanica Dep",
-      color: "bg-green-100 text-green-800 border-green-300",
-    },
-  ]
-  const generateTimeSlots = () => {
-    const slots = []
-    for (let hour = 6; hour <= 20; hour++) {
-      const period = hour < 12 ? "a.m." : "p.m."
-      const displayHour = hour % 12 === 0 ? 12 : hour % 12
-      slots.push(`${displayHour}:00 ${period}`)
+  const colorPalette = [
+    { bg: "bg-green-100", text: "text-green-800", border: "border-green-300" },
+    { bg: "bg-blue-100", text: "text-blue-800", border: "border-blue-300" },
+    { bg: "bg-yellow-100", text: "text-yellow-800", border: "border-yellow-300" },
+    { bg: "bg-purple-100", text: "text-purple-800", border: "border-purple-300" },
+    { bg: "bg-pink-100", text: "text-pink-800", border: "border-pink-300" },
+    { bg: "bg-orange-100", text: "text-orange-800", border: "border-orange-300" },
+    { bg: "bg-teal-100", text: "text-teal-800", border: "border-teal-300" },
+    { bg: "bg-red-100", text: "text-red-800", border: "border-red-300" },
+    { bg: "bg-indigo-100", text: "text-indigo-800", border: "border-indigo-300" },
+    { bg: "bg-rose-100", text: "text-rose-800", border: "border-rose-300" },
+  ];
+
+  const aulaColorMap = new Map();
+  let colorIndex = 0;
+
+  function getColorForRoom(room) {
+    if (aulaColorMap.has(room)) {
+      return aulaColorMap.get(room);
     }
-    return slots
+
+    const color = colorPalette[colorIndex % colorPalette.length];
+    aulaColorMap.set(room, color);
+    colorIndex++;
+    return color;
   }
+
+  const transformScheduleData = (horarios) => {
+    return horarios.map((item) => {
+      const startTime = convertirHora(item.franja_horaria?.horaInicio);
+      const endTime = convertirHora(item.franja_horaria?.horaFin);
+      const color = getColorForRoom(item.aula?.codigo || "Sin aula");
+
+      // Calcular bloques de tiempo que ocupa la clase
+      const blocks = [];
+      if (item.franja_horaria?.horaInicio && item.franja_horaria?.horaFin) {
+        const [sh, sm] = item.franja_horaria.horaInicio.split(":").map(Number);
+        const [eh, em] = item.franja_horaria.horaFin.split(":").map(Number);
+
+        for (let h = sh; h <= eh; h++) {
+          const period = h < 12 ? "a.m." : "p.m.";
+          const displayHour = h % 12 === 0 ? 12 : h % 12;
+          blocks.push(`${displayHour}:00 ${period}`);
+        }
+      }
+
+      return {
+        room: item.aula?.codigo || "Sin aula",
+        day: item.dia?.toUpperCase() || "SIN DÍA",
+        startTime,
+        endTime,
+        code: item.curso?.codigo || "Sin código",
+        name: item.curso?.nombre || "Sin nombre",
+        color: `${color.bg} ${color.text} ${color.border}`,
+        timeBlocks: blocks,
+      };
+    });
+  };
+
+
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 6; hour <= 20; hour++) {
+      const period = hour < 12 ? "a.m." : "p.m.";
+      const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+      slots.push(`${displayHour}:00 ${period}`);
+    }
+    return slots;
+  };
 
   const getClassForSlot = (time, day) => {
-    return scheduleData.filter((item) => item.day === day && item.startTime === time)
+    return scheduleData.filter((item) => {
+      return item.day === day && item.timeBlocks.includes(time);
+    });
+  };
+
+  const days = ["LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES"];
+  const timeSlots = generateTimeSlots();
+
+  const api = getApi();
+
+  async function fetchData() {
+    try {
+      const response = await api.get("/Horario");
+      const transformed = transformScheduleData(response.data);
+      setScheduleData(transformed);
+    } catch (error) {
+      console.error("Error fetching schedule:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  const days = ["LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES"]
-  const timeSlots = generateTimeSlots()
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -271,10 +142,7 @@ export default function PrincipalShedule() {
         <div className="flex items-center gap-2 md:gap-4 flex-wrap">
           <Calendar className="h-3 w-3 md:h-4 md:w-4" />
           <div className="flex items-center border rounded-md">
-            <Button
-              variant="ghost"
-              className="flex items-center gap-1 border-r rounded-none text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto"
-            >
+            <Button variant="ghost" className="flex items-center gap-1 border-r rounded-none text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto">
               <span>Vista diaria</span>
               <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
             </Button>
@@ -283,11 +151,7 @@ export default function PrincipalShedule() {
             <InputSearch placeHolderText="Buscar por aula, curso o profesor..." />
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="flex items-center gap-1 border rounded text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto"
-        >
+        <Button variant="ghost" size="icon" className="flex items-center gap-1 border rounded text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto">
           <Filter className="h-4 w-4 md:h-5 md:w-5" />
         </Button>
       </div>
@@ -313,11 +177,11 @@ export default function PrincipalShedule() {
         <div className="text-xs md:text-sm font-medium">{currentDateRange}</div>
       </div>
 
-      {/* Schedule Table - Responsive Container */}
+      {/* Schedule Table */}
       <div className="flex-1 overflow-auto p-2 md:px-4 bg-white">
         <div className="bg-white border rounded-md overflow-hidden">
           <div className="overflow-x-auto h-96 overflow-y-auto">
-            <table className="w-full table-fixed border-collapse min-w-[1200px] ">
+            <table className="w-full table-fixed border-collapse min-w-[1200px]">
               <thead>
                 <tr className="bg-gray-50">
                   <th className="border p-1 md:p-2 font-medium text-xs md:text-sm text-center" rowSpan={2}>
@@ -335,7 +199,7 @@ export default function PrincipalShedule() {
                   <tr key={time} className="bg-white">
                     <td className="border p-1 md:p-2 text-center font-medium text-xs md:text-sm">{time}</td>
                     {days.map((day) => {
-                      const classesInfo = getClassForSlot(time, day)
+                      const classesInfo = getClassForSlot(time, day);
                       return (
                         <td key={`${day}-${time}`} className="border p-0 text-xs">
                           <div className="flex flex-col gap-1 p-1">
@@ -349,7 +213,7 @@ export default function PrincipalShedule() {
                             ))}
                           </div>
                         </td>
-                      )
+                      );
                     })}
                   </tr>
                 ))}
@@ -357,54 +221,25 @@ export default function PrincipalShedule() {
             </table>
           </div>
         </div>
-        {/* <div className="md:hidden p-2 bg-white">
-                  <div className="bg-white border rounded-md p-2 mb-2">
-                    <h3 className="font-medium text-sm mb-2">
-                      Vista Compacta
-                    </h3>
-                    <select className="w-full border rounded p-1 text-sm mb-2">
-                      <option>Seleccionar Aula</option>
-                      {classrooms.map((room) => (
-                        <option key={room.id} value={room.id}>
-                          Aula {room.id} (Cap: {room.capacity})
-                        </option>
-                      ))}
-                    </select>
-                    <select className="w-full border rounded p-1 text-sm">
-                      <option>Seleccionar Día</option>
-                      {days.map((day) => (
-                        <option key={day} value={day}>
-                          {day}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div> */}
 
+        {/* Filters abajo */}
         <div className="p-2 md:p-4 flex items-center justify-between bg-white flex-wrap gap-2">
           <div className="flex items-center gap-2 md:gap-4 flex-wrap">
             <div className="flex items-center border rounded-md">
-              <Button
-                variant="ghost"
-                className="flex items-center gap-1 rounded-none text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto"
-              >
+              <Button variant="ghost" className="flex items-center gap-1 rounded-none text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto">
                 <span>Todos los...</span>
                 <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
               </Button>
             </div>
             <div className="flex items-center border rounded-md">
-              <Button
-                variant="ghost"
-                className="flex items-center gap-1 rounded-none text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto"
-              >
+              <Button variant="ghost" className="flex items-center gap-1 rounded-none text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto">
                 <span>Todas las sedes</span>
                 <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
               </Button>
             </div>
           </div>
-          
         </div>
       </div>
     </div>
-  )
+  );
 }
