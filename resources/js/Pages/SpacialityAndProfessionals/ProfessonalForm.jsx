@@ -68,7 +68,7 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
             if (isEditMode) {
                 await api.put(`/profesional/${initialData.id}`, payload);
             } else {
-                const response = await api.get("/entidad");
+                const response = await api.get("/profesional");
                 const lengthRes = response.data.length;
                 const nextCodeNumber = lengthRes + 1;
                 const formattedNumber = String(nextCodeNumber).padStart(3, '0');

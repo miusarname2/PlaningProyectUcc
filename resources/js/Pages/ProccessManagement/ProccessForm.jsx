@@ -28,7 +28,7 @@ export default function ProccessForm({ onCancel, initialData = null, onSubmitSuc
         // Traer programas disponibles desde API
         const fetchPrograms = async () => {
             try {
-                const response = await api.get("/programa"); // Ajusta si tu endpoint es diferente
+                const response = await api.get("/proceso"); // Ajusta si tu endpoint es diferente
                 const options = response.data.map((program) => ({
                     value: program.idPrograma,
                     label: program.nombre,
@@ -53,9 +53,9 @@ export default function ProccessForm({ onCancel, initialData = null, onSubmitSuc
             const payload = { ...formData };
 
             if (isEditMode) {
-                await api.put(`/batch/${formData.id}`, payload);
+                await api.put(`/proceso/${formData.id}`, payload);
             } else {
-                await api.post("/batch", payload);
+                await api.post("/proceso", payload);
             }
 
             setErrors({});
@@ -66,7 +66,7 @@ export default function ProccessForm({ onCancel, initialData = null, onSubmitSuc
                 setErrors(error.response.data.errors || {});
                 console.error("Validation errors:", error.response.data.errors);
             } else {
-                console.error("Error saving batch:", error);
+                console.error("Error saving proceso:", error);
             }
         }
     };
