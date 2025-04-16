@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Lote;
 use Exception;
+use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -143,7 +144,7 @@ class LoteController extends Controller
         }
 
         // Se incluyen las relaciones definidas en el modelo, por ejemplo programa y cursos
-        $query->with(['programa', 'cursos']);
+        $query->with(['programa', 'programa.cursos']);
 
         try {
             // Paginar los resultados
@@ -154,10 +155,10 @@ class LoteController extends Controller
                 'data'   => $lotes
             ]);
         } catch (Exception $ex) {
-            Log::error('Error en búsqueda de lotes: ' . $ex->getMessage());
+            Log::channel('stderr')->error('Error en búsqueda de lotes: ' . $ex->getMessage());
             return response()->json([
                 'status'  => 'error',
-                'mensaje' => 'Error interno del servidor.'
+                'mensaje' => 'Error interno del servidor.',
             ], 500);
         }
     }

@@ -27,9 +27,4 @@ class Lote extends Model
     {
         return $this->belongsTo(Programa::class, 'idPrograma', 'idPrograma');
     }
-
-    public function cursos()
-    {
-        return $this->hasMany(Curso::class, 'idPrograma', 'idPrograma');
-    }
 }
