@@ -94,6 +94,10 @@ Route::get('/scheduleTimer', function () {
     return Inertia::render('SheduleManagement/SheduleManagement');
 })->middleware(['auth', 'verified'])->name('scheduleTimer');
 
+Route::get('/slotManagement', function () {
+    return Inertia::render('SlotManagement/SlotManagement');
+})->middleware(['auth', 'verified'])->name('slotManagement');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
