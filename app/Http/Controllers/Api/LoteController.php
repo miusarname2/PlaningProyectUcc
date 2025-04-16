@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Lote;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class LoteController extends Controller
@@ -14,7 +17,7 @@ class LoteController extends Controller
      */
     public function index()
     {
-        $lotes = Lote::with(["programa","programa.cursos"])->get();
+        $lotes = Lote::with(["programa", "programa.cursos"])->get();
         return response()->json($lotes);
     }
 
@@ -30,7 +33,7 @@ class LoteController extends Controller
                 'idPrograma'    => 'required|integer|exists:programa,idPrograma',
                 'fechaInicio'   => 'required|date',
                 'FechaFin'      => 'required|date',
-                'numEstudiantes'=> 'required|integer',
+                'numEstudiantes' => 'required|integer',
                 'estado'        => 'required|string'
             ]);
         } catch (ValidationException $e) {
@@ -70,14 +73,14 @@ class LoteController extends Controller
             'idPrograma'    => 'sometimes|required|integer|exists:programa,idPrograma',
             'fechaInicio'   => 'sometimes|required|date',
             'FechaFin'      => 'sometimes|required|date',
-            'numEstudiantes'=> 'sometimes|required|integer',
+            'numEstudiantes' => 'sometimes|required|integer',
             'estado'        => 'sometimes|required|string'
         ]);
 
         $lote->update($validatedData);
         $lote->load('programa');
 
-        return response()->json($lote,200);
+        return response()->json($lote, 200);
     }
 
     /**
@@ -88,7 +91,74 @@ class LoteController extends Controller
         $lote = Lote::findOrFail($id);
         $lote->delete();
         return response()->json([
-            'message'=> "Lote deleted Succesffull"
-        ],200);
+            'message' => "Lote deleted Succesffull"
+        ], 200);
+    }
+
+    public function search(Request $request)
+    {
+        // Validación de la entrada: cada campo es opcional y se valida su tipo.
+        $validator = Validator::make($request->all(), [
+            'codigo'    => 'nullable|string|max:255',
+            'nombre'    => 'nullable|string|max:255',
+            'idPrograma' => 'nullable|integer',
+            'estado'    => 'nullable|string|max:50',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error en los datos ingresados.',
+                'errores' => $validator->errors()
+            ], 422);
+        }
+
+        // Inicializamos la consulta para el modelo Lote
+        $query = Lote::query();
+
+        // Aplicamos cada filtro si se encuentra presente en la petición
+
+        // Búsqueda por código (parcial)
+        if ($request->filled('codigo')) {
+            $codigo = trim($request->input('codigo'));
+            $query->where('codigo', 'like', '%' . $codigo . '%');
+        }
+
+        // Búsqueda por nombre (parcial)
+        if ($request->filled('nombre')) {
+            $nombre = trim($request->input('nombre'));
+            $query->where('nombre', 'like', '%' . $nombre . '%');
+        }
+
+        // Búsqueda por idPrograma (búsqueda exacta)
+        if ($request->filled('idPrograma')) {
+            $idPrograma = $request->input('idPrograma');
+            $query->where('idPrograma', $idPrograma);
+        }
+
+        // Búsqueda por estado (por ejemplo, búsqueda exacta o parcial según convenga)
+        if ($request->filled('estado')) {
+            $estado = trim($request->input('estado'));
+            $query->where('estado', $estado);
+        }
+
+        // Se incluyen las relaciones definidas en el modelo, por ejemplo programa y cursos
+        $query->with(['programa', 'cursos']);
+
+        try {
+            // Paginar los resultados
+            $lotes = $query->paginate(10);
+
+            return response()->json([
+                'status' => 'success',
+                'data'   => $lotes
+            ]);
+        } catch (Exception $ex) {
+            Log::error('Error en búsqueda de lotes: ' . $ex->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'mensaje' => 'Error interno del servidor.'
+            ], 500);
+        }
     }
 }
