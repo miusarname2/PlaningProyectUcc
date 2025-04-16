@@ -22,7 +22,7 @@ class Proceso extends Model
 
     public function departamento()
     {
-        return $this->belongsTo(Departamento::class, 'idDepartamento', 'idProceso');
+        return $this->belongsTo(Departamento::class, 'idDepartamento', 'idDepartamento');
     }
     
 

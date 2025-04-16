@@ -37,8 +37,8 @@ class FranjaHorariaController extends Controller
             $validateData = $request->validate([
                 'codigo' => "required|string|max:15",
                 'nombre' => "required|string|max:45",
-                'horaInicio' => "required|date",
-                'horaFin' => "required|date",
+                'horaInicio' => "required",
+                'horaFin' => "required",
                 'duracionMinutos' => "required|numeric",
                 'tipo' => 'required|in:Fin de semana,Regular,Break,Tarde,Tarde Noche',
                 'estado' => "required|in:Activo,Inactivo"
@@ -74,8 +74,8 @@ class FranjaHorariaController extends Controller
         $validateData = $request->validate([
             'codigo' => "sometimes|required|string|max:15",
             'nombre' => "sometimes|required|string|max:45",
-            'horaInicio' => "sometimes|required|date",
-            'horaFin' => "sometimes|required|date",
+            'horaInicio' => "sometimes|required",
+            'horaFin' => "sometimes|required",
             'duracionMinutos' => "sometimes|required|numeric",
             'tipo' => 'sometimes|required|in:Fin de semana,Regular,Break,Tarde,Tarde Noche',
             'estado' => "sometimes|required|in:Activo,Inactivo"
