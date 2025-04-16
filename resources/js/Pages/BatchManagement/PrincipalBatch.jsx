@@ -67,21 +67,23 @@ export default function PrincipalBatch() {
 
             if (!query || query.trim() === "") {
                 const response = await api.get("/lote");
-                lotes = response.data; // Asumo que no viene paginada
+                lotes = response.data;
+                console.log(response.data);
+
             } else {
                 const trimmed = query.trim();
-            const isCodigo = /^\d+$/.test(trimmed);
-            const isEstado = /^(activo|inactivo)$/i.test(trimmed);
-            
-            const params = isCodigo
-                ? { codigo: trimmed }
-                : isEstado
-                ? { estado: trimmed }
-                : { nombre: trimmed };
+                const isCodigo = /^[A-Za-z]{2,}\d+$/.test(trimmed);
+                const isEstado = /^(Activo|Inactivo)$/i.test(trimmed);
 
-            const response = await api.get("/lote/search", { params });
-            console.log("Respuesta del backend:", response.data);
-                lotes = response.data?.data?.data || []; // <-- Acceso a datos paginados
+                const params = isCodigo
+                    ? { codigo: trimmed }
+                    : isEstado
+                        ? { estado: trimmed }
+                        : { nombre: trimmed };
+
+                const response = await api.get("/lote/search", { params });
+                console.log("Respuesta del backend:", response.data);
+                lotes = response.data?.data?.data || [];
             }
 
             const transformed = lotes.map((lote) => ({
@@ -126,7 +128,7 @@ export default function PrincipalBatch() {
                     <div className="space-y-4">
                         <InputSearch
                             onSearchChange={(val) => fetchData(val)}
-                            placeHolderText="Buscar por código, nombre o programa"
+                            placeHolderText="Buscar por código o nombre"
                         />
 
                         {loading ? (
