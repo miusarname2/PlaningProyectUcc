@@ -10,11 +10,10 @@ import { Pencil, Trash2 } from "lucide-react";
 const columns = [
     { title: "ID", key: "codigoCiudad" },
     { title: "Nombre de la ciudad", key: "nombre" },
-    { title: "País", key: "pais" },
-    { title: "Región", key: "region" },
+    { title: "Región", key: "regionNombre" },
+    { title: "Departamento", key: "departamento", render: (value) => value[0].nombre },
     { title: "Código postal", key: "codigoPostal" },
     { title: "Sedes", key: "sedes" },
-   
 ];
 
 
@@ -46,16 +45,17 @@ export default function PrincipalCity() {
     async function fetchData() {
         try {
             const response = await api.get("/ciudad");
-    
+
+            console.log(response.data)
             const transformed = response.data.map((city) => ({
                 ...city,
                 id: city.idCiudad,
                 codigoCiudad: `C${String(city.idCiudad).padStart(3, '0')}`,
-                pais: city.region?.pais?.nombre || "Sin país",
-                region: city.region?.nombre || "Sin región",
+                regionNombre: city.region?.nombre || "Sin región",
                 sedes: city.sedes?.length || 0,
+                departamento: (city.region.estados).filter((estado) => estado.idEstado == city.idEstado)
             }));
-    
+
             setData(transformed);
         } catch (error) {
             console.error("Error fetching cities:", error);

@@ -17,7 +17,7 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
         idLote: initialData?.id || "",
         codigo: initialData?.codigo || "",
         nombre: initialData?.nombre || "",
-        idPrograma: initialData?.idPrograma ,
+        idPrograma: initialData?.idPrograma,
         estado: initialData?.estado || "Próximamente",
         fechaInicio: initialData?.rangoFechas?.inicio || initialData?.rangoFechas?.inicio || "",
         fechaFin: initialData?.rangoFechas?.fin || initialData?.rangoFechas?.fin || "",
@@ -45,7 +45,15 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+
+        // Si el campo es fecha y el usuario escribe en formato DD/MM/YYYY, conviértelo
+        if ((name === "fechaInicio" || name === "fechaFin") && value.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+            const [day, month, year] = value.split("/");
+            const formatted = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+            setFormData((prev) => ({ ...prev, [name]: formatted }));
+        } else {
+            setFormData((prev) => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -130,7 +138,7 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
                                 value={formData.status}
                                 onChange={handleChange}
                                 options={[{ value: "Próximamente", label: "Próximamente" }]}
-                                
+
                                 error={errors.status}
                             />
                         </div>
@@ -139,13 +147,12 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
                             <InputLabel htmlFor="startDate" value="Fecha de inicio" />
                             <TextInput
                                 id="startDate"
-                                name="startDate"
+                                name="fechaInicio"
                                 type="date"
                                 value={formData.fechaInicio}
                                 onChange={handleChange}
                                 required
                                 error={errors.fechaInicio}
-                                // placeholder="dd/mm/aaaa"
                             />
                         </div>
 
@@ -153,13 +160,12 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
                             <InputLabel htmlFor="endDate" value="Fecha final" />
                             <TextInput
                                 id="endDate"
-                                name="endDate"
+                                name="fechaFin"
                                 type="date"
                                 value={formData.fechaFin}
                                 onChange={handleChange}
                                 required
                                 error={errors.fechaFin}
-                                // placeholder="dd/mm/aaaa"
                             />
                         </div>
                     </div>

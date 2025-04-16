@@ -6,12 +6,12 @@ export default function PrincipalSpacialyty({ auth }) {
     return (
         <ModulesLayout
             title="Gestión de especialidades"
-            backTo="/specialtyProfessional"
+            backTo="/dashboard"
             exitTo="/dashboard"
             exitText="Salir"
         >
 
-            <Head title="Gestión especializadades"/>
+            <Head title="Gestión especializadades" />
             <PrincipalSpacialityManagement />
         </ModulesLayout>
     );

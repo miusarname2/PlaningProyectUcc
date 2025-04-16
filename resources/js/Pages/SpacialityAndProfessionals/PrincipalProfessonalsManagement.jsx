@@ -27,7 +27,23 @@ const columns = [
         ),
     },
     {
-        title: "Perfil", key: "perfil", render: (value) => (<LinkConIcono icon={ExternalLink} base64={value}>Descargar PDF</LinkConIcono>),
+        title: "Perfil",
+        key: "perfil",
+        render: (value) =>
+            value ? (
+                <a
+                    href={value}
+                    download="perfil.pdf"
+                    className="text-blue-500 underline flex items-center gap-1"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Descargar PDF
+                    <ExternalLink className="inline w-4 h-4" />
+                </a>
+            ) : (
+                <span className="text-gray-400">Sin PDF</span>
+            ),
     },
 ];
 
