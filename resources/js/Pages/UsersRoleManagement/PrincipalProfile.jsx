@@ -12,11 +12,18 @@ const columns = [
     {
         title: "Roles Asignados",
         key: "roles",
-        // render: (value) => value?.[0]?.nombre || "Sin rol",
+        render: (roles) =>
+            Array.isArray(roles) && roles.length > 0 ? (
+                    roles.map((r, idx) => (
+                        <ContainerShowData key={idx} text={r.nombre} />
+                    ))
+            ) : (
+                <span className="text-gray-400 text-xs italic">Sin roles</span>
+            ),
     },
     {
         title: "Usuarios",
-        key: "estado",
+        key: "countUsers",
         // render: (value) => <ContainerShowData status={value.roles} />,
     },
 ];
@@ -64,7 +71,8 @@ export default function PrincipalProfile() {
             const response = await api.get("/perfil");
             const transformed = response.data.map((profiles) => ({
                 ...profiles,
-                id: profiles.idPerfil
+                id: profiles.idPerfil,
+                countUsers: profiles.usuarios_count
             }));
             setData(transformed);
         } catch (error) {

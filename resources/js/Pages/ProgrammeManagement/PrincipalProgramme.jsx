@@ -9,13 +9,13 @@ import ProgrammeForm from "@/Pages/ProgrammeManagement/ProgrammeForm"; // Asegú
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [
-    { title: "ID", key: "codigoPrograma" },
+    { title: "ID", key: "codigo" },
     { title: "Nombre", key: "nombre" },
     { title: "Descripción", key: "descripcion" },
     {
         title: "Duración",
         key: "duracion",
-        render: (value, row) => `${value} ${row.unidadDuracion}`,
+        render: (value, row) => `${value} MInutos`,
     },
     { title: "Especialidad", key: "especialidad" },
     { title: "Lotes", key: "cantidadLotes" },
@@ -27,32 +27,6 @@ const columns = [
     },
 ];
 
-const fakeProgrammesData = [
-    {
-        id: 1,
-        codigoPrograma: "P001",
-        nombre: "Web Development",
-        descripcion: "Full-stack web development programme",
-        duracion: 6,
-        unidadDuracion: "meses",
-        especialidad: "Ingeniería de Software",
-        cantidadLotes: 3,
-        cantidadCursos: 12,
-        estado: "Activo",
-    },
-    {
-        id: 2,
-        codigoPrograma: "P002",
-        nombre: "Data Science",
-        descripcion: "Data analysis and machine learning programme",
-        duracion: 8,
-        unidadDuracion: "meses",
-        especialidad: "Ciencia de Datos",
-        cantidadLotes: 2,
-        cantidadCursos: 15,
-        estado: "Inactivo",
-    },
-];
 
 export default function PrincipalProgramme() {
     const [showForm, setShowForm] = useState(false);
@@ -78,25 +52,26 @@ export default function PrincipalProgramme() {
             alert("No se pudo eliminar el programa. Intenta más tarde.");
         }
     }
+console.log(data);
 
-    async function fetchData() {
-        try {
-            // const response = await api.get("/programa");
-            const response = { data: fakeProgrammesData };
+async function fetchData() {
+    try {
+        const response = await api.get("/programa");
 
-            const transformed = response.data.map((program) => ({
-                ...program,
-                cantidadLotes: program.cantidadLotes ?? 0,
-                cantidadCursos: program.cantidadCursos ?? 0,
-            }));
+        const transformed = response.data.map((program) => ({
+            ...program,
+            cantidadLotes: program.lotes?.length ?? 0, // Contar los lotes
+            cantidadCursos: program.cursos?.length ?? 0, // Contar los cursos
+            especialidad: program.especialidad?.nombre ?? "N/A", // Mostrar el nombre de la especialidad
+        }));
 
-            setData(transformed);
-        } catch (error) {
-            console.error("Error obteniendo programas:", error);
-        } finally {
-            setLoading(false);
-        }
+        setData(transformed);
+    } catch (error) {
+        console.error("Error obteniendo programas:", error);
+    } finally {
+        setLoading(false);
     }
+}
 
     useEffect(() => {
         fetchData();

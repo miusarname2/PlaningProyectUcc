@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use Inertia\Inertia;
 
 class Handler extends ExceptionHandler
 {
@@ -29,11 +30,21 @@ class Handler extends ExceptionHandler
         });
     }
 
+    // public function unauthenticated($request, AuthenticationException $exception)
+    // {
+    //     return response()->json([
+    //         'error' => 'No autenticado',
+    //         'message' => 'Debes iniciar sesión para acceder a esta ruta.'
+    //     ], 401);
+    // }
     public function unauthenticated($request, AuthenticationException $exception)
-    {
-        return response()->json([
-            'error' => 'No autenticado',
-            'message' => 'Debes iniciar sesión para acceder a esta ruta.'
-        ], 401);
+{
+    if ($request->expectsJson()) {
+        // Si es una petición Inertia (espera JSON), redirige con Inertia
+        return Inertia::location(route('login'));
     }
+
+    // Si no es petición JSON, redirige normalmente
+    return redirect()->guest(route('login'));
+}
 }
