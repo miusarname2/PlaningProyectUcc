@@ -17,7 +17,7 @@ class CiudadController extends Controller
      */
     public function index()
     {
-        $ciudades = Ciudad::with(['sedes', 'Region', "Region.pais"])->get();
+        $ciudades = Ciudad::with(['sedes', 'Region', "Region.pais","Region.estados"])->get();
         return response()->json($ciudades);
     }
 
@@ -30,7 +30,8 @@ class CiudadController extends Controller
             $validateData = $request->validate([
                 'nombre'       => 'required|string|max:100',
                 'codigoPostal' => 'nullable|string|max:10',
-                'idRegion'    => 'required|exists:regiones,id_region'
+                'idRegion'    => 'required|numeric|exists:region,idRegion',
+                'idEstado' => 'required|numeric|exists:estado,idEstado'
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -64,7 +65,7 @@ class CiudadController extends Controller
         $validatedData = $request->validate([
             'nombre'       => 'sometimes|required|string|max:100',
             'codigoPostal' => 'nullable|string|max:10',
-            'idRegion'    => 'sometimes|required|exists:regiones,idRegion'
+            'idRegion'    => 'sometimes|required|exists:region,idRegion'
         ]);
 
         $ciudad->update($validatedData);
