@@ -6,7 +6,7 @@ export default function PrincipalProfessonals({ auth }) {
     return (
         <ModulesLayout
             title="Gestión Profesionales"
-            backTo="/specialtyProfessional"
+            backTo="/dashboard"
             exitTo="/dashboard"
             exitText="Salir"
         >

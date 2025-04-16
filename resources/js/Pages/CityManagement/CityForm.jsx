@@ -10,6 +10,7 @@ import { getApi } from "@/utils/generalFunctions";
 export default function CityForm({ onCancel, initialData = null, onSubmitSuccess }) {
     const api = getApi();
 
+    console.log(initialData);
     const [formData, setFormData] = useState({
         codigoCiudad: initialData?.codigoCiudad || "",
         idCiudad: initialData?.id || "",
@@ -17,15 +18,46 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
         pais: initialData?.pais || "",
         idPais: initialData?.idPais || "",
         region: initialData?.region || "",
-        idRegion: initialData?.idRegion || "",
+        estado: initialData?.estado || "",
         codigoPostal: initialData?.codigoPostal || "",
     });
 
     const [errors, setErrors] = useState({});
+    const [estados, setEstados] = useState([]);
+    const [countries, setCountries] = useState([]);
+    const [regions, setRegions] = useState([]);
     const isEditMode = Boolean(initialData);
 
+    // Fetch countries and regions
+    useEffect(() => {
+        async function fetchCountries() {
+            try {
+                const response = await api.get("/pais");
+                setCountries(response.data);
+            } catch (error) {
+                console.error("Error fetching countries:", error);
+            }
+        }
+        fetchCountries();
+    }, []);
+
+    // Update regions when the country changes
+    useEffect(() => {
+        const selectedCountry = countries.find((country) => country.idPais === parseInt(formData.pais));
+        setRegions(selectedCountry?.regiones || []);
+        setFormData((prev) => ({ ...prev, region: "", estado: "" })); // Reinicia región y estado
+        setEstados([]);
+    }, [formData.pais, countries]);
+
+    useEffect(() => {
+        const selectedRegion = regions.find((region) => region.idRegion === parseInt(formData.region));
+        setEstados(selectedRegion?.estados || []);
+        setFormData((prev) => ({ ...prev, estado: "" })); // Reinicia estado
+    }, [formData.region, regions]);
+
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
     };
 
     const handleSubmit = async (e) => {
@@ -33,11 +65,10 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
 
         try {
             const payload = {
-                idCiudad: formData.idCiudad,
                 nombre: formData.nombre,
-                pais: formData.pais,
-                region: formData.region,
                 codigoPostal: formData.codigoPostal,
+                idRegion: parseInt(formData.region),
+                idEstado: parseInt(formData.estado),
             };
 
             if (isEditMode) {
@@ -98,24 +129,54 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
 
                         <div className="space-y-2">
                             <InputLabel htmlFor="pais" value="País" className="text-sm" />
-                            <TextInput
+                            <SelectInput
                                 id="pais"
                                 name="pais"
                                 value={formData.pais}
                                 onChange={handleChange}
-                                placeholder="Ej: España"
+                                options={[
+                                    { value: "", label: "Seleccionar país." },
+                                    ...countries.map((country) => ({
+                                        value: country.idPais,
+                                        label: country.nombre,
+                                    })),
+                                ]}
                                 required
                             />
                         </div>
 
                         <div className="space-y-2">
                             <InputLabel htmlFor="region" value="Región" className="text-sm" />
-                            <TextInput
+                            <SelectInput
                                 id="region"
                                 name="region"
                                 value={formData.region}
                                 onChange={handleChange}
-                                placeholder="Ej: Andalucía"
+                                options={[
+                                    { value: "", label: "Seleccionar región." },
+                                    ...regions.map((region) => ({
+                                        value: region.idRegion,
+                                        label: region.nombre,
+                                    })),
+                                ]}
+                                required
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="estado" value="Departamento" className="text-sm" />
+                            <SelectInput
+                                id="estado"
+                                name="estado"
+                                value={formData.estado}
+                                onChange={handleChange}
+                                options={[
+                                    { value: "", label: "Seleccionar Departamento." },
+                                    ...estados.map((estado) => ({
+                                        value: estado.idEstado,
+                                        label: estado.nombre,
+                                    })),
+                                ]}
                                 required
                             />
                         </div>

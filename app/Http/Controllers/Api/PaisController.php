@@ -16,7 +16,7 @@ class PaisController extends Controller
      */
     public function index()
     {
-        $lotes = Pais::with("regiones")->get();
+        $lotes = Pais::with(["regiones","regiones.estados"])->get();
         return response()->json($lotes);
     }
 

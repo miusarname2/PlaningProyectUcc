@@ -100,15 +100,22 @@ class HorarioController extends Controller
 
     public function search(Request $request)
     {
-        // Validación de la entrada: cada campo es opcional y se valida su tipo.
         $validator = Validator::make($request->all(), [
             'idCurso'         => 'nullable|integer',
             'idProfesional'   => 'nullable|integer',
             'idAula'          => 'nullable|integer',
             'idFranjaHoraria' => 'nullable|integer',
-            'dia'             => 'nullable|string|max:50'
+            'dia'             => 'nullable|string|max:50',
+            // Nuevos filtros
+            'curso_nombre'    => 'nullable|string|max:255',
+            'curso_codigo'    => 'nullable|string|max:255',
+            'curso_creditos'  => 'nullable|integer',
+            'curso_horas'     => 'nullable|integer',
+            'profesional_codigo' => 'nullable|string|max:255',
+            'profesional_nombreCompleto' => 'nullable|string|max:255',
+            'profesional_titulo' => 'nullable|string|max:255',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'status'  => 'error',
@@ -116,43 +123,72 @@ class HorarioController extends Controller
                 'errores' => $validator->errors()
             ], 422);
         }
-
-        // Inicializamos la consulta para el modelo Horario
+    
         $query = Horario::query();
-
-        // Filtro: idCurso (búsqueda exacta)
+    
+        // Filtros directos
         if ($request->filled('idCurso')) {
             $query->where('idCurso', $request->input('idCurso'));
         }
-
-        // Filtro: idProfesional (búsqueda exacta)
         if ($request->filled('idProfesional')) {
             $query->where('idProfesional', $request->input('idProfesional'));
         }
-
-        // Filtro: idAula (búsqueda exacta)
         if ($request->filled('idAula')) {
             $query->where('idAula', $request->input('idAula'));
         }
-
-        // Filtro: idFranjaHoraria (búsqueda exacta)
         if ($request->filled('idFranjaHoraria')) {
             $query->where('idFranjaHoraria', $request->input('idFranjaHoraria'));
         }
-
-        // Filtro: dia (búsqueda parcial)
         if ($request->filled('dia')) {
             $dia = trim($request->input('dia'));
             $query->where('dia', 'like', '%' . $dia . '%');
         }
-
-        // Cargamos las relaciones definidas: curso y profesional
-        $query->with(['curso', 'profesional']);
-
+    
+        // Filtros por relación: curso
+        if ($request->filled('curso_nombre')) {
+            $query->whereHas('curso', function ($q) use ($request) {
+                $q->where('nombre', 'like', '%' . $request->input('curso_nombre') . '%');
+            });
+        }
+        if ($request->filled('curso_codigo')) {
+            $query->whereHas('curso', function ($q) use ($request) {
+                $q->where('codigo', 'like', '%' . $request->input('curso_codigo') . '%');
+            });
+        }
+        if ($request->filled('curso_creditos')) {
+            $query->whereHas('curso', function ($q) use ($request) {
+                $q->where('creditos', $request->input('curso_creditos'));
+            });
+        }
+        if ($request->filled('curso_horas')) {
+            $query->whereHas('curso', function ($q) use ($request) {
+                $q->where('horas', $request->input('curso_horas'));
+            });
+        }
+    
+        // Filtros por relación: profesional
+        if ($request->filled('profesional_codigo')) {
+            $query->whereHas('profesional', function ($q) use ($request) {
+                $q->where('codigo', 'like', '%' . $request->input('profesional_codigo') . '%');
+            });
+        }
+        if ($request->filled('profesional_nombreCompleto')) {
+            $query->whereHas('profesional', function ($q) use ($request) {
+                $q->where('nombreCompleto', 'like', '%' . $request->input('profesional_nombreCompleto') . '%');
+            });
+        }
+        if ($request->filled('profesional_titulo')) {
+            $query->whereHas('profesional', function ($q) use ($request) {
+                $q->where('titulo', 'like', '%' . $request->input('profesional_titulo') . '%');
+            });
+        }
+    
+        // Relaciona todo lo necesario
+        $query->with(['curso', 'profesional', 'aula', 'FranjaHoraria']);
+    
         try {
-            // Se recomienda paginar los resultados para no sobrecargar la respuesta
             $horarios = $query->paginate(10);
-
+    
             return response()->json([
                 'status' => 'success',
                 'data'   => $horarios

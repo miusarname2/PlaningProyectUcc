@@ -73,7 +73,7 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
                 const nextCodeNumber = lengthRes + 1;
                 const formattedNumber = String(nextCodeNumber).padStart(3, '0');
                 payload.codigo = `ENT${formattedNumber}`;
-                payload.perfil = toBase64(toBase64(payload.perfil));
+                payload.perfil = payload.perfil;
                 await api.post("/profesional", payload);
             }
 

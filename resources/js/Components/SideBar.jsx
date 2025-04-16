@@ -20,7 +20,7 @@ const sections = [
             { text: 'Gestión de Ciudades', icon: MapPin, to: '/citiesManagement' },
             { text: 'Gestión de Pais', icon: Earth, to:'/countriesManagement' },             
             { text: 'Sedes y Entidades', icon: Building, to:'/sitesAndEntities' },
-            { text: 'Especialidad y Profesionales', icon: Briefcase, to:'/specialtyProfessional' },
+            { text: 'Gestion de Profesionales', icon: Briefcase, to:'/specialtyProfessional/professionals' },
             { text: 'Gestión por Lotes', icon: Layers, to: '/batchManagement' },
             { text: 'Gestión de Programas', icon: BookOpen, to: '/programmeManagement' },
             { text: 'Gestión de Slots', icon: Clock, to: '/slotManagement' },

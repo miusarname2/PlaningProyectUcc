@@ -70,14 +70,6 @@ Route::get('sitesAndEntities/entities', function () {
     return Inertia::render('SitesAndEntities/PrincipalEntitie');
 })->middleware(['auth', 'verified'])->name('PrincipalEntities');
 
-Route::get('specialtyProfessional', function () {
-    return Inertia::render('SpacialityAndProfessionals/SpacialityAndProfessionals');
-})->middleware(['auth', 'verified'])->name('spacialityAndProfessionals');
-
-Route::get('specialtyProfessional/spaciality', function () {
-    return Inertia::render('SpacialityAndProfessionals/PrincipalSpacialyty');
-})->middleware(['auth', 'verified'])->name('PrincipalSpacialyty');
-
 Route::get('specialtyProfessional/professionals', function () {
     return Inertia::render('SpacialityAndProfessionals/PrincipalProfessonals');
 })->middleware(['auth', 'verified'])->name('PrincipalProfessonals');
