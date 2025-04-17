@@ -27,7 +27,7 @@ services:
         value: "-1"
       # Variables de entorno propias de Laravel
       - name: APP_ENV
-        value: "production"
+        value: "local"
       - name: APP_DEBUG
         value: "false"
       - name: APP_KEY
