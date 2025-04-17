@@ -5,16 +5,16 @@ import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import ContainerShowData from "@/Components/ContainerShowData";
-import BatchForm from "@/Pages/BatchManagement/BatchForm";
+import ProccessForm from "@/Pages/ProccessManagement/ProccessForm";
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [
-    { title: "ID", key: "codigoLote" },
+    { title: "ID", key: "codigoProceso" },
     { title: "Nombre del proceso", key: "nombre" },
-    { title: "Descripción", key: "programa" },
-    { title: "Pasos", key: "estudiantes" },
-    { title: "Departamento", key: "cursos" },
-    { title: "Última actualización", key: "cursos" },
+    { title: "Descripción", key: "descripcion" },
+    { title: "Pasos", key: "cantidadPasos" },
+    { title: "Departamento", key: "departamento",render:(value)=>value.nombre },
+    { title: "Última actualización", key: "updated_at" },
     {
         title: "Estado",
         key: "estado",
@@ -37,14 +37,14 @@ export default function PrincipalProccess() {
     }
 
     async function handleDelete(row) {
-        if (!confirm(`¿Estás seguro de eliminar el lote "${row.nombre}"?`)) return;
+        if (!confirm(`¿Estás seguro de eliminar el proceso: "${row.nombre}"?`)) return;
 
         try {
-            await api.delete(`/lote/${row.id}`);
+            await api.delete(`/proceso/${row.id}`);
             fetchData();
         } catch (error) {
-            console.error("Error eliminando lote:", error);
-            alert("No se pudo eliminar el lote. Intenta más tarde.");
+            console.error("Error eliminando proceso:", error);
+            alert("No se pudo eliminar el proceso. Intenta más tarde.");
         }
     }
 
@@ -70,11 +70,10 @@ export default function PrincipalProccess() {
         try {
             // Simulando transformación como si vinieran de la API
             const response = await api.get("/proceso");
-            console.log(response);
+            console.log(response.data);
             const transformed = (response.data).map((proceso) => ({
                 ...proceso,
-                estudiantes: lote.estudiantes || 0,
-                cursos: lote.cursos || 0,
+                codigoProceso:proceso.codigo            
             }));
             setData(transformed);
         } catch (error) {
@@ -136,7 +135,7 @@ export default function PrincipalProccess() {
                         )}
                     </div>
                 ) : (
-                    <BatchForm
+                    <ProccessForm
                         onCancel={() => {
                             setShowForm(false);
                             setSelectedBatch(null);

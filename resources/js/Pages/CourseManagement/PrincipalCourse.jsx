@@ -5,17 +5,40 @@ import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import ContainerShowData from "@/Components/ContainerShowData";
-import BatchForm from "@/Pages/BatchManagement/BatchForm";
+import CourseForm from "@/Pages/CourseManagement/CourseForm";
 import { Pencil, Trash2 } from "lucide-react";
+import { Badge } from "@/Components/Badge";
 
 const columns = [
-    { title: "Código", key: "codigoLote" },
+    { title: "Código", key: "codigoCurso" },
     { title: "Nombre", key: "nombre" },
-    { title: "Descripción", key: "programa" },
-    { title: "Créditos", key: "estudiantes" },
-    { title: "Horas", key: "cursos" },
-    { title: "Programa", key: "cursos" },
-    { title: "Especialidad", key: "cursos" },
+    { title: "Descripción", key: "descripcion" },
+    { title: "Créditos", key: "creditos" },
+    { title: "Horas", key: "horas" },
+    {
+        title: "Programa",
+        key: "programas",
+        render: (value) => {
+            return value.length > 0 ? (
+                <>
+                    {value.map((programa, idx) => (
+                        <Badge label={programa.nombre} />
+                    ))}
+                </>
+            ) : <Badge label="Sin Programa" color="rose" />
+        },
+    },
+    {
+        title: "Especialidad", key: "especialidades", render: (value) => {
+            return value.length > 0 ? (
+                <>
+                    {value.map((especialidad, idx) => (
+                        <Badge label={especialidad.nombre} />
+                    ))}
+                </>
+            ) : <Badge label="Sin Especialidad" color="pink" />
+        },
+    },
     {
         title: "Estado",
         key: "estado",
@@ -104,11 +127,14 @@ export default function PrincipalCourse() {
     // }
     async function fetchData() {
         try {
-            // Simulando transformación como si vinieran de la API
-            const transformed = fakeData.map((lote) => ({
-                ...lote,
-                estudiantes: lote.estudiantes || 0,
-                cursos: lote.cursos || 0,
+            const response = await api.get("/curso");
+            console.log(response)
+            const transformed = (response.data).map((curso) => ({
+                ...curso,
+                id: curso.idCurso,
+                estudiantes: curso.estudiantes || 0,
+                cursos: curso.cursos || 0,
+                codigoCurso: curso.codigo
             }));
             setData(transformed);
         } catch (error) {
@@ -170,7 +196,7 @@ export default function PrincipalCourse() {
                         )}
                     </div>
                 ) : (
-                    <BatchForm
+                    <CourseForm
                         onCancel={() => {
                             setShowForm(false);
                             setSelectedBatch(null);

@@ -99,7 +99,7 @@ export default function UserForm({ onCancel, initialData = null, onSubmitSuccess
             }
         }
     };
-console.log(formData, "sadsasssssssssssssssssssssssssssssssssssssssssssssssssssss");
+console.log(formData);
 
     return (
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 border-gray-200">

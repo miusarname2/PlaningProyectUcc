@@ -11,7 +11,8 @@ const columns = [
     { title: "Email", key: "email" },
     {
         title: "Rol",
-        key: "rol",
+        key: "usuario_perfil",
+        render: (value) => value?.perfil.nombre?? 'Sin Rol'
     },
     {
         title: "Estado",
@@ -98,7 +99,7 @@ export default function PrincipalUser() {
             const type = getSearchType(value);
             const response = await api.get(`/user/search?${type}=${encodeURIComponent(value)}`);
             console.log(response);
-            
+
             const transformed = response.data.data.data.map((user) => ({
                 ...user,
                 id: user.idUsuario,
