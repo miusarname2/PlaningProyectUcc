@@ -56,6 +56,11 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
             if (isEditMode) {
                 await api.put(`/sede/${initialData?.id}`, payload);
             } else {
+                const response = await api.get("/sede");
+                const lengthRes = response.data.length;
+                const nextCodeNumber = lengthRes + 1;
+                const formattedNumber = String(nextCodeNumber).padStart(3, '0');
+                payload.codigo = `S${formattedNumber}`;
                 console.log(payload);
                 await api.post("/sede", payload);
             }
@@ -78,18 +83,6 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
             <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Campo para el código */}
-                        <div className="space-y-2">
-                            <InputLabel htmlFor="codigo" value="Código" />
-                            <TextInput
-                                id="codigo"
-                                name="codigo"
-                                value={formData.codigo}
-                                onChange={handleChange}
-                                placeholder="Ingrese el código"
-                                required
-                            />
-                        </div>
 
                         {/* Campo para el nombre */}
                         <div className="space-y-2">
