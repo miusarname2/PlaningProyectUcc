@@ -1,26 +1,12 @@
-# 1. Etapa de construcción de assets front-end
-FROM node:18-alpine AS frontend-builder
-
-WORKDIR /app
-# Copiamos solo package.json y package-lock.json para aprovechar caché
-COPY frontend/package*.json ./
-RUN npm install
-
-COPY frontend/ .
-RUN npm run build
-
-# 2. Imagen final con PHP
+# Define the base image
 FROM php:8.2-fpm
 
-# Variables de entorno para producción
-ENV APP_ENV=production \
-    APP_DEBUG=false \
-    COMPOSER_ALLOW_SUPERUSER=1
-
+# Set working directory inside the container
 WORKDIR /var/www/html
 
-# Instalamos dependencias del sistema
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
+    build-essential \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -30,33 +16,37 @@ RUN apt-get update && apt-get install -y \
     git \
     libonig-dev \
     libxml2-dev \
-    libzip-dev \
-  && docker-php-ext-configure gd --with-freetype --with-jpeg \
-  && docker-php-ext-install gd pdo pdo_mysql mbstring zip exif pcntl bcmath opcache \
-  && rm -rf /var/lib/apt/lists/*
+    libzip-dev
 
-# Instalar Composer
+# Install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd pdo pdo_mysql mbstring zip exif pcntl bcmath opcache
+
+# Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Copiamos el código de Laravel
-COPY backend/ ./
+# Clone Laravel project from GitHub
+RUN git clone https://github.com/miusarname2/laravel-test-CRUD.git /var/www/html
 
-# Copiamos los assets compilados desde la etapa front-end
-COPY --from=frontend-builder /app/build public/
+# Rename .env.example to .env
+RUN mv .env.example .env
 
-# Instalamos dependencias de PHP
-RUN composer install --optimize-autoloader --no-dev --no-interaction && \
-    php artisan key:generate --ansi
+# Install Laravel dependencies
+RUN composer install --optimize-autoloader --no-dev
 
-# Ejecutamos migraciones (si lo deseas en build; en producción suele manejarse por CI/CD)
-# RUN php artisan migrate --force
+#Build react 
+RUN npm run build
 
-# Ajustamos permisos
-RUN chown -R www-data:www-data /var/www/html && \
-    chmod -R 755 /var/www/html/storage
+# Generate application key
+RUN php artisan key:generate
 
-# Exponemos puerto (php-fpm escucha 9000; luego lo proxeará Nginx)
-EXPOSE 9000
+# Run Laravel migrations
+RUN php artisan migrate
 
-# Arrancamos PHP-FPM
-CMD ["php-fpm"]
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage
+
+# Expose port 8000 and start php-fpm server
+EXPOSE 8000
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
