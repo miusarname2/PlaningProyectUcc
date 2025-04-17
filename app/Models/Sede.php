@@ -24,7 +24,7 @@ class Sede extends Model
 
     public function ciudad()
     {
-        return $this->belongsTo(Sede::class,'idCiudad','idCiudad');
+        return $this->belongsTo(Ciudad::class,'idCiudad','idCiudad');
     }
 
 }
