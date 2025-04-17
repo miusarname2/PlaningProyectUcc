@@ -98,6 +98,10 @@ Route::get('/slotManagement', function () {
     return Inertia::render('SlotManagement/SlotManagement');
 })->middleware(['auth', 'verified'])->name('slotManagement');
 
+Route::get('/classroomManagement', function () {
+    return Inertia::render('ClassroomManagement/ClassroomManagement');
+})->middleware(['auth', 'verified'])->name('ClassroomManagement');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
