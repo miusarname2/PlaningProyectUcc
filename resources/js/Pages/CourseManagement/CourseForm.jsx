@@ -4,6 +4,7 @@ import InputLabel from "@/Components/InputLabel";
 import SelectInput from "@/Components/SelectInput";
 import ButtonGradient from "@/Components/ButtonGradient";
 import CancelButton from "@/Components/CancelButton";
+import TextTareaInput from "@/Components/TextTareaInput";
 import { Save } from "lucide-react";
 import { getApi } from "@/utils/generalFunctions";
 
@@ -11,36 +12,28 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
     const api = getApi();
     const isEditMode = Boolean(initialData);
 
-    const [programOptions, setProgramOptions] = useState([]);
-
     const [formData, setFormData] = useState({
-        id: initialData?.id || "",
-        name: initialData?.name || "",
-        programId: initialData?.programId || "",
-        status: initialData?.status || "Próximamente",
-        startDate: initialData?.startDate || "",
-        endDate: initialData?.endDate || "",
+        nombre: initialData?.nombre || "",
+        descripcion: initialData?.descripcion || "",
+        creditos: initialData?.creditos ?? "",
+        horas: initialData?.horas ?? "",
+        estado: initialData?.estado || "Activo",
+        codigo: initialData?.codigo || "",
     });
 
     const [errors, setErrors] = useState({});
 
-    useEffect(() => {
-        // Traer programas disponibles desde API
-        const fetchPrograms = async () => {
-            try {
-                const response = await api.get("/programa"); // Ajusta si tu endpoint es diferente
-                const options = response.data.map((program) => ({
-                    value: program.idPrograma,
-                    label: program.nombre,
-                }));
-                setProgramOptions(options);
-            } catch (error) {
-                console.error("Error fetching programs:", error);
-            }
-        };
-
-        fetchPrograms();
-    }, []);
+    // Auto‑genera el código solo en creación
+    const generateCodigo = async () => {
+        try {
+            const resp = await api.get("/curso");
+            const next = resp.data.length + 1;
+            return `C${String(next).padStart(3, "0")}`;
+        } catch (e) {
+            console.error("Error generating code:", e);
+            return "";
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -49,15 +42,25 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const payload = {
+            nombre: formData.nombre,
+            descripcion: formData.descripcion,
+            creditos: Number(formData.creditos),
+            horas: Number(formData.horas),
+            estado: formData.estado,
+        };
+
+        if (!isEditMode) {
+            payload.codigo = await generateCodigo();
+        }
+
         try {
-            const payload = { ...formData };
-
             if (isEditMode) {
-                await api.put(`/batch/${formData.id}`, payload);
+                await api.put(`/curso/${initialData.id}`, payload);
             } else {
-                await api.post("/batch", payload);
+                await api.post("/curso", payload);
             }
-
             setErrors({});
             onSubmitSuccess?.();
             onCancel();
@@ -66,7 +69,7 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                 setErrors(error.response.data.errors || {});
                 console.error("Validation errors:", error.response.data.errors);
             } else {
-                console.error("Error saving batch:", error);
+                console.error("Error saving course:", error);
             }
         }
     };
@@ -75,98 +78,91 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 border-gray-200">
             <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
-                    <h2 className="text-xl font-semibold">Añadir nuevo lote</h2>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {!isEditMode && (
-                            <div className="space-y-2">
-                                <InputLabel htmlFor="id" value="ID de lote" />
-                                <TextInput
-                                    id="id"
-                                    name="id"
-                                    value={formData.id}
-                                    onChange={handleChange}
-                                    placeholder="Introducir ID de lote"
-                                    required
-                                    error={errors.id}
-                                />
-                            </div>
-                        )}
-
+                        {/* Nombre */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="name" value="Nombre del lote" />
+                            <InputLabel htmlFor="nombre" value="Nombre" />
                             <TextInput
-                                id="name"
-                                name="name"
-                                value={formData.name}
+                                id="nombre"
+                                name="nombre"
+                                value={formData.nombre}
                                 onChange={handleChange}
-                                placeholder="Introduzca el nombre del lote"
+                                placeholder="Ingrese el nombre del curso"
                                 required
-                                error={errors.name}
+                                error={errors.nombre}
                             />
                         </div>
-
+                        {/* Créditos */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="programId" value="Programa" />
-                            <SelectInput
-                                id="programId"
-                                name="programId"
-                                value={formData.programId}
-                                onChange={handleChange}
-                                options={programOptions}
-                                required
-                                error={errors.programId}
-                                placeholder="Seleccionar programa"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <InputLabel htmlFor="status" value="Estado" />
-                            <SelectInput
-                                id="status"
-                                name="status"
-                                value={formData.status}
-                                onChange={handleChange}
-                                options={[{ value: "Próximamente", label: "Próximamente" }]}
-                                
-                                error={errors.status}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <InputLabel htmlFor="startDate" value="Fecha de inicio" />
+                            <InputLabel htmlFor="creditos" value="Créditos" />
                             <TextInput
-                                id="startDate"
-                                name="startDate"
-                                type="date"
-                                value={formData.startDate}
+                                id="creditos"
+                                name="creditos"
+                                type="number"
+                                value={formData.creditos}
                                 onChange={handleChange}
+                                placeholder="Ej: 3"
                                 required
-                                error={errors.startDate}
-                                placeholder="dd/mm/aaaa"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <InputLabel htmlFor="endDate" value="Fecha final" />
-                            <TextInput
-                                id="endDate"
-                                name="endDate"
-                                type="date"
-                                value={formData.endDate}
-                                onChange={handleChange}
-                                required
-                                error={errors.endDate}
-                                placeholder="dd/mm/aaaa"
+                                error={errors.creditos}
                             />
                         </div>
                     </div>
 
+                    {/* Descripción */}
+                    <div className="space-y-2">
+                        <InputLabel htmlFor="descripcion" value="Descripción" />
+                        <TextTareaInput
+                            id="descripcion"
+                            name="descripcion"
+                            value={formData.descripcion}
+                            onChange={handleChange}
+                            placeholder="Ingrese la descripción"
+                            rows={4}
+                            required
+                            className={errors.descripcion ? "border-red-500" : ""}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        {/* Horas */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="horas" value="Horas" />
+                            <TextInput
+                                id="horas"
+                                name="horas"
+                                type="number"
+                                value={formData.horas}
+                                onChange={handleChange}
+                                placeholder="Ej: 40"
+                                required
+                                error={errors.horas}
+                            />
+                        </div>
+
+                        {/* Estado */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="estado" value="Estado" />
+                            <SelectInput
+                                id="estado"
+                                name="estado"
+                                value={formData.estado}
+                                onChange={handleChange}
+                                options={[
+                                    { value: "Activo", label: "Activo" },
+                                    { value: "Inactivo", label: "Inactivo" },
+                                ]}
+                                required
+                                error={errors.estado}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Botones */}
                     <div className="flex justify-end space-x-2 pt-4">
                         <CancelButton onClick={onCancel}>Cancelar</CancelButton>
                         <ButtonGradient type="submit">
-                            <Save className="h-4 w-4 mr-2" />
-                            {isEditMode ? "Guardar Cambios" : "Crear Lote"}
+                            {isEditMode ? "Guardar Cambios" : "Crear Curso"}
                         </ButtonGradient>
                     </div>
                 </div>
