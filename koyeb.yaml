@@ -2,6 +2,19 @@ version: "0.2"
 services:
   planingproyectucc-backend:
     type: web
+    routes:
+      - path: /           # ruta raíz
+        port: 8080
+        protocol: HTTP
+        public: true
+      - path: /login      # ruta de login
+        port: 8080
+        protocol: HTTP
+        public: true
+      - path: /dashboard  # ruta de dashboard
+        port: 8080
+        protocol: HTTP
+        public: true
     source:
       type: git
       # URL de tu repositorio y rama principal
