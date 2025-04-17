@@ -1,3 +1,9 @@
+FROM node:18-alpine AS frontend-builder
+
+RUN npm install
+
+RUN npm run build
+
 # Define the base image
 FROM php:8.2-fpm
 
