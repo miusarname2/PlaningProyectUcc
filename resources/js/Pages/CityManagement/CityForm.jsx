@@ -73,7 +73,7 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
 
             if (isEditMode) {
                 await api.put(`/ciudad/${formData.idCiudad}`, payload);
-                await api.put(`/region/${formData.idRegion}`, {
+                await api.put(`/region/${formData.region}`, {
                     nombre: formData.region
                 });
                 await api.put(`/pais/${formData.idPais}`, {
