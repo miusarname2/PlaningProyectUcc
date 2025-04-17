@@ -1,0 +1,30 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "index.php",
+            "use": "@vercel/php"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)/(.*\\.(css|js|png|jpg|svg))",
+            "dest": "/public/$1/$2"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.php"
+        }
+    ],
+    "functions": {
+        "api/index.php": {
+            "runtime": "vercel-php@0.6.0",
+            "maxDuration": 10
+        }
+    },
+    "env": {
+        "APP_ENV": "production",
+        "APP_DEBUG": "false",
+        "APP_URL": "https://tu-dominio.vercel.app"
+    }
+}
