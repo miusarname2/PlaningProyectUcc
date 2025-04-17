@@ -3,7 +3,9 @@ FROM node:18-alpine AS frontend-builder
 WORKDIR /app
 
 # Clona el repo (asume front+back juntos)
-RUN git clone https://github.com/miusarname2/laravel-test-CRUD.git ./
+RUN git clone https://github.com/miusarname2/laravel-test-CRUD.git
+
+RUN cd laravel-test-CRUD
 
 # Instala y build de React
 RUN npm ci
