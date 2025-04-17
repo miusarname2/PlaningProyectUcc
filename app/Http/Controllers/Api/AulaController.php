@@ -18,7 +18,7 @@ class AulaController extends Controller
      */
     public function index()
     {
-        $aulas = Aula::with(['sede'])->get();
+        $aulas = Aula::with(['sede','sede.ciudad'])->get();
         return response()->json($aulas);
     }
 
@@ -44,11 +44,11 @@ class AulaController extends Controller
             ], 422);
         }
 
-        $proceso = Proceso::create($validatedData);
+        $aula = Aula::create($validatedData);
 
-        $proceso->load(['sede']);
+        $aula->load(['sede']);
 
-        return response()->json($proceso,201);
+        return response()->json($aula,201);
     }
 
     /**

@@ -22,7 +22,7 @@ class UsuarioController extends Controller
     public function index()
     {
         try {
-            $usuarios = Usuario::with(['roles','usuarioPerfil'])->get();
+            $usuarios = Usuario::with(['roles','usuarioPerfil','usuarioPerfil.perfil'])->get();
             return response()->json($usuarios);
         } catch (Exception $e) {
             return response()->json([
@@ -92,6 +92,8 @@ class UsuarioController extends Controller
             // Hashear nueva contraseña si se envía
             $validatedData['password'] = Hash::make($validatedData['password']);
         }
+
+        $usuario->load(['usuarioPerfil','roles']);
 
         $usuario->update($validatedData);
         return response()->json($usuario);
