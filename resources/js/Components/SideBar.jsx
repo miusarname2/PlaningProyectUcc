@@ -7,7 +7,8 @@ import {
     LayoutGrid, UserRoundCheck,
     Timer,
     Earth,
-    Map
+    Map,
+    CalendarDays
 } from 'lucide-react';
 
 const sections = [
@@ -27,7 +28,6 @@ const sections = [
             { text: 'Gestión de Procesos', icon: SendToBack, to: '/processManagement' },
             { text: 'Gestión de Aula', icon: LayoutGrid, to:'/classroomManagement' },
             { text: 'Cronograma de Horarios', icon: Timer, to: '/scheduleTimer' },
-            // { text: 'Cronograma de Horarios', icon: Timer, to: '/scheduleTimer' },
         ],
     },
     {
@@ -35,7 +35,7 @@ const sections = [
         basePath: '/courses/create',
         options: [
             { text: 'Gestión de Cursos', icon: BookOpen, to: '/course' },
-            { text: 'Misión Profesional', icon: UserRoundCheck, to:'/professionalMission' },
+            { text: 'Gestion de Clases', icon: CalendarDays, to:'/classManagement' },
             { text: 'Gestión del Dia del Curso', icon: Calendar, to:'/courseDayManagement' },
         ],
     },
