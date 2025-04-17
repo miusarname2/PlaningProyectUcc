@@ -1,58 +1,42 @@
+# 1) Build del frontend con Node
 FROM node:18-alpine AS frontend-builder
+WORKDIR /app
 
-RUN npm install
+# Clona el repo (asume front+back juntos)
+RUN git clone https://github.com/miusarname2/laravel-test-CRUD.git ./
 
+# Instala y build de React
+RUN npm ci
 RUN npm run build
 
-# Define the base image
+# 2) Imagen de PHP / Laravel
 FROM php:8.2-fpm
-
-# Set working directory inside the container
 WORKDIR /var/www/html
 
-# Install system dependencies
+# Dependencias del sistema y extensiones PHP
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    zip \
-    unzip \
-    curl \
-    git \
-    libonig-dev \
-    libxml2-dev \
-    libzip-dev
+    libpng-dev libjpeg-dev libfreetype6-dev zip unzip curl git \
+    libonig-dev libxml2-dev libzip-dev \
+  && docker-php-ext-configure gd --with-freetype --with-jpeg \
+  && docker-php-ext-install gd pdo pdo_mysql mbstring zip exif pcntl bcmath opcache
 
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo pdo_mysql mbstring zip exif pcntl bcmath opcache
+# Composer
+RUN curl -sS https://getcomposer.org/installer | php \
+  -- --install-dir=/usr/local/bin --filename=composer
 
-# Install Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Copia los archivos de Laravel (ya estaban en Git en el stage builder)
+# y los assets estáticos del build de React
+COPY --from=frontend-builder /var/www/html /var/www/html
+COPY --from=frontend-builder /app/build /var/www/html/public
 
-# Clone Laravel project from GitHub
-RUN git clone https://github.com/miusarname2/laravel-test-CRUD.git /var/www/html
+# Instala dependencias de Laravel, genera key y migra
+RUN composer install --optimize-autoloader --no-dev \
+  && php artisan key:generate \
+  && php artisan migrate
 
-# Rename .env.example to .env
-RUN mv .env.example .env
-
-# Install Laravel dependencies
-RUN composer install --optimize-autoloader --no-dev
-
-#Build react 
-RUN npm run build
-
-# Generate application key
-RUN php artisan key:generate
-
-# Run Laravel migrations
-RUN php artisan migrate
-
-# Set permissions
+# Permisos y arranque
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage
+  && chmod -R 755 /var/www/html/storage
 
-# Expose port 8000 and start php-fpm server
 EXPOSE 8000
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
