@@ -17,7 +17,7 @@ class HorarioController extends Controller
      */
     public function index()
     {
-        $horarios = Horario::with(["curso", "profesional", "aula", "FranjaHoraria"])->get();
+        $horarios = Horario::with(["curso", "profesional", "aula", "FranjaHoraria", "aula.sede.ciudad"])->get();
         return response()->json($horarios);
     }
 
@@ -64,6 +64,7 @@ class HorarioController extends Controller
     public function update(Request $request, string $id)
     {
         try {
+            $horario = Horario::findOrFail($id);
             $validatedData = $request->validate([
                 'idCurso' => "sometimes|numeric|exists:curso,idCurso",
                 'idProfesional' => "sometimes|numeric|exists:profesional,idProfesional",
@@ -79,9 +80,7 @@ class HorarioController extends Controller
             ], 422);
         }
 
-        $horario = Horario::create($validatedData);
-
-        $horario->load(["curso", "profesional", "aula", "FranjaHoraria"]);
+        $horario->update($validatedData);
 
         return response()->json($horario, 201);
     }
@@ -106,7 +105,6 @@ class HorarioController extends Controller
             'idAula'          => 'nullable|integer',
             'idFranjaHoraria' => 'nullable|integer',
             'dia'             => 'nullable|string|max:50',
-            // Nuevos filtros
             'curso_nombre'    => 'nullable|string|max:255',
             'curso_codigo'    => 'nullable|string|max:255',
             'curso_creditos'  => 'nullable|integer',
@@ -115,7 +113,7 @@ class HorarioController extends Controller
             'profesional_nombreCompleto' => 'nullable|string|max:255',
             'profesional_titulo' => 'nullable|string|max:255',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 'status'  => 'error',
@@ -123,9 +121,9 @@ class HorarioController extends Controller
                 'errores' => $validator->errors()
             ], 422);
         }
-    
+
         $query = Horario::query();
-    
+
         // Filtros directos
         if ($request->filled('idCurso')) {
             $query->where('idCurso', $request->input('idCurso'));
@@ -143,7 +141,7 @@ class HorarioController extends Controller
             $dia = trim($request->input('dia'));
             $query->where('dia', 'like', '%' . $dia . '%');
         }
-    
+
         // Filtros por relación: curso
         if ($request->filled('curso_nombre')) {
             $query->whereHas('curso', function ($q) use ($request) {
@@ -165,7 +163,7 @@ class HorarioController extends Controller
                 $q->where('horas', $request->input('curso_horas'));
             });
         }
-    
+
         // Filtros por relación: profesional
         if ($request->filled('profesional_codigo')) {
             $query->whereHas('profesional', function ($q) use ($request) {
@@ -182,13 +180,13 @@ class HorarioController extends Controller
                 $q->where('titulo', 'like', '%' . $request->input('profesional_titulo') . '%');
             });
         }
-    
+
         // Relaciona todo lo necesario
         $query->with(['curso', 'profesional', 'aula', 'FranjaHoraria']);
-    
+
         try {
             $horarios = $query->paginate(10);
-    
+
             return response()->json([
                 'status' => 'success',
                 'data'   => $horarios
