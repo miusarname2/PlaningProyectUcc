@@ -36,7 +36,6 @@ const sections = [
         options: [
             { text: 'Gestión de Cursos', icon: BookOpen, to: '/course' },
             { text: 'Gestion de Clases', icon: CalendarDays, to:'/classManagement' },
-            { text: 'Gestión del Dia del Curso', icon: Calendar, to:'/courseDayManagement' },
         ],
     },
     {
