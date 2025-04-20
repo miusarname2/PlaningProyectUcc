@@ -42,6 +42,19 @@ class HorarioController extends Controller
             ], 422);
         }
 
+        $duplicate = Horario::query()
+            ->where('idAula', $validatedData['idAula'])
+            ->where('idFranjaHoraria', $validatedData['idFranjaHoraria'])
+            ->where('dia', $validatedData['dia'])
+            ->exists();
+
+        if ($duplicate) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hay un conflicto en la inserción de los datos.'
+            ], 409);
+        }
+
         $horario = Horario::create($validatedData);
 
         $horario->load(["curso", "profesional", "aula", "FranjaHoraria"]);
@@ -78,6 +91,20 @@ class HorarioController extends Controller
                 'message' => 'Error en la validación de los datos.',
                 'errors'  => $ex->errors()
             ], 422);
+        }
+
+        $duplicate = Horario::query()
+            ->where('idAula', $validatedData['idAula'])
+            ->where('idFranjaHoraria', $validatedData['idFranjaHoraria'])
+            ->where('dia', $validatedData['dia'])
+            ->where('idHorario', '!=', $horario->idHorario)
+            ->exists();
+
+        if ($duplicate) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hay un conflicto en la inserción de los datos.'
+            ], 409);
         }
 
         $horario->update($validatedData);
