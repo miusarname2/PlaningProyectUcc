@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import TextInput from "@/Components/TextInput";
 import InputLabel from "@/Components/InputLabel";
 import SelectInput from "@/Components/SelectInput";
+import { useToast } from '@/lib/toast-context'
 import ButtonGradient from "@/Components/ButtonGradient";
 import CancelButton from "@/Components/CancelButton";
 import { Save } from "lucide-react";
@@ -9,6 +10,7 @@ import { getApi } from "@/utils/generalFunctions";
 
 export default function ClassForm({ onCancel, initialData = null, onSubmitSuccess }) {
     const api = getApi();
+    const { toast } = useToast()
     const isEditMode = Boolean(initialData);
     console.log(isEditMode);
 
@@ -91,10 +93,26 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             onSubmitSuccess?.();
             onCancel();
         } catch (err) {
-            if (err.response?.status === 422) {
+            if (err.response?.status == 422) {
                 setErrors(err.response.data.errors || {});
+                toast({
+                    title: '¡Error!',
+                    description: 'Existe un problema con los datos suministrado.',
+                    variant: 'error',
+                });
+            } else if (err.response?.status == 409) {
+                toast({
+                    title: '¡Error!',
+                    description: 'Existe un conflicto con la clase seleccionada.',
+                    variant: 'error',
+                });
             } else {
                 console.error(err);
+                toast({
+                    title: '¡Error!',
+                    description: 'Ha ocurrido un error inesperado.',
+                    variant: 'error',
+                });
             }
         }
     };
