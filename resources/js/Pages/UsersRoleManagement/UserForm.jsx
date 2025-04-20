@@ -107,33 +107,33 @@ console.log(formData);
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <InputLabel htmlFor="name" value="Full Name" className="text-sm" />
+                            <InputLabel htmlFor="name" value="Nombre" className="text-sm" />
                             <TextInput
                                 id="name"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
-                                placeholder="Enter full name"
+                                placeholder="Ingresa el nombre"
                                 required
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <InputLabel htmlFor="email" value="Email Address" className="text-sm" />
+                            <InputLabel htmlFor="email" value="Email" className="text-sm" />
                             <TextInput
                                 id="email"
                                 name="email"
                                 type="email"
                                 value={formData.email}
                                 onChange={handleChange}
-                                placeholder="Enter email address"
+                                placeholder="Ingresa el Email"
                                 required
                             />
                             {errors.email && <p className="text-sm text-red-500">{errors.email[0]}</p>}
                         </div>
 
                         <div className="space-y-2">
-                            <InputLabel htmlFor="roleId" value="Role" className="text-sm" />
+                            <InputLabel htmlFor="roleId" value="Perfil" className="text-sm" />
                             <SelectInput
                                 id="roleId"
                                 name="roleId"
@@ -145,7 +145,7 @@ console.log(formData);
                         </div>
 
                         <div className="space-y-2">
-                            <InputLabel htmlFor="status" value="Status" className="text-sm" />
+                            <InputLabel htmlFor="status" value="Estado" className="text-sm" />
                             <SelectInput
                                 id="status"
                                 name="status"
