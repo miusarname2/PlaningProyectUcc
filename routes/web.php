@@ -102,6 +102,9 @@ Route::get('/classroomManagement', function () {
     return Inertia::render('ClassroomManagement/ClassroomManagement');
 })->middleware(['auth', 'verified'])->name('ClassroomManagement');
 
+Route::get('/classManagement', function () {
+    return Inertia::render('ClassManagement/ClassManagement');
+})->middleware(['auth', 'verified'])->name('ClassManagement');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
