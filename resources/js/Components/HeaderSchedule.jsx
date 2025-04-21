@@ -2,7 +2,12 @@ import { ChevronLeft, Printer, Download } from "lucide-react";
 import { Button } from "@/Components/Button";
 import { router } from "@inertiajs/react";
 
-export default function HeaderSchedule({ title = "Cronograma de Horarios", backTo = null }) {
+export default function HeaderSchedule({ title = "Cronograma de Horarios", backTo = null,handleExport=()=>console.log('Se exporto...') }) {
+
+  const handlePrint = () => {
+    print();
+  }
+
   return (
     <header className="border-b p-2 md:p-4 flex items-center justify-between bg-white">
       <div className="flex items-center gap-1 md:gap-2">
@@ -22,6 +27,7 @@ export default function HeaderSchedule({ title = "Cronograma de Horarios", backT
         <Button
           variant="ghost"
           className="flex items-center gap-1 text-xs md:text-sm"
+          onClick={handlePrint}
         >
           <Printer className="h-4 w-4 md:h-5 md:w-5" />
           <span className="hidden sm:inline">Imprimir</span>
@@ -29,6 +35,7 @@ export default function HeaderSchedule({ title = "Cronograma de Horarios", backT
         <Button
           variant="ghost"
           className="flex items-center gap-1 text-xs md:text-sm"
+          onClick={handleExport}
         >
           <Download className="h-4 w-4 md:h-5 md:w-5" />
           <span className="hidden sm:inline">Exportar</span>
