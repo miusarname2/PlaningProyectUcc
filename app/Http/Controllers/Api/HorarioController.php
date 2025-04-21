@@ -3,12 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\FranjaHoraria;
 use App\Models\Horario;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
 
 class HorarioController extends Controller
 {
@@ -225,5 +230,75 @@ class HorarioController extends Controller
                 'mensaje' => 'Error interno del servidor.'
             ], 500);
         }
+    }
+
+    public function exportXls()
+    {
+        // 1) Carga de datos
+        $horarios = Horario::with(['curso', 'profesional', 'aula.sede', 'FranjaHoraria'])->get();
+
+        // 2) Definir días y franjas
+        $dias   = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+        $franjas = FranjaHoraria::orderBy('horaInicio')->get();
+
+        // 3) Mapear datos [“HH:MM – HH:MM”][“Día”] => texto
+        $map = [];
+        foreach ($horarios as $h) {
+            $keyF = $h->FranjaHoraria->horaInicio . ' - ' . $h->FranjaHoraria->horaFin;
+            $map[$keyF][$h->dia] = sprintf(
+                "%s (Aula %s)\n%s",
+                $h->curso->codigo,
+                $h->aula->codigo,
+                $h->aula->sede->nombre
+            );
+        }
+
+        // 4) Crear la hoja de cálculo
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+
+        // 5) Encabezados: A1 = “HORAS”, B1…F1 = días
+        $sheet->setCellValue('A1', 'HORAS');
+        foreach ($dias as $i => $dia) {
+            // Convertir índice numérico a letra (1=A, 2=B, …)
+            $colLetter = Coordinate::stringFromColumnIndex($i + 2);
+            $sheet->setCellValue("{$colLetter}1", $dia);  // sin métodos depredados :contentReference[oaicite:3]{index=3}
+        }
+
+        // 6) Filas por cada franja
+        $row = 2;
+        foreach ($franjas as $franja) {
+            $label = $franja->horaInicio . ' - ' . $franja->horaFin;
+            $sheet->setCellValue("A{$row}", $label);
+
+            foreach ($dias as $i => $dia) {
+                $colLetter = Coordinate::stringFromColumnIndex($i + 2);
+                if (! empty($map[$label][$dia])) {
+                    $sheet->setCellValue("{$colLetter}{$row}", $map[$label][$dia]);
+                    // fondo verde suave para celdas con datos
+                    $sheet->getStyle("{$colLetter}{$row}")
+                        ->getFill()
+                        ->setFillType(Fill::FILL_SOLID)
+                        ->getStartColor()->setRGB('C6EFCE');
+                }
+            }
+            $row++;
+        }
+
+        // 7) Auto–ajustar ancho de columnas
+        foreach (range('A', $sheet->getHighestColumn()) as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // 8) Generar XLS en memoria y codificar a Base64
+        $writer = new Xls($spreadsheet);
+        ob_start();
+        $writer->save('php://output');
+        $xlsData = ob_get_clean();
+
+        return response()->json([
+            'filename' => 'horario.xls',
+            'base64'   => base64_encode($xlsData),
+        ]);
     }
 }
