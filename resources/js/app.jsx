@@ -3,7 +3,7 @@ import '../css/app.css';
 
 import { createRoot } from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
-import { Toaster } from '@/components/Toaster'
+import { Toaster } from './Components/Toaster';
 import { ToastProvider } from '@radix-ui/react-toast'
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 
