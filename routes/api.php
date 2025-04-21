@@ -61,6 +61,7 @@ Route::middleware(['auth:sanctum', 'throttle:search'])
     });
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('user/{user}/permisos', [UsuarioController::class, 'permisos']);
+    Route::get('horario/export-xlsx', [HorarioController::class, 'exportXls']);
     Route::resource('user', UsuarioController::class);
     Route::resource('ciudad', CiudadController::class);
     Route::resource('curso', CursoController::class);
