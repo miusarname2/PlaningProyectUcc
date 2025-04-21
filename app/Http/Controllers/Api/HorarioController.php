@@ -72,7 +72,7 @@ class HorarioController extends Controller
      */
     public function show(string $id)
     {
-        $horario = Horario::with(["curso", "profesional", "aula", "FranjaHoraria"])->findOrFail($id);
+        $horario = Horario::with(["curso", "profesional", "aula","aula.sede", "FranjaHoraria"])->findOrFail($id);
         return response()->json($horario);
     }
 
@@ -133,6 +133,7 @@ class HorarioController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'idCurso'         => 'nullable|integer',
+            'aula_sede'       => 'nullable|integer',
             'idProfesional'   => 'nullable|integer',
             'idAula'          => 'nullable|integer',
             'idFranjaHoraria' => 'nullable|integer',
@@ -144,6 +145,7 @@ class HorarioController extends Controller
             'profesional_codigo' => 'nullable|string|max:255',
             'profesional_nombreCompleto' => 'nullable|string|max:255',
             'profesional_titulo' => 'nullable|string|max:255',
+            'ciudad_id' => 'nullable|integer',
         ]);
 
         if ($validator->fails()) {
@@ -202,6 +204,11 @@ class HorarioController extends Controller
                 $q->where('codigo', 'like', '%' . $request->input('profesional_codigo') . '%');
             });
         }
+        if ($request->filled('aula_sede')) {
+            $query->whereHas('aula', function ($q) use ($request) {
+                $q->where('idSede', 'like', '%' . $request->input('aula_sede') . '%');
+            });
+        }
         if ($request->filled('profesional_nombreCompleto')) {
             $query->whereHas('profesional', function ($q) use ($request) {
                 $q->where('nombreCompleto', 'like', '%' . $request->input('profesional_nombreCompleto') . '%');
@@ -212,9 +219,14 @@ class HorarioController extends Controller
                 $q->where('titulo', 'like', '%' . $request->input('profesional_titulo') . '%');
             });
         }
+        if ($request->filled('ciudad_id')) {
+            $query->whereHas('aula.sede', function ($q) use ($request) {
+                $q->where('idCiudad', $request->input('ciudad_id'));
+            });
+        }
 
         // Relaciona todo lo necesario
-        $query->with(['curso', 'profesional', 'aula', 'FranjaHoraria']);
+        $query->with(['curso', 'profesional', 'aula', 'aula.sede',  'FranjaHoraria']);
 
         try {
             $horarios = $query->paginate(10);

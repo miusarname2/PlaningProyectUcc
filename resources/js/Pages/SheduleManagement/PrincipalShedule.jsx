@@ -1,15 +1,30 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { ChevronLeft, ChevronRight, Calendar, Filter, ChevronDown } from "lucide-react"
 import { Button } from "@/Components/Button"
 import InputSearch from "@/Components/InputSearch"
+import InputLabel from "@/Components/InputLabel";
+import SelectInput from "@/Components/SelectInput";
 import { format, startOfWeek, addWeeks, subWeeks, isSameWeek } from "date-fns"
 import { es } from "date-fns/locale"
 import { getApi } from "@/utils/generalFunctions";
 
 export default function PrincipalShedule() {
-  const [viewType, setViewType] = useState("daily")
   const [scheduleData, setScheduleData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sedes, setSedes] = useState([]);
+  const [ciudades, setCiudades] = useState([]);
+  const [formData, setFormData] = useState({
+    sede: "",
+    ciudad: "",
+    filtro: "",
+    searchValue: "",
+  });
+
+  const filtrosDisponibles = [
+    { value: "curso_codigo", label: "Codigo del curso" },
+    { value: "curso_nombre", label: "Nombre del curso" },
+    { value: "profesional_codigo", label: "Codigo del profesional" }
+  ];
 
   const [currentWeekStart, setCurrentWeekStart] = useState(
     startOfWeek(new Date(), { weekStartsOn: 1 })
@@ -51,17 +66,17 @@ export default function PrincipalShedule() {
     { bg: "bg-rose-100", text: "text-rose-800", border: "border-rose-300" },
   ];
 
-  const aulaColorMap = new Map();
-  let colorIndex = 0;
+  const aulaColorMap = useRef(new Map());
+  const colorIndex = useRef(0);
 
   function getColorForRoom(room) {
-    if (aulaColorMap.has(room)) {
-      return aulaColorMap.get(room);
+    if (aulaColorMap.current.has(room)) {
+      return aulaColorMap.current.get(room);
     }
 
-    const color = colorPalette[colorIndex % colorPalette.length];
-    aulaColorMap.set(room, color);
-    colorIndex++;
+    const color = colorPalette[colorIndex.current % colorPalette.length];
+    aulaColorMap.current.set(room, color);
+    colorIndex.current++;
     return color;
   }
 
@@ -119,20 +134,105 @@ export default function PrincipalShedule() {
 
   const api = getApi();
 
-  async function fetchData() {
+  async function fetchData(filterKey = null, filterValue = null) {
     try {
-      const response = await api.get("/Horario");
-      const transformed = transformScheduleData(response.data);
+      setLoading(true);
+      setScheduleData([]);
+
+      let endpoint = "/Horario";
+
+      if (filterKey && filterValue !== null) {
+        endpoint = `/Horario/search?${filterKey}=${filterValue}`;
+      }
+
+      const response = await api.get(endpoint);
+
+      let rawData = [];
+
+      if (Array.isArray(response.data)) {
+        rawData = response.data;
+      } else if (Array.isArray(response.data.data)) {
+        rawData = response.data.data;
+      } else if (Array.isArray(response.data.data?.data)) {
+        rawData = response.data.data.data;
+      }
+
+      if (!Array.isArray(rawData)) {
+        throw new Error("Horario data is not an array.");
+      }
+
+      const transformed = transformScheduleData(rawData);
       setScheduleData(transformed);
     } catch (error) {
       console.error("Error fetching schedule:", error);
+      setScheduleData([]);
     } finally {
       setLoading(false);
     }
   }
 
+
+
+
+  async function fetchDataSedes() {
+    try {
+      const response = await api.get("/sede");
+      setSedes(response.data);
+    } catch (error) {
+      console.error("Error fetching sedes:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+  async function fetchDataCiudad() {
+    try {
+      const response = await api.get("/ciudad");
+      setCiudades(response.data);
+    } catch (error) {
+      console.error("Error fetching sedes:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let updatedFormData = { ...formData, [name]: value };
+    const resetFields = (fields) => {
+      fields.forEach((field) => {
+        updatedFormData[field] = "";
+      });
+    };
+    if (name === "ciudad" && value) {
+      resetFields(["sede", "filtro", "searchValue"]);
+      fetchData("ciudad_id", value);
+    }
+    if (name === "ciudad" && !value) {
+      fetchData();
+    }
+    if (name === "sede" && value) {
+      resetFields(["ciudad", "filtro", "searchValue"]);
+      fetchData("aula_sede", value);
+    }
+    if (name === "sede" && !value) {
+      fetchData();
+    }
+    if (name === "filtro" && value && formData.searchValue) {
+      resetFields(["ciudad", "sede"]);
+      fetchData(value, formData.searchValue);
+    }
+    if (name === "filtro" && !value && !formData.searchValue) {
+      fetchData();
+    }
+    setFormData(updatedFormData);
+
+  };
+
+
   useEffect(() => {
     fetchData();
+    fetchDataSedes();
+    fetchDataCiudad();
   }, []);
 
   return (
@@ -140,20 +240,49 @@ export default function PrincipalShedule() {
       {/* Filters */}
       <div className="p-2 md:p-4 flex items-center justify-between border-b bg-white flex-wrap gap-2">
         <div className="flex items-center gap-2 md:gap-4 flex-wrap">
-          <Calendar className="h-3 w-3 md:h-4 md:w-4" />
-          <div className="flex items-center border rounded-md">
+          <Calendar className="h-3 w-3 md:h-4 md:w-4 mx-3" />
+          {/* <div className="flex items-center border rounded-md">
             <Button variant="ghost" className="flex items-center gap-1 border-r rounded-none text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto">
               <span>Vista diaria</span>
               <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
             </Button>
+          </div> */}
+          <div className="relative w-full sm:w-72 mx-1">
+            <InputSearch
+              valueInput={formData.searchValue}
+              placeHolderText="Buscar por aula o curso..."
+              onSearchChange={(value) => {
+                const trimmedValue = value.trim();
+                setFormData((prev) => ({ ...prev, searchValue: value, ciudad: "", sede: "" }));
+                if (trimmedValue === "") {
+                  fetchData();
+                } else if (formData.filtro) {
+                  fetchData(formData.filtro, trimmedValue);
+                }
+              }}
+            />
           </div>
-          <div className="relative w-full sm:w-72">
-            <InputSearch placeHolderText="Buscar por aula, curso o profesor..." />
+
+          <div className="space-y-2">
+            <SelectInput
+              id="filtro"
+              name="filtro"
+              value={formData.filtro}
+              onChange={handleChange}
+              options={[
+                { value: "", label: "Filtrar por ..." },
+                ...filtrosDisponibles.map((filter) => ({
+                  value: filter.value,
+                  label: filter.label,
+                })),
+              ]}
+              required
+            />
           </div>
         </div>
-        <Button variant="ghost" size="icon" className="flex items-center gap-1 border rounded text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto">
+        {/* <Button variant="ghost" size="icon" className="flex items-center gap-1 border rounded text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto">
           <Filter className="h-4 w-4 md:h-5 md:w-5" />
-        </Button>
+        </Button> */}
       </div>
 
       {/* Date Navigation */}
@@ -223,19 +352,47 @@ export default function PrincipalShedule() {
         </div>
 
         {/* Filters abajo */}
-        <div className="p-2 md:p-4 flex items-center justify-between bg-white flex-wrap gap-2">
-          <div className="flex items-center gap-2 md:gap-4 flex-wrap">
-            <div className="flex items-center border rounded-md">
+        <div className="p-2 md:p-4 flex items-center justify-between bg-white flex-wrap gap-2 mt-7">
+          <div className="flex items-center gap-2 md:gap-5 flex-wrap">
+            {/* <div className="flex items-center border rounded-md">
               <Button variant="ghost" className="flex items-center gap-1 rounded-none text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto">
                 <span>Todos los...</span>
                 <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
-              </Button>
+                </Button>
+                </div> */}
+            <div className="space-y-2">
+              <InputLabel htmlFor="ciudad" value="Ciudad" className="text-sm" />
+              <SelectInput
+                id="ciudad"
+                name="ciudad"
+                value={formData.ciudad}
+                onChange={handleChange}
+                options={[
+                  { value: "", label: "Todas las Ciudades" },
+                  ...ciudades.map((ciudad) => ({
+                    value: ciudad.idCiudad,
+                    label: ciudad.nombre,
+                  })),
+                ]}
+                required
+              />
             </div>
-            <div className="flex items-center border rounded-md">
-              <Button variant="ghost" className="flex items-center gap-1 rounded-none text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto">
-                <span>Todas las sedes</span>
-                <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
-              </Button>
+            <div className="space-y-2">
+              <InputLabel htmlFor="sede" value="Sede" className="text-sm" />
+              <SelectInput
+                id="sede"
+                name="sede"
+                value={formData.sede}
+                onChange={handleChange}
+                options={[
+                  { value: "", label: "Todas las Sedes" },
+                  ...sedes.map((sede) => ({
+                    value: sede.idSede,
+                    label: sede.nombre,
+                  })),
+                ]}
+                required
+              />
             </div>
           </div>
         </div>

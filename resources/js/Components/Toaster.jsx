@@ -1,4 +1,4 @@
-import { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastAction, ToastClose } from '@/components/ui/toast'
+import { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastAction, ToastClose } from '@/Components/ui/toast'
 import { useToast } from '@/lib/toast-context'
 
 export function Toaster() {

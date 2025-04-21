@@ -1,15 +1,19 @@
 import TextInput from '@/Components/TextInput';
 import { Search } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 
-export default function InputSearch({ onSearchChange, placeHolderText="Buscando usuarios" }) {
+export default function InputSearch({ onSearchChange, placeHolderText = "Buscando usuarios", valueInput = "" }) {
     const [inputValue, setInputValue] = useState('');
     const handleChange = (e) => {
         const value = e.target.value;
         setInputValue(value);
         if (onSearchChange) onSearchChange(value);
-      };
+    };
+
+    useEffect(() => {
+        setInputValue(valueInput);
+    }, [valueInput]);
     return (
         <div className="flex items-center space-x-2">
             <div className="relative flex-1">
