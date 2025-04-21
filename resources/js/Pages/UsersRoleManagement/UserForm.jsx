@@ -161,7 +161,7 @@ console.log(formData);
                         {!isEditMode && (
                             <>
                                 <div className="space-y-2">
-                                    <InputLabel htmlFor="password" value="Password" className="text-sm" />
+                                    <InputLabel htmlFor="password" value="Contraseña" className="text-sm" />
                                     <TextInput
                                         id="password"
                                         name="password"
@@ -174,7 +174,7 @@ console.log(formData);
                                 </div>
 
                                 <div className="space-y-2">
-                                    <InputLabel htmlFor="confirmPassword" value="Confirm Password" className="text-sm" />
+                                    <InputLabel htmlFor="confirmPassword" value="Confirmar Contraseña" className="text-sm" />
                                     <TextInput
                                         id="confirmPassword"
                                         name="confirmPassword"
