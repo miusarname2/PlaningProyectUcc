@@ -155,10 +155,10 @@ class UsuarioController extends Controller
         $usuario = Usuario::with('roles')->findOrFail($id);
 
         // Recolectar los permisos de cada rol
-        $permisos = $usuario->roles->pluck('permisos')->unique()->filter();
+        $permisos = $usuario->roles->pluck('permisos')->filter();
 
         return response()->json([
-            'usuario'   => $usuario->nombre_usuario,
+            'usuario'   => $usuario->username,
             'permisos'  => $permisos
         ]);
     }
