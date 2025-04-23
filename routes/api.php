@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\HorarioController;
 use App\Http\Controllers\Api\LoteController;
 use App\Http\Controllers\Api\PaisController;
 use App\Http\Controllers\Api\PerfilController;
+use App\Http\Controllers\Api\PerfilRolController;
 use App\Http\Controllers\Api\ProcesoController;
 use App\Http\Controllers\Api\ProfesionalController;
 use App\Http\Controllers\Api\ProgramaController;
@@ -60,6 +61,11 @@ Route::middleware(['auth:sanctum', 'throttle:search'])
         Route::get('lote/search', [LoteController::class, 'search']);
     });
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('perfilRol',                         [PerfilRolController::class, 'index']);
+    Route::post('perfilRol',                         [PerfilRolController::class, 'store']);
+    Route::get('perfilRol/{idPerfil}/{idRol}',     [PerfilRolController::class, 'show']);
+    Route::put('perfilRol/{idPerfil}/{idRol}',     [PerfilRolController::class, 'update']);
+    Route::delete('perfilRol/{idPerfil}/{idRol}',     [PerfilRolController::class, 'destroy']);
     Route::get('user/{user}/permisos', [UsuarioController::class, 'permisos']);
     Route::get('horario/export-xlsx', [HorarioController::class, 'exportXls']);
     Route::resource('user', UsuarioController::class);
@@ -82,5 +88,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('VariableEntorno', VariablesEntornoController::class);
     Route::resource('aula', AulaController::class);
     Route::resource('proceso', ProcesoController::class);
-    Route::resource('usuarioPerfil',UsuarioPerfilController::class);
+    Route::resource('usuarioPerfil', UsuarioPerfilController::class);
 });
