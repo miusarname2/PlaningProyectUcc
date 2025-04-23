@@ -4,7 +4,7 @@ import DataTable from "@/Components/DataTable";
 import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import ContainerShowData from "@/Components/ContainerShowData";
-import UserForm from "@/Pages/UsersRoleManagement/UserForm";
+import ProfileForm from "@/Pages/UsersRoleManagement/ProfileForm";
 import { Pencil } from "lucide-react";
 const columns = [
     { title: "Nombre del Perfil", key: "nombre" },
@@ -14,9 +14,9 @@ const columns = [
         key: "roles",
         render: (roles) =>
             Array.isArray(roles) && roles.length > 0 ? (
-                    roles.map((r, idx) => (
-                        <ContainerShowData key={idx} text={r.nombre} />
-                    ))
+                roles.map((r, idx) => (
+                    <ContainerShowData key={idx} text={r.nombre} />
+                ))
             ) : (
                 <span className="text-gray-400 text-xs italic">Sin roles</span>
             ),
@@ -24,7 +24,6 @@ const columns = [
     {
         title: "Usuarios",
         key: "countUsers",
-        // render: (value) => <ContainerShowData status={value.roles} />,
     },
 ];
 
@@ -40,43 +39,34 @@ export default function PrincipalProfile() {
         setShowForm(true);
     }
 
-    // async function toggleUserState(row) {
-    //     try {
-    //         const newState = row.estado === "Activo" ? "Inactivo" : "Activo";
-    //         await api.patch(`/user/${row.id}`, { estado: newState });
-    //         fetchData();
-    //     } catch (error) {
-    //         console.error("Error actualizando estado del usuario:", error);
-    //         alert("No se pudo actualizar el estado. Intenta más tarde.");
-    //     }
-    // }
-
-    // async function handleDelete(row) {
-    //     if (!confirm(`¿Estás seguro de eliminar al usuario "${row.nombreCompleto}"?`)) return;
-
-    //     try {
-    //         await api.delete(`/user/${row.id}`);
-    //         fetchData();
-    //     } catch (error) {
-    //         console.error("Error eliminando usuario:", error);
-    //         alert("No se pudo eliminar el usuario. Intenta más tarde.");
-    //     }
-    // }
-
     const api = getApi();
-    console.log(data);
 
-    async function fetchData() {
+    async function fetchData(query) {
+        setLoading(true);
         try {
-            const response = await api.get("/perfil");
-            const transformed = response.data.map((profiles) => ({
-                ...profiles,
-                id: profiles.idPerfil,
-                countUsers: profiles.usuarios_count
+            let perfiles = [];
+
+            if (!query || query.trim() === "") {
+                const response = await api.get("/perfil");
+                perfiles = response.data;
+            } else {
+                const trimmed = query.trim();
+                const params = { nombreDescripcion: trimmed };
+                const response = await api.get("/perfil/search", { params });
+                perfiles = response.data?.data?.data || [];
+            }
+
+            const transformed = perfiles.map((profile) => ({
+                ...profile,
+                id: profile.idPerfil,
+                nombre:profile.nombre || "-------",
+                descripcion:profile.descripcion || "-------------------",
+                countUsers: profile.usuarios_count ?? 0
             }));
+
             setData(transformed);
         } catch (error) {
-            console.error("Error fetching users:", error);
+            console.error("Error fetching profiles:", error);
         } finally {
             setLoading(false);
         }
@@ -99,9 +89,7 @@ export default function PrincipalProfile() {
                 {!showForm ? (
                     <div className="space-y-4">
                         <InputSearch
-                            onSearchChange={(val) =>
-                                console.log("Valor desde el padre:", val)
-                            }
+                            onSearchChange={(val) => fetchData(val)}
                             placeHolderText="Buscando Perfiles"
                         />
                         {loading ? (
@@ -140,7 +128,7 @@ export default function PrincipalProfile() {
                         )}
                     </div>
                 ) : (
-                    <UserForm
+                    <ProfileForm
                         onCancel={() => {
                             setShowForm(false);
                             setSelectedUser(null);

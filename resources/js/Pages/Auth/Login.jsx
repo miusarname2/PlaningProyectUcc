@@ -11,10 +11,22 @@ import { encrypOrDesencrypAES } from '@/utils/generalFunctions';
 
 
 export default function Login({ status, canResetPassword }) {
-    const { data, setData,post, processing, errors, reset, setError } = useForm({
+    const { data, setData, post, processing, errors, reset, setError } = useForm({
         email: '',
         password: ''
     });
+
+    function clearLoginStorage() {
+        localStorage.setItem("Token", "");
+        localStorage.setItem("Username", "");
+        localStorage.setItem("Email", "");
+    }
+
+    function removeLoginStorage() {
+        localStorage.removeItem("Token");
+        localStorage.removeItem("Username");
+        localStorage.removeItem("Email");
+    }
 
     useEffect(() => {
         return () => {
@@ -25,10 +37,11 @@ export default function Login({ status, canResetPassword }) {
 
     const submit = (e) => {
         e.preventDefault();
-    
+
         post(route('login'), {
             onSuccess: async () => {
                 try {
+                    clearLoginStorage();
                     const response = await axios.post("http://127.0.0.1:8000/api/login", {
                         email: data.email,
                         password: data.password,
@@ -37,10 +50,11 @@ export default function Login({ status, canResetPassword }) {
                     localStorage.setItem("Token", encryptedToken);
                     localStorage.setItem("Username", response.data.usuario.username);
                     localStorage.setItem("Email", response.data.usuario.email);
-    
+
                     // Te rediriges usando Inertia a una ruta protegida por sesión
                     router.visit('/dashboard');
                 } catch (err) {
+                    removeLoginStorage();
                     console.error("Error al guardar datos en localStorage:", err);
                 }
             },
