@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', '')),
+    'allowed_origins' => ['https://tu-app.laravel.cloud'],
 
     'allowed_origins_patterns' => [],
 
