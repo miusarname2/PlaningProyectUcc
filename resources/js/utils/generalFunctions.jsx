@@ -87,7 +87,7 @@ export async function decryptDataAESWithIV(encryptedHex, key) {
 
 export function createApiInstance() {
     const api = axios.create({
-        baseURL: "/api",
+        baseURL: "http://127.0.0.1:8000/api",
     });
 
     api.interceptors.request.use(async (config) => {
