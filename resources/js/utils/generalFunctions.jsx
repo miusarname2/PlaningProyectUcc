@@ -87,7 +87,7 @@ export async function decryptDataAESWithIV(encryptedHex, key) {
 
 export function createApiInstance() {
     const api = axios.create({
-        baseURL: "/api",
+        baseURL: "https://planingproyectucc1-master-b16ilw.laravel.cloud/api",
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
