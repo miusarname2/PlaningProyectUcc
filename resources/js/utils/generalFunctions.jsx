@@ -30,7 +30,7 @@ export function decryptDataAES(cipherText, key) {
 
 export function createApiInstance() {
     const api = axios.create({
-        baseURL: "https://planingproyectucc1-master-b16ilw.laravel.cloud/api",
+        baseURL: "/api",
         headers: {
             'Content-Type': 'application/json',
             'Accept': '*/*',
