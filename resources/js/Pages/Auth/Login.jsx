@@ -11,7 +11,7 @@ import { encrypOrDesencrypAES } from '@/utils/generalFunctions';
 
 
 export default function Login({ status, canResetPassword }) {
-    const { data, setData,post, processing, errors, reset, setError } = useForm({
+    const { data, setData, post, processing, errors, reset, setError } = useForm({
         email: '',
         password: ''
     });
@@ -23,13 +23,16 @@ export default function Login({ status, canResetPassword }) {
         };
     }, []);
 
-    const submit = (e) => {
+    const submit = async (e) => {
         e.preventDefault();
-    
+
+        await axios.get('/sanctum/csrf-cookie')
         post(route('login'), {
             onSuccess: async () => {
+                console.log('Login successful!');
                 try {
-                    const response = await axios.post("http://127.0.0.1:8000/api/login", {
+                    await axios.get('/sanctum/csrf-cookie');
+                    const response = await axios.post("/api/login", {
                         email: data.email,
                         password: data.password,
                     })
@@ -37,7 +40,7 @@ export default function Login({ status, canResetPassword }) {
                     localStorage.setItem("Token", encryptedToken);
                     localStorage.setItem("Username", response.data.usuario.username);
                     localStorage.setItem("Email", response.data.usuario.email);
-    
+
                     // Te rediriges usando Inertia a una ruta protegida por sesión
                     router.visit('/dashboard');
                 } catch (err) {
@@ -45,6 +48,7 @@ export default function Login({ status, canResetPassword }) {
                 }
             },
             onError: (errors) => {
+                console.log(err)
                 if (errors.email) setError("email", "Estas credenciales no coinciden con nuestros registros");
                 if (errors.password) setError("password", "Estas credenciales no coinciden con nuestros registros");
             }
