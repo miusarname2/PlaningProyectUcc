@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class VerifyToken
 {
@@ -15,41 +16,27 @@ class VerifyToken
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // 1) Obtener el header Authorization
-        $authHeader = $request->header('Authorization');
-
-        if (!$authHeader) {
+        // 1) Extraer el token del header Authorization
+        $token = $request->bearerToken();
+        if (! $token) {
             return response()->json([
                 'error' => 'Token no proporcionado'
             ], 401);
         }
 
-        // 2) Esperamos formato "Bearer {token}"
-        if (!preg_match('/Bearer\s+(.+)/', $authHeader, $matches)) {
-            return response()->json([
-                'error' => 'Formato de token inválido'
-            ], 401);
-        }
-
-        $token = $matches[1];
-
-        // 3) Validar el token (aquí debes poner tu lógica, por ejemplo:)
-        if (! $this->isValidToken($token)) {
+        // 2) Buscar el token en la tabla personal_access_tokens
+        $accessToken = PersonalAccessToken::findToken($token);
+        if (! $accessToken) {
             return response()->json([
                 'error' => 'Token inválido o expirado'
             ], 401);
         }
 
-        // 4) Continuar con la petición
-        return $next($request);
-    }
+        // 3) Resolver el usuario asociado al token
+        $user = $accessToken->tokenable;
+        $request->setUserResolver(fn() => $user);
 
-    protected function isValidToken(string $token): bool
-    {
-        // Ejemplo muy básico: buscar en una tabla 'api_tokens'
-        return \DB::table('api_tokens')
-            ->where('token', $token)
-            ->where('expires_at', '>', now())
-            ->exists();
+        // 4) Continuar con la petición (equivalente a auth:sanctum)
+        return $next($request);
     }
 }
