@@ -60,7 +60,7 @@ Route::middleware(['auth:sanctum', 'throttle:search'])
         Route::get('proceso/search', [ProcesoController::class, 'search']);
         Route::get('lote/search', [LoteController::class, 'search']);
     });
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('verify.token')->group(function () {
     Route::get('perfilRol',                         [PerfilRolController::class, 'index']);
     Route::post('perfilRol',                         [PerfilRolController::class, 'store']);
     Route::get('perfilRol/{idPerfil}/{idRol}',     [PerfilRolController::class, 'show']);
