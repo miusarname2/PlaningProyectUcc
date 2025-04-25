@@ -29,6 +29,14 @@ export default function Login({ status, canResetPassword }) {
         axios.defaults.withCredentials = true;
         await axios.get('/sanctum/csrf-cookie')
         post(route('login'), {
+            email: data.email,
+            password: data.password,
+        }, {
+            headers: {
+                'X-CSRF-TOKEN': document
+                    .querySelector('meta[name="csrf-token"]')
+                    .getAttribute('content'),
+            },
             onSuccess: async () => {
                 console.log('Login successful!');
                 try {
