@@ -19,9 +19,9 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['https://planingproyectucc1-master-b16ilw.laravel.cloud','https://planingproyectucc-master-ag6e7l.laravel.cloud','103.133.1.1:443'],
+    'allowed_origins' => ['*'],
 
-    'allowed_origins_patterns' => ['.laravel.cloud'],
+    'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 
