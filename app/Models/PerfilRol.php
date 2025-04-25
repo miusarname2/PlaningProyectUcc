@@ -15,6 +15,11 @@ class PerfilRol extends Model
 
     public $timestamps = false;
 
+    public function getKeyName()
+    {
+        return ['idPerfil', 'idRol'];
+    }
+    
     protected $fillable = ['idPerfil', 'idRol'];
 
     public function perfil()

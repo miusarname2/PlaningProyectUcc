@@ -88,8 +88,7 @@ class PerfilController extends Controller
     {
         // 1. Validación de la entrada
         $validator = Validator::make($request->all(), [
-            'nombre'      => 'nullable|string|max:255',
-            'descripcion' => 'nullable|string|max:1000',
+            'nombreDescripcion' => 'nullable|string|max:1000',
         ]);
 
         if ($validator->fails()) {
@@ -104,16 +103,17 @@ class PerfilController extends Controller
         $query = Perfil::query();
 
         // 3. Aplicamos filtros si vienen en la petición
-        if ($request->filled('nombre')) {
-            $query->where('nombre', 'like', '%' . trim($request->input('nombre')) . '%');
+        if ($request->filled('nombreDescripcion')) {
+            $value = trim($request->input('nombreDescripcion'));
+    
+            $query->where(function ($q) use ($value) {
+                $q->where('nombre', 'like', '%' . $value . '%')
+                  ->orWhere('descripcion', 'like', '%' . $value . '%');
+            });
         }
 
-        if ($request->filled('descripcion')) {
-            $query->where('descripcion', 'like', '%' . trim($request->input('descripcion')) . '%');
-        }
-
-        // 4. Cargamos la relación roles
-        $query->with('roles');
+        // 4. Cargamos la relación roles y usuarios
+        $query->with('roles')->withCount('usuarios');
 
         // 5. Ejecutamos la consulta con paginación
         try {
