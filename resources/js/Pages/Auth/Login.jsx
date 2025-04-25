@@ -26,6 +26,7 @@ export default function Login({ status, canResetPassword }) {
     const submit = async (e) => {
         e.preventDefault();
 
+        axios.defaults.withCredentials = true;
         await axios.get('/sanctum/csrf-cookie')
         post(route('login'), {
             onSuccess: async () => {
