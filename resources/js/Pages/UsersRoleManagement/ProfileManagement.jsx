@@ -6,7 +6,7 @@ export default function ProfileManagement({ auth }) {
     return (
         <ModulesLayout
             title="Gestión de perfiles"
-            backTo="/dashboard"
+            backTo="/usersRole"
             exitTo="/dashboard"
             exitText="Salir"
         >

@@ -6,7 +6,7 @@ export default function RoleManagement({ auth }) {
     return (
         <ModulesLayout
             title="Gestión de usuarios y roles"
-            backTo="/dashboard"
+            backTo="/usersRole"
             exitTo="/dashboard"
             exitText="Salir"
         >
