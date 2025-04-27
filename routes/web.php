@@ -45,12 +45,12 @@ Route::get('/usersRole/profile', function () {
     return Inertia::render('UsersRoleManagement/ProfileManagement');
 })->middleware(['auth', 'verified'])->name('profile');
 
-Route::get('/citiesManagement', function () {
+Route::get('locationManagement/citiesManagement', function () {
     return Inertia::render('CityManagement/CityManagement');
 })->middleware(['auth', 'verified'])->name('citiesManagement');
 
 Route::get('/batchManagement', function () {
-    return Inertia::render('BatchManagement/BatchManagement');
+    return Inertia::rener('BatchManagement/BatchManagement');
 })->middleware(['auth', 'verified'])->name('batchManagement');
 
 Route::get('/programmeManagement', function () {
@@ -86,11 +86,11 @@ Route::get('course', function () {
     return Inertia::render('CourseManagement/CourseManagement');
 })->middleware(['auth', 'verified'])->name('CourseManagement');
 
-Route::get('regionManagement', function () {
+Route::get('locationManagement/regionManagement', function () {
     return Inertia::render('RegionManagement/RegionManagement');
 })->middleware(['auth', 'verified'])->name('RegionManagement');
 
-Route::get('countriesManagement', function () {
+Route::get('locationManagement/countriesManagement', function () {
     return Inertia::render('CountryManagement/CountryManagement');
 })->middleware(['auth', 'verified'])->name('CountryManagement');
 
@@ -109,6 +109,14 @@ Route::get('/classroomManagement', function () {
 Route::get('/classManagement', function () {
     return Inertia::render('ClassManagement/ClassManagement');
 })->middleware(['auth', 'verified'])->name('ClassManagement');
+
+Route::get('/locationManagement', function () {
+    return Inertia::render('LocationManagement/LocationManagement');
+})->middleware(['auth', 'verified'])->name('LocationManagement');
+
+Route::get('locationManagement/department', function () {
+    return Inertia::render('DepartamentManagement/DeparmentManagement');
+})->middleware(['auth', 'verified'])->name('DepartamentManagement');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
