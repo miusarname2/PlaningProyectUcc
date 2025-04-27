@@ -73,14 +73,14 @@ export default function PrincipalSpacialityManagement() {
     }
 
     async function handleDelete(row) {
-        if (!confirm(`¿Estás seguro de eliminar el día "${row.nombre}"?`)) return;
+        if (!confirm(`¿Estás seguro de eliminar el area "${row.nombre}"?`)) return;
 
         try {
             await api.delete(`/dia/${row.id}`);
             fetchData();
         } catch (error) {
-            console.error("Error eliminando día:", error);
-            alert("No se pudo eliminar el día. Intenta más tarde.");
+            console.error("Error eliminando area:", error);
+            alert("No se pudo eliminar el area. Intenta más tarde.");
         }
     }
 
@@ -97,7 +97,7 @@ export default function PrincipalSpacialityManagement() {
             }));
             setData(transformed);
         } catch (error) {
-            console.error("Error obteniendo días:", error);
+            console.error("Error obteniendo area:", error);
         } finally {
             setLoading(false);
         }
@@ -111,9 +111,9 @@ export default function PrincipalSpacialityManagement() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
                 <HeaderModule
-                    title="Gestión de Especializadades"
-                    description="Añadir, editar o eliminar especialidades del sistema."
-                    buttonText="Añadir Nueva Especialidad"
+                    title="Gestión de Areas"
+                    description="Añadir, editar o eliminar Areas de conocimiento."
+                    buttonText="Añadir Nueva Area"
                     onClick={() => setShowForm(true)}
                     showButton={!showForm}
                 />
@@ -128,7 +128,7 @@ export default function PrincipalSpacialityManagement() {
 
                         {loading ? (
                             <p className="text-center text-gray-500">
-                                Cargando días...
+                                Cargando areas...
                             </p>
                         ) : (
                             <div className="rounded-lg border bg-card text-card-foreground shadow-sm border-gray-200">
