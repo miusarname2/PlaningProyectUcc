@@ -88,4 +88,5 @@ Route::middleware('verify.token')->group(function () {
     Route::resource('VariableEntorno', VariablesEntornoController::class);
     Route::resource('aula', AulaController::class);
     Route::resource('proceso', ProcesoController::class);
+    Route::resource('usuarioPerfil', UsuarioPerfilController::class);
 });
