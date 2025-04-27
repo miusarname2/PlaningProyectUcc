@@ -47,7 +47,7 @@ const sections = [
 export default function SideBar({ isOpen, onClose }) {
     return (
         <>
-            {isOpen && (
+            {isOpen && ( 
                 <div
                     onClick={onClose}
                     className="fixed inset-0 bg-black bg-opacity-40 z-30 md:hidden"
