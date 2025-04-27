@@ -1,5 +1,6 @@
 import axios from "axios";
 import CryptoJS from "crypto-js";
+import { useEffect } from "react";
 
 let instance = null;
 
@@ -66,4 +67,28 @@ export function formatFechaLocal(fechaStr) {
     if (!fechaStr) return "-";
     const [año, mes, día] = fechaStr.split("T")[0].split("-");
     return `${día}/${mes}/${año}`;
+}
+
+export function useRouteGuard(filteredSections) {
+  useEffect(() => {
+    const currentPath = window.location.pathname
+
+    // 1) Aplanamos todas las rutas permitidas:
+    const allowedPaths = filteredSections
+      .flatMap(section =>
+        section.options.map(opt =>
+          // Concatenamos el basePath de la sección con el `to` de la opción
+          (opt.to).replace(/\/{2,}/g, '/') 
+        )
+      )
+
+    // 2) Chequeo: ¿cabe alguna ruta permitida?
+    const isAllowed = allowedPaths.some(route =>
+      currentPath.startsWith(route)
+    )
+
+    if (!isAllowed) {
+      window.location.href = '/notFound'
+    }
+  }, [filteredSections])
 }

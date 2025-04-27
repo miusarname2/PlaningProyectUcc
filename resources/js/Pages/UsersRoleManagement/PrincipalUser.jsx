@@ -1,18 +1,19 @@
 import HeaderModule from "@/Components/HeaderModule";
 import InputSearch from "@/Components/InputSearch";
 import DataTable from "@/Components/DataTable";
-import { getApi } from "@/utils/generalFunctions";
+import { getApi, useRouteGuard } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import UserForm from "@/Pages/UsersRoleManagement/UserForm";
 import { Pencil, Trash2, UserX, UserCheck } from "lucide-react";
+import { filtered } from "@/Components/SideBar";
 const columns = [
     { title: "Nombre", key: "nombreCompleto" },
     { title: "Email", key: "email" },
     {
         title: "Rol",
         key: "usuario_perfil",
-        render: (value) => value?.perfil.nombre?? 'Sin Rol'
+        render: (value) => value?.perfil.nombre ?? 'Sin Rol'
     },
     {
         title: "Estado",
@@ -23,7 +24,9 @@ const columns = [
 ];
 
 
+
 export default function PrincipalUser() {
+    useRouteGuard(filtered);
     const [showForm, setShowForm] = useState(false);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -80,6 +83,7 @@ export default function PrincipalUser() {
     }
 
     useEffect(() => {
+        useRouteGuard(filtered,useEffect);
         fetchData();
     }, []);
 
@@ -120,6 +124,8 @@ export default function PrincipalUser() {
                     buttonText="Añadir Nuevo Usuario"
                     onClick={() => setShowForm(true)}
                     showButton={!showForm}
+
+                    verifyPermission={true}
                 />
                 {!showForm ? (
                     <div className="space-y-4">
