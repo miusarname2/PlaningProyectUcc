@@ -104,6 +104,7 @@ let sections = [
         title: 'Cursos',
         basePath: '/courses/create',
         options: [
+            { text: 'Gestión de Sector o Area', icon: BookOpen, to: '/specialtyProfessional/area' },  
             { text: 'Gestión de Cursos', icon: BookOpen, to: '/course' },
             { text: 'Gestion de Clases', icon: CalendarDays, to:'/classManagement' },
         ],
@@ -117,6 +118,7 @@ let sections = [
     },
 ];
 
+console.log(permissionStrings);
 export const filtered = filterSectionsByPermissions(sections, permissionStrings, keywordMap);
 
 sections = filtered;
