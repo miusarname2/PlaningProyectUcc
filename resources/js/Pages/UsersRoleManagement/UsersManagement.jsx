@@ -1,10 +1,13 @@
+import { filtered } from '@/Components/SideBar';
 import ModulesLayout from '@/Layouts/ModulesLayout';
 import PrincipalUser from '@/Pages/UsersRoleManagement/PrincipalUser';
+import { RouteGuard } from '@/utils/RouteGuard';
 import { Head } from '@inertiajs/react';
 
 export default function UsersRoleManagement({ auth }) {
     return (
-        <ModulesLayout
+        <RouteGuard filteredSections={filtered}>
+            <ModulesLayout
             title="Gestión de usuarios y roles"
             backTo="/usersRole"
             exitTo="/dashboard"
@@ -14,5 +17,6 @@ export default function UsersRoleManagement({ auth }) {
             <Head title="UsersManagement" />
             <PrincipalUser />
         </ModulesLayout>
+        </RouteGuard>
     );
 }

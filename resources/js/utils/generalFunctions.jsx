@@ -70,7 +70,6 @@ export function formatFechaLocal(fechaStr) {
 }
 
 export function useRouteGuard(filteredSections) {
-  useEffect(() => {
     const currentPath = window.location.pathname
 
     // 1) Aplanamos todas las rutas permitidas:
@@ -90,5 +89,4 @@ export function useRouteGuard(filteredSections) {
     if (!isAllowed) {
       window.location.href = '/notFound'
     }
-  }, [filteredSections])
 }

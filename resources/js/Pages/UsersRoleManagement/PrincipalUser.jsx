@@ -1,7 +1,7 @@
 import HeaderModule from "@/Components/HeaderModule";
 import InputSearch from "@/Components/InputSearch";
 import DataTable from "@/Components/DataTable";
-import { getApi, useRouteGuard } from "@/utils/generalFunctions";
+import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import UserForm from "@/Pages/UsersRoleManagement/UserForm";
@@ -26,7 +26,6 @@ const columns = [
 
 
 export default function PrincipalUser() {
-    useRouteGuard(filtered);
     const [showForm, setShowForm] = useState(false);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -83,7 +82,6 @@ export default function PrincipalUser() {
     }
 
     useEffect(() => {
-        useRouteGuard(filtered,useEffect);
         fetchData();
     }, []);
 
