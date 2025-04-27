@@ -6,7 +6,7 @@ export default function CityManagement({ auth }) {
     return (
         <ModulesLayout
             title="Gestión de Regiones"
-            backTo="/dashboard"
+            backTo="/locationManagement"
             exitTo="/dashboard"
             exitText="Salir"
         >

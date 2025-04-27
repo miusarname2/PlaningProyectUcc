@@ -6,7 +6,7 @@ export default function CountryManagement({ auth }) {
     return (
         <ModulesLayout
             title="Gestión de Pais"
-            backTo="/dashboard"
+            backTo="/locationManagement"
             exitTo="/dashboard"
             exitText="Salir"
         >

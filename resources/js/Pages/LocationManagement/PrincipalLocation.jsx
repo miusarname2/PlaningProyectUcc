@@ -13,34 +13,34 @@ export default function PrincipalLocation() {
             <div className='grid grid-cols-1 md:grid-cols-4 gap-3'>
                 <CardLinkModule
                     icon={Earth}
-                    to="/sitesAndEntities/sities"
+                    to="/locationManagement/countriesManagement"
                     bgCircle="bg-blue-100"
                     iconColor="text-blue-600"
-                    title="Gestión de Sedes"
+                    title="Gestión de Pais"
                     description="Añadir, editar o eliminar sedes y gestionar su información básica."
                 />
                 <CardLinkModule
                     icon={MapPin}
-                    to="/sitesAndEntities/entities"
+                    to="/locationManagement/regionManagement"
                     bgCircle="bg-indigo-100"
                     iconColor="text-indigo-600"
-                    title="Gestión de Entidades"
+                    title="Gestión de Regiones"
                     description="Crear y configurar entidades asociadas con sedes"
                 />
                 <CardLinkModule
                     icon={Landmark}
-                    to="/sitesAndEntities/entities"
+                    to="locationManagement/department"
                     bgCircle="bg-indigo-100"
                     iconColor="text-indigo-600"
-                    title="Gestión de Entidades"
+                    title="Gestion de Departamentos"
                     description="Crear y configurar entidades asociadas con sedes"
                 />
                 <CardLinkModule
                     icon={Building2}
-                    to="/sitesAndEntities/entities"
+                    to="/locationManagement/citiesManagement"
                     bgCircle="bg-indigo-100"
                     iconColor="text-indigo-600"
-                    title="Gestión de Entidades"
+                    title="Gestión de Ciudad"
                     description="Crear y configurar entidades asociadas con sedes"
                 />
             </div>
