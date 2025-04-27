@@ -76,7 +76,7 @@ Route::get('specialtyProfessional/professionals', function () {
 
 Route::get('specialtyProfessional/area', function () {
     return Inertia::render('SpacialityAndProfessionals/PrincipalSpacialyty');
-})->middleware(['auth', 'verified'])->name('PrincipalProfessonals');
+})->middleware(['auth', 'verified'])->name('PrincipalSpacialyty');
 
 Route::get('processManagement', function () {
     return Inertia::render('ProccessManagement/ProccessManagement');
