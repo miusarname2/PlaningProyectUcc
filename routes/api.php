@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CursoController;
 use App\Http\Controllers\Api\DepartamentoController;
 use App\Http\Controllers\Api\EntidadController;
 use App\Http\Controllers\Api\EspecialidadController;
+use App\Http\Controllers\Api\EstadoController;
 use App\Http\Controllers\Api\FranjaHorariaController;
 use App\Http\Controllers\Api\HorarioController;
 use App\Http\Controllers\Api\LoteController;
@@ -88,4 +89,5 @@ Route::middleware('verify.token')->group(function () {
     Route::resource('VariableEntorno', VariablesEntornoController::class);
     Route::resource('aula', AulaController::class);
     Route::resource('proceso', ProcesoController::class);
+    Route::resource('estado', EstadoController::class);
 });
