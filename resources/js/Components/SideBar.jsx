@@ -10,8 +10,78 @@ import {
     Map,
     CalendarDays
 } from 'lucide-react';
+import { getApi } from '@/utils/generalFunctions';
 
-const sections = [
+const api = getApi();
+var email = localStorage.getItem("Email");
+const response = await api.get(`/user/search?email=${encodeURIComponent(email)}`);
+const idUsuario = response.data.data.data[0].idUsuario;
+const responsePermisos = await api.get(`/user/${idUsuario}/permisos`);
+/**
+ * Filtra el array de secciones según los permisos.
+ * @param {Array} sections – tu array original de secciones/options.
+ * @param {string[]} permissionsJsonArray – array de JSON strings, e.g. ['{"users_read":true}', ...].
+ * @param {Object<string,string[]>} keywordMap – mapeo de cada `option.to` a sus keywords.
+ * @returns {Array} – nuevo array de secciones filtrado.
+ */
+function filterSectionsByPermissions(sections, permissionsJsonArray, keywordMap) {
+  // 1. Parsear y combinar permisos
+  const perms = Object.assign(
+    {},
+    ...permissionsJsonArray.map(str => {
+      try { return JSON.parse(str); }
+      catch (e) { console.warn('JSON inválido:', str); return {}; }
+    })
+  );
+
+  // 2. Función auxiliar: comprueba si alguna keyword está activa en perms
+  const hasPermissionFor = (keywords) =>
+    keywords.some(kw =>
+      Object.entries(perms).some(([permKey, allowed]) =>
+        allowed === true && permKey.includes(kw)
+      )
+    );
+
+  // 3. Iterar y filtrar
+  return sections.reduce((outSections, section) => {
+    const filteredOptions = section.options.filter(opt => {
+      const kws = keywordMap[opt.to] || [];
+      return hasPermissionFor(kws);
+    });
+
+    if (filteredOptions.length > 0) {
+      outSections.push({
+        ...section,
+        options: filteredOptions
+      });
+    }
+
+    return outSections;
+  }, []);
+}
+
+const permissionStrings = responsePermisos.data.permisos
+
+const keywordMap = {
+  '/usersRole':                      ['users', 'roles', 'profiles'],
+  '/regionManagement':               ['region_management'],
+  '/citiesManagement':               ['cities_management'],
+  '/countriesManagement':            ['country_management'],
+  '/sitesAndEntities':               ['branches', 'entities'],
+  '/specialtyProfessional/professionals': ['specialty', 'professionals'],
+  '/batchManagement':                ['batches'],
+  '/programmeManagement':            ['programme'],
+  '/slotManagement':                 ['slot'],
+  '/processManagement':              ['process'],
+  '/classroomManagement':            ['classroom'],
+  '/scheduleTimer':                  ['schedule'],
+  '/course':                         ['course'],
+  '/classManagement':                ['class'],
+  '/settings':                       ['settings'],
+};
+
+
+let sections = [
     {
         title: 'Administración',
         basePath: '/admin/city',
@@ -47,6 +117,9 @@ const sections = [
     },
 ];
 
+export const filtered = filterSectionsByPermissions(sections, permissionStrings, keywordMap);
+
+sections = filtered;
 export default function SideBar({ isOpen, onClose }) {
     return (
         <>
