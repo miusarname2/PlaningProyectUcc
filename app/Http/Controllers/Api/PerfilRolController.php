@@ -93,17 +93,19 @@ class PerfilRolController extends Controller
         ], Response::HTTP_BAD_REQUEST);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+
     public function destroy(string $idPerfil, $idRol)
     {
-        $pivot = PerfilRol::where('idPerfil', $idPerfil)
-            ->where('idRol',    $idRol)
-            ->firstOrFail();
-
-        $pivot->delete();
-
+        $deleted = PerfilRol::where('idPerfil', $idPerfil)
+            ->where('idRol', $idRol)
+            ->delete();
+    
+        if ($deleted === 0) {
+            return response()->json([
+                'message' => 'El vínculo no existe'
+            ], Response::HTTP_NOT_FOUND);
+        }
+    
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }
