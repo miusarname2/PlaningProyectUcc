@@ -74,6 +74,10 @@ Route::get('specialtyProfessional/professionals', function () {
     return Inertia::render('SpacialityAndProfessionals/PrincipalProfessonals');
 })->middleware(['auth', 'verified'])->name('PrincipalProfessonals');
 
+Route::get('specialtyProfessional/area', function () {
+    return Inertia::render('SpacialityAndProfessionals/PrincipalSpacialyty');
+})->middleware(['auth', 'verified'])->name('PrincipalProfessonals');
+
 Route::get('processManagement', function () {
     return Inertia::render('ProccessManagement/ProccessManagement');
 })->middleware(['auth', 'verified'])->name('ProccessManagement');
