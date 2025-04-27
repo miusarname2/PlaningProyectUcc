@@ -8,7 +8,8 @@ import {
     Timer,
     Earth,
     Map,
-    CalendarDays
+    CalendarDays,
+    HardHat
 } from 'lucide-react';
 import { getApi } from '@/utils/generalFunctions';
 
@@ -24,8 +25,8 @@ const responsePermisos = await api.get(`/user/${idUsuario}/permisos`);
  * @param {Object<string,string[]>} keywordMap – mapeo de cada `option.to` a sus keywords.
  * @returns {Array} – nuevo array de secciones filtrado.
  */
-function filterSectionsByPermissions(sections, permissionsJsonArray, keywordMap) {
-  // 1. Parsear y combinar permisos
+function filterSectionsByPermissions(sections, permissionsJsonArray, keywordMap, allowedLevels = ['manage']) {
+  // 1. Parsear y combinar todos los permisos JSON
   const perms = Object.assign(
     {},
     ...permissionsJsonArray.map(str => {
@@ -34,50 +35,57 @@ function filterSectionsByPermissions(sections, permissionsJsonArray, keywordMap)
     })
   );
 
-  // 2. Función auxiliar: comprueba si alguna keyword está activa en perms
-  const hasPermissionFor = (keywords) =>
-    keywords.some(kw =>
-      Object.entries(perms).some(([permKey, allowed]) =>
-        allowed === true && permKey.includes(kw)
-      )
+
+  // 2. Auxiliar: comprueba keyword + nivel de permiso
+  const hasPermissionFor = (keywords) => {
+    return keywords.some(kw =>
+      Object.entries(perms).some(([permKey, allowed]) => {
+        // sólo niveles permitidos (p.ej. '_manage')
+        const suffixOk = allowedLevels.some(lvl =>
+          permKey.toLowerCase().endsWith(`_${lvl}`)
+        );
+        // y que el permKey contenga la keyword
+        return allowed === true
+            && suffixOk
+            && permKey.toLowerCase().includes(kw.toLowerCase());
+      })
     );
+  };
 
-  // 3. Iterar y filtrar
-  return sections.reduce((outSections, section) => {
-    const filteredOptions = section.options.filter(opt => {
+  // 3. Filtrar cada sección
+  return sections.reduce((out, section) => {
+    const opts = section.options.filter(opt => {
       const kws = keywordMap[opt.to] || [];
-      return hasPermissionFor(kws);
+      return kws.length > 0 && hasPermissionFor(kws);
     });
-
-    if (filteredOptions.length > 0) {
-      outSections.push({
-        ...section,
-        options: filteredOptions
-      });
+    if (opts.length) {
+      out.push({ ...section, options: opts });
     }
-
-    return outSections;
+    return out;
   }, []);
 }
+
 
 const permissionStrings = responsePermisos.data.permisos
 
 const keywordMap = {
-  '/usersRole':                      ['users', 'roles', 'profiles'],
-  '/regionManagement':               ['region_management'],
-  '/citiesManagement':               ['cities_management'],
-  '/countriesManagement':            ['country_management'],
-  '/sitesAndEntities':               ['branches', 'entities'],
-  '/specialtyProfessional/professionals': ['specialty', 'professionals'],
-  '/batchManagement':                ['batches'],
-  '/programmeManagement':            ['programme'],
-  '/slotManagement':                 ['slot'],
-  '/processManagement':              ['process'],
-  '/classroomManagement':            ['classroom'],
-  '/scheduleTimer':                  ['schedule'],
-  '/course':                         ['course'],
-  '/classManagement':                ['class'],
-  '/settings':                       ['settings'],
+  '/usersRole':                        ['users', 'roles', 'profiles'],
+  '/regionManagement':                 ['region_management'],
+  '/citiesManagement':                 ['cities_management'],
+  '/countriesManagement':              ['country_management'],
+  '/sitesAndEntities':                 ['branches', 'entities'],
+  '/locationManagement':               ['location', 'region_management', 'cities_management', 'country_management'],
+  '/specialtyProfessional/professionals': ['professionals', 'area', 'specialty'],
+  '/specialtyProfessional/area':          ['area', 'specialty'],
+  '/batchManagement':                  ['batches'],
+  '/programmeManagement':              ['program'],   // ahora busca "programs" o "program"
+  '/slotManagement':                   ['slots', 'slot'],
+  '/processManagement':                ['processes', 'process'],
+  '/classroomManagement':              ['classroom'],
+  '/course':                           ['course', 'courses'],
+  '/classManagement':                  ['class', 'classes'],
+  '/scheduleTimer':                    ['schedule', 'timetable'],
+  '/settings':                         ['settings'],
 };
 
 
@@ -87,9 +95,7 @@ let sections = [
         basePath: '/admin/city',
         options: [
             { text: 'Usuarios y Roles', icon: Users, to: '/usersRole' },
-            { text: 'Gestión de Region', icon: Map, to:'/regionManagement' },
-            { text: 'Gestión de Ciudades', icon: MapPin, to: '/citiesManagement' },
-            { text: 'Gestión de Pais', icon: Earth, to:'/countriesManagement' },             
+            { text: 'Gestión de Ubicacion/Localizacion', icon: MapPin, to: '/locationManagement' },
             { text: 'Sedes y Entidades', icon: Building, to:'/sitesAndEntities' },
             { text: 'Gestion de Profesionales', icon: Briefcase, to:'/specialtyProfessional/professionals' },
             { text: 'Gestión por Lotes', icon: Layers, to: '/batchManagement' },
@@ -104,7 +110,7 @@ let sections = [
         title: 'Cursos',
         basePath: '/courses/create',
         options: [
-            { text: 'Gestión de Sector o Area', icon: BookOpen, to: '/specialtyProfessional/area' },  
+            { text: 'Gestión de Sector o Area', icon: HardHat, to: '/specialtyProfessional/area' },  
             { text: 'Gestión de Cursos', icon: BookOpen, to: '/course' },
             { text: 'Gestion de Clases', icon: CalendarDays, to:'/classManagement' },
         ],
@@ -118,8 +124,7 @@ let sections = [
     },
 ];
 
-console.log(permissionStrings);
-export const filtered = filterSectionsByPermissions(sections, permissionStrings, keywordMap);
+export const filtered = filterSectionsByPermissions(sections, permissionStrings, keywordMap,['read', 'edit', 'create', 'delete', 'manage']);
 
 sections = filtered;
 export default function SideBar({ isOpen, onClose }) {
