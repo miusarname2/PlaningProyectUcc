@@ -13,7 +13,7 @@ const columns = [
     {
         title: "Rol",
         key: "usuario_perfil",
-        render: (value) => value?.perfil.nombre ?? 'Sin Rol'
+        render: (value) => value?.perfil?.nombre ?? 'Sin Rol'
     },
     {
         title: "Estado",
