@@ -23,7 +23,7 @@ export default function Login({ status, canResetPassword }) {
         };
     }, []);
 
-     const submit = async (e) => {
+    const submit = async (e) => {
         e.preventDefault();
 
         await axios.get('/sanctum/csrf-cookie')
@@ -53,6 +53,17 @@ export default function Login({ status, canResetPassword }) {
                 if (errors.password) setError("password", "Estas credenciales no coinciden con nuestros registros");
             }
         });
+        try {
+            await axios.get('/sanctum/csrf-cookie')
+        } catch (err) {
+            if (err.response?.status === 302) {
+                console.warn('CSRF-cookie redirect (302), reintentando login Inertia…')
+                // 3) Re-lanzamos la misma petición Inertia
+                return doInertiaLogin(data)
+            }
+            console.error('Error inesperado al pedir CSRF-cookie:', err)
+            return
+        }
     };
 
     return (
