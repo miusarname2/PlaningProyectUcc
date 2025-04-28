@@ -54,15 +54,20 @@ export default function Login({ status, canResetPassword }) {
             }
         });
         try {
-            await axios.get('/sanctum/csrf-cookie')
+            await axios.get('/sanctum/csrf-cookie');
+            const response = await axios.post("/api/login", {
+                email: data.email,
+                password: data.password,
+            })
+            const encryptedToken = await encrypOrDesencrypAES(response.data.token);
+            localStorage.setItem("Token", encryptedToken);
+            localStorage.setItem("Username", response.data.usuario.username);
+            localStorage.setItem("Email", response.data.usuario.email);
+
+            // Te rediriges usando Inertia a una ruta protegida por sesión
+            router.visit('/dashboard');
         } catch (err) {
-            if (err.response?.status === 302) {
-                console.warn('CSRF-cookie redirect (302), reintentando login Inertia…')
-                // 3) Re-lanzamos la misma petición Inertia
-                return doInertiaLogin(data)
-            }
-            console.error('Error inesperado al pedir CSRF-cookie:', err)
-            return
+            console.error("Error al guardar datos en localStorage:", err);
         }
     };
 
