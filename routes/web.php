@@ -50,7 +50,7 @@ Route::get('locationManagement/citiesManagement', function () {
 })->middleware(['auth', 'verified'])->name('citiesManagement');
 
 Route::get('/batchManagement', function () {
-    return Inertia::rener('BatchManagement/BatchManagement');
+    return Inertia::render('BatchManagement/BatchManagement');
 })->middleware(['auth', 'verified'])->name('batchManagement');
 
 Route::get('/programmeManagement', function () {
