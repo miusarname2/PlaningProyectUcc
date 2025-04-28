@@ -112,7 +112,7 @@ export default function PrincipalRol() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
                 <HeaderModule
-                    title="Gestión de Franajas Horarias"
+                    title="Gestión de Franjas Horarias"
                     description="Definir y gestionar las franjas horarias de los cursos"
                     buttonText="Añadir Nueva Franja"
                     onClick={() => setShowForm(true)}
