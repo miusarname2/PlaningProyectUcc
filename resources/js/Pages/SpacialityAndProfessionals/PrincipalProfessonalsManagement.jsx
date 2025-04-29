@@ -18,13 +18,7 @@ const columns = [
     {
         title: "Estado",
         key: "estado",
-        render: (value) => (
-            <ContainerShowData
-                text={value ? "Sí" : "No"}
-                bg={value ? "bg-green-50" : "bg-red-50"}
-                colortext={value ? "text-green-700" : "text-red-700"}
-            />
-        ),
+        render: (value) => <StatusBadge status={value} />,
     },
     {
         title: "Perfil",

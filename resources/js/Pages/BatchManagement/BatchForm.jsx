@@ -8,17 +8,19 @@ import { Save } from "lucide-react";
 import { getApi } from "@/utils/generalFunctions";
 
 export default function BatchForm({ onCancel, initialData = null, onSubmitSuccess }) {
+    const defaultProgramOption = { value: "", label: "Seleccione programa", disabled: true };
+    const defaultEstadoOption = { value: "", label: "Seleccione estado", disabled: true };
     const api = getApi();
     const isEditMode = Boolean(initialData);
 
-    const [programOptions, setProgramOptions] = useState([]);
+    const [programOptions, setProgramOptions] = useState([defaultProgramOption]);
 
     const [formData, setFormData] = useState({
         idLote: initialData?.id || "",
         codigo: initialData?.codigo || "",
         nombre: initialData?.nombre || "",
         idPrograma: initialData?.idPrograma,
-        estado: initialData?.estado || "Próximamente",
+        estado: initialData?.estado || "Activo",
         fechaInicio: initialData?.rangoFechas?.inicio || initialData?.rangoFechas?.inicio || "",
         FechaFin: initialData?.rangoFechas?.fin || initialData?.rangoFechas?.fin || "",
         numEstudiantes: initialData?.estudiantes || 0
@@ -35,7 +37,7 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
                     value: program.idPrograma,
                     label: program.nombre,
                 }));
-                setProgramOptions(options);
+                setProgramOptions([defaultProgramOption, ...options]);
             } catch (error) {
                 console.error("Error fetching programs:", error);
             }
@@ -61,7 +63,7 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
         e.preventDefault();
         try {
             const payload = { ...formData };
-            console.log(formData);
+            console.log(payload);
 
             if (isEditMode) {
                 await api.put(`/lote/${formData.idLote}`, payload);
@@ -140,7 +142,7 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
                                 name="estado"
                                 value={formData.estado}
                                 onChange={handleChange}
-                                options={[{ value: "Activo", label: "Activo" }, { value: "Inactivo", label: "Inactivo" }]}                               
+                                options={[defaultEstadoOption,{ value: "Activo", label: "Activo" }, { value: "Inactivo", label: "Inactivo" }]}
                                 error={errors.estado}
                             />
                         </div>
@@ -168,7 +170,7 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
                                 onChange={handleChange}
                                 required
                                 error={errors.FechaFin}
-                                // placeholder="dd/mm/aaaa"
+                            // placeholder="dd/mm/aaaa"
                             />
                         </div>
                     </div>
