@@ -38,6 +38,26 @@ const columns = [
         ),
     },
     {
+        title: "Entidad Propietaria", key: "propietario", render: (value) =>
+            <ContainerShowData
+                text={value?.nombre || "Sin Entidad"}
+                bg={"bg-50-100"}
+                colortext={"text-gray-800"}
+            />
+    },
+    {
+        title: "Entidades que pueden acceder",
+        key: "prestatarias",
+        render: (prestatarias) =>
+            Array.isArray(prestatarias) && prestatarias.length > 0 ? (
+                prestatarias.map((r, idx) => (
+                    <ContainerShowData key={idx} text={r.nombre} bg={"bg-stone-100"} colortext={"text-stone-800"}/>
+                ))
+            ) : (
+                <span className="text-gray-400 text-xs italic">Sin prestamos</span>
+            ),
+    },
+    {
         title: "Acceso",
         key: "acceso",
         render: (value) => (verifyUrl(value) ? <LinkConIcono url={value.startsWith('http') || value.startsWith('https') ? value : `http://${value}`} icon={ExternalLink}>Entrar al Sitio</LinkConIcono> : <StatusBadge status={value} />),
@@ -72,7 +92,7 @@ export default function PrincipalSitiesManagement() {
     async function fetchData() {
         try {
             const response = await api.get("/sede");
-            console.log(response);
+            console.log(JSON.stringify(response.data));
             const transformed = response.data.map((sitie) => ({
                 ...sitie,
                 id: sitie.idSede,
