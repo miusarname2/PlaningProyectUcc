@@ -9,15 +9,15 @@ class SedePrestamo extends Model
 {
     use HasFactory;
 
-    protected $table = 'sede_prestamo';
+    protected $table = 'sede_prestamos';
     protected $primaryKey = 'idPrestamo';
 
     protected $fillable = [
         'idSede',
         'idEntidadPrestamista',
         'idEntidadPrestataria',
-        'fecha_inicio',
-        'fecha_fin',
+        'fechaInicio',
+        'fechaFin',
         'estado',
     ];
 

@@ -43,10 +43,10 @@ class Entidad extends Model
     {
         return $this->belongsToMany(
             Sede::class,
-            'sede_prestamo',
+            'sede_prestamos',
             'idEntidadPrestataria',
             'idSede'
-        )->withPivot(['idPrestamo','fecha_inicio','fecha_fin','estado']);
+        )->withPivot(['idPrestamo','fechaInicio','fechaFin','estado']);
     }
     
 }
