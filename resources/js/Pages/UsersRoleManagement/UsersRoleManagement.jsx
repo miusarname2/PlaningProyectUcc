@@ -5,7 +5,7 @@ import { Head } from '@inertiajs/react';
 export default function UsersRoleManagement({ auth }) {
     return (
         <ModulesLayout
-            title="Gestión de usuarios y roles"
+            title="Gestión de usuarios y Permisos"
             backTo="/dashboard"
             exitTo="/dashboard"
             exitText="Salir"

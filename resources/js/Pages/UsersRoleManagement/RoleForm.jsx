@@ -10,25 +10,22 @@ import { getApi } from '@/utils/generalFunctions';
 export default function RoleForm({ onCancel, onSubmit, role }) {
     // Define modules and labels
     const modules = [
-        { key: 'users', label: 'Users' },
-        { key: 'roles', label: 'Roles' },
-        { key: 'profiles', label: 'Profiles' },
-        { key: 'region_management', label: 'Region Management' },
-        { key: 'cities_management', label: 'Cities Management' },
-        { key: 'country_management', label: 'Country Management' },
-        { key: 'branches', label: 'Branches' },
-        { key: 'entities', label: 'Entities' },
-        { key: 'professionals_management', label: 'Professionals Management' },
-        { key: 'batches_management', label: 'Batches Management' },
-        { key: 'programs_management', label: 'Programs Management' },
-        { key: 'slots_management', label: 'Slots Management' },
-        { key: 'processes_management', label: 'Processes Management' },
-        { key: 'classroom_management', label: 'Classroom Management' },
-        { key: 'timetable_management', label: 'Timetable Management' },
-        { key: 'courses_management', label: 'Courses Management' },
-        { key: 'classes_management', label: 'Classes Management' },
-        { key: 'area_management', label: 'Area Management' },
-        { key: 'location_management', label: 'Location Management' }
+        { key: 'users', label: 'Usuarios' },
+        { key: 'roles', label: 'Gestion de Roles' },
+        { key: 'profiles', label: 'Gestion de Perfiles' },
+        { key: 'region_management', label: 'Gestion de Region' },
+        { key: 'cities_management', label: 'Gestion de Ciudad' },
+        { key: 'country_management', label: 'Gestion de Pais' },
+        { key: 'entities', label: 'Gestion de Entidades' },
+        { key: 'professionals_management', label: 'Gestion de Profesionales' },
+        { key: 'batches_management', label: 'Gestion de Lotes' },
+        { key: 'programs_management', label: 'Gestion de Programas' },
+        { key: 'slots_management', label: 'Gestion de Horario' },
+        { key: 'classroom_management', label: 'Gestion de Aulas' },
+        { key: 'courses_management', label: 'Gestion de Cursos' },
+        { key: 'classes_management', label: 'Gestion de Clases' },
+        { key: 'area_management', label: 'Gestion de Area' },
+        { key: 'location_management', label: 'Gestion de Ubicacion' }
     ];
 
     // Permission levels
@@ -113,7 +110,7 @@ export default function RoleForm({ onCancel, onSubmit, role }) {
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
             <div className="p-6 pb-3">
                 <h3 className="text-lg font-semibold">
-                    {role ? 'Editar Rol' : 'Crear Nuevo Rol'}
+                    {role ? 'Editar Permiso' : 'Crear Nuevo Permiso'}
                 </h3>
             </div>
             <div className="p-6 pt-0">
@@ -121,13 +118,13 @@ export default function RoleForm({ onCancel, onSubmit, role }) {
                     {/* Name & Description */}
                     <div className="space-y-4">
                         <div>
-                            <InputLabel htmlFor="name">Nombre del Rol</InputLabel>
+                            <InputLabel htmlFor="name">Nombre del Permiso</InputLabel>
                             <TextInput
                                 id="name"
                                 name="name"
                                 value={form.name}
                                 onChange={handleChange}
-                                placeholder="Ingrese nombre del rol"
+                                placeholder="Ingrese nombre del Permiso"
                                 required
                             />
                         </div>
@@ -138,14 +135,14 @@ export default function RoleForm({ onCancel, onSubmit, role }) {
                                 name="description"
                                 value={form.description}
                                 onChange={handleChange}
-                                placeholder="Ingrese descripción del rol"
+                                placeholder="Ingrese descripción del Permiso"
                             />
                         </div>
                     </div>
 
                     {/* Permissions Accordion */}
                     <div className="pt-4">
-                        <InputLabel>Permissions</InputLabel>
+                        <InputLabel>Permisos por Modulo</InputLabel>
                         <div className="space-y-2">
                             {modules.map(({ key, label }) => (
                                 <div key={key} className="border rounded">

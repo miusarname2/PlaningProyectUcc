@@ -11,7 +11,7 @@ export default function RolePlaceHolder({ icon: Icon, title, description, onAddR
                 <p className="text-gray-500 mb-4">{description}</p>
                 <div className="w-fit mx-auto">
                     <AddRoleButton
-                        text="Crear Nuevo Rol"
+                        text="Crear Nuevo Permiso"
                         onClick={onAddRole}
                         className="w-fit mt-0 border border-solid"
                     />

@@ -2,7 +2,6 @@ import RoleButton from "@/Components/RoleButton";
 import AddRoleButton from "@/Components/AddRoleButton";
 
 export default function RolesList({ roles = [], selectedRole, onSelectRole, onAddRole, headerText }) {
-    console.log(roles)
     return (
         <div className="md:col-span-1">
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
@@ -17,12 +16,11 @@ export default function RolesList({ roles = [], selectedRole, onSelectRole, onAd
                             <RoleButton
                                 key={index}
                                 title={role.nombre}
-                                description={role.descripcion}
                                 active={role.idRol === selectedRole?.idRol}
                                 onClick={() => onSelectRole(role)}
                             />
                         ))}
-                        <AddRoleButton text="Add New Role" className="w-full" onClick={onAddRole} />
+                        <AddRoleButton text="Añadir nuevo Permisos" className="w-full" onClick={onAddRole} />
                     </div>
                 </div>
             </div>

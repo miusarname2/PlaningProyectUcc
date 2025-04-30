@@ -7,7 +7,7 @@ export default function PrincipalUserRole() {
         <div className='space-y-8'>
             <HeaderDescription
                 icon={Users}
-                title={"Gestión de usuarios y roles"}
+                title={"Gestión de usuarios y Permisos"}
                 description={"Seleccione una de las siguientes opciones para gestionar la información y los privilegios de los usuarios"}
             />
             <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
@@ -24,7 +24,7 @@ export default function PrincipalUserRole() {
                     to="/usersRole/roles"
                     bgCircle="bg-indigo-100"
                     iconColor="text-indigo-600"
-                    title="Gestión de roles"
+                    title="Gestión de Permisos"
                     description="Añadir, editar o eliminar usuarios y gestionar su información básica y el acceso al sistema."
                 />
                 <CardLinkModule

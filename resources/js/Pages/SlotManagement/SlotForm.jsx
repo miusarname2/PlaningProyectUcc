@@ -102,7 +102,7 @@ export default function SlotForm({ onCancel, initialData = null, onSubmitSuccess
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 border-gray-200">
             <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
-                    <h2 className="text-xl font-semibold">{isEditMode ? "Editar Slot" : "Crear Slot"}</h2>
+                    <h2 className="text-xl font-semibold">{isEditMode ? "Editar Horario" : "Crear Horario"}</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Campo: Nombre */}
                         <div className="space-y-2">

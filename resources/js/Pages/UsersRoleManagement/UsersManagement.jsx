@@ -8,7 +8,7 @@ export default function UsersRoleManagement({ auth }) {
     return (
         <RouteGuard filteredSections={filtered}>
             <ModulesLayout
-            title="Gestión de usuarios y roles"
+            title="Gestión de usuarios y Permisos"
             backTo="/usersRole"
             exitTo="/dashboard"
             exitText="Salir"

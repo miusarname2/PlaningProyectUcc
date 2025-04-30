@@ -43,8 +43,8 @@ export default function PrincipalRole() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
                 <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800">Gestión de Roles</h2>
-                    <p className="text-gray-500">Crear y configurar roles con permisos específicos</p>
+                    <h2 className="text-2xl font-bold text-gray-800">Gestión de Permisos</h2>
+                    <p className="text-gray-500">Crear y configurar permisos con permisos específicos</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <RolesList
@@ -55,7 +55,7 @@ export default function PrincipalRole() {
                             setIsCreating(false);
                         }}
                         onAddRole={handleCreateClick}
-                        headerText="Roles Disponibles"
+                        headerText="Lista de Permisos Disponibles"
                     />
                     <div className="md:col-span-2">
                         {isCreating || selectedRole ? (
@@ -67,8 +67,8 @@ export default function PrincipalRole() {
                         ) : (
                             <RolePlaceHolder
                                 icon={UserCog}
-                                title="Gestión de Roles"
-                                description="Seleccione un rol para editar o cree uno nuevo"
+                                title="Gestión de Permisos"
+                                description="Seleccione un permiso para editar o cree uno nuevo"
                                 onAddRole={handleCreateClick}
                             />
                         )}
