@@ -17,7 +17,7 @@ class SedeController extends Controller
      */
     public function index()
     {
-        $sede = Sede::with('ciudad')->get();
+        $sede = Sede::with(['ciudad','propietario','prestamos','prestatarias'])->get();
 
         return response()->json($sede);
     }
