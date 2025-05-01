@@ -19,7 +19,8 @@ class Sede extends Model
         'descripcion',
         'tipo',
         'acceso',
-        'idCiudad'
+        'idCiudad',
+        'idEntidadPropietaria'
     ];
 
     public function ciudad()
