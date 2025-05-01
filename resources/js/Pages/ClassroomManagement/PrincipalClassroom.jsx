@@ -14,6 +14,7 @@ const columns = [
     { title: "Descripcion", key: "descripcion" },
     { title: "Sede", key: "sede", render: (val) => val ? `${val?.nombre}, ${val?.acceso}` : 'Sin Sede' },
     { title: "Ciudad", key: "sede", render: (value) => value ? value?.ciudad?.nombre : 'Sin Ciudad' },
+    { title: "Entidad", key: "sede", render: (value) => value ? value?.propietario?.nombre : 'Sin Propietario' },
     { title: "capacidad", key: "capacidad" },
     {
         title: "Estado",

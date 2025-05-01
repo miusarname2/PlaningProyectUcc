@@ -18,7 +18,7 @@ class AulaController extends Controller
      */
     public function index()
     {
-        $aulas = Aula::with(['sede','sede.ciudad'])->get();
+        $aulas = Aula::with(['sede','sede.ciudad','sede.propietario'])->get();
         return response()->json($aulas);
     }
 
