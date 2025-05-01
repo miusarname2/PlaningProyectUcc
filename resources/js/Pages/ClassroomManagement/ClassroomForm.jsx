@@ -13,23 +13,38 @@ export default function ClassroomForm({ onCancel, initialData = null, onSubmitSu
     const api = getApi();
     const isEditMode = Boolean(initialData);
 
+    // Todos las sedes y entidades propietarias extraídas
     const [sedes, setSedes] = useState([]);
+    const [entidades, setEntidades] = useState([]);
+    const [filteredSedes, setFilteredSedes] = useState([]);
+
+    // Filtros de usuario
+    const [selectedEntity, setSelectedEntity] = useState(initialData?.propietario?.idEntidad || "");
+
     const [formData, setFormData] = useState({
         nombre: initialData?.nombre || "",
         descripcion: initialData?.descripcion || "",
         estado: initialData?.estado || "Disponible",
         idSede: initialData?.idSede || "",
         capacidad: initialData?.capacidad || "",
-        cantidadPasos: initialData?.cantidadPasos || ""
     });
     const [errors, setErrors] = useState({});
 
-    // 1) Obtener la lista de sedes al montar el componente
+    // Fetch inicial de sedes y entidades
     useEffect(() => {
         const fetchSedes = async () => {
             try {
                 const response = await api.get("/sede");
                 setSedes(response.data);
+                // Extraer entidades únicas
+                const unique = response.data
+                    .map(s => s.propietario)
+                    .filter((e, i, arr) => arr.findIndex(x => x.idEntidad === e.idEntidad) === i);
+                setEntidades([{ idEntidad: "", nombre: "Seleccionar entidad" }, ...unique]);
+                // Inicializar filteredSedes si hay entidad por defecto
+                if (selectedEntity) {
+                    setFilteredSedes(response.data.filter(s => s.propietario.idEntidad === selectedEntity));
+                }
             } catch (error) {
                 console.error("Error fetching sedes:", error);
             }
@@ -37,13 +52,24 @@ export default function ClassroomForm({ onCancel, initialData = null, onSubmitSu
         fetchSedes();
     }, []);
 
-    // 2) Manejador genérico de cambios en inputs y textarea
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+    // Manejador cambio entidad propietaria
+    const handleEntityChange = (e) => {
+        const entId = e.target.value;
+        setSelectedEntity(entId);
+        setFormData(prev => ({ ...prev, idSede: "" }));
+        if (entId) {
+            setFilteredSedes(sedes.filter(s => String(s.propietario.idEntidad) === entId));
+        } else {
+            setFilteredSedes([]);
+        }
     };
 
-    // 3) Envío del formulario
+    // Manejador genérico de inputs
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -53,17 +79,14 @@ export default function ClassroomForm({ onCancel, initialData = null, onSubmitSu
                 estado: formData.estado,
                 idSede: formData.idSede,
                 capacidad: Number(formData.capacidad),
-                cantidadPasos: Number(formData.cantidadPasos)
             };
 
             if (isEditMode) {
                 await api.put(`/aula/${initialData.id}`, payload);
             } else {
                 const response = await api.get("/aula");
-                const lengthRes = response.data.length;
-                const nextCodeNumber = lengthRes + 1;
-                const formattedNumber = String(nextCodeNumber).padStart(3, '0');
-                payload.codigo = `A${formattedNumber}`;
+                const nextNum = response.data.length + 1;
+                payload.codigo = `A${String(nextNum).padStart(3, '0')}`;
                 await api.post("/aula", payload);
             }
 
@@ -85,6 +108,7 @@ export default function ClassroomForm({ onCancel, initialData = null, onSubmitSu
             <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                         {/* Nombre */}
                         <div className="space-y-2">
                             <InputLabel htmlFor="nombre" value="Nombre" />
@@ -99,7 +123,7 @@ export default function ClassroomForm({ onCancel, initialData = null, onSubmitSu
                             />
                         </div>
 
-                        {/* Campo Capacidad */}
+                        {/* Capacidad */}
                         <div className="space-y-2">
                             <InputLabel htmlFor="capacidad" value="Capacidad" />
                             <TextInput
@@ -114,23 +138,34 @@ export default function ClassroomForm({ onCancel, initialData = null, onSubmitSu
                             />
                         </div>
 
-                        {/* Campo Pasos / Número de pasos */}
-                        {/* <div className="space-y-2">
-                            <InputLabel htmlFor="cantidadPasos" value="Número de pasos" />
-                            <TextInput
-                                id="cantidadPasos"
-                                name="cantidadPasos"
-                                type="number"
-                                value={formData.cantidadPasos}
-                                onChange={handleChange}
-                                placeholder="Ingrese la cantidad de pasos"
-                                required
-                                error={errors.cantidadPasos}
+                        {/* Seleccionar entidad propietaria */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="entityFilter" value="Filtrar por Entidad" />
+                            <SelectInput
+                                id="entityFilter"
+                                name="entityFilter"
+                                value={selectedEntity}
+                                onChange={handleEntityChange}
+                                options={entidades.map(ent => ({ value: ent.idEntidad, label: ent.nombre }))}
                             />
-                        </div> */}
+                        </div>
+
+                        {/* Select de Sede filtrado */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="idSede" value="Sede" />
+                            <SelectInput
+                                id="idSede"
+                                name="idSede"
+                                value={formData.idSede}
+                                onChange={handleChange}
+                                options={filteredSedes.map(s => ({ value: s.idSede, label: s.nombre }))}
+                                required
+                                error={errors.idSede}
+                            />
+                        </div>
                     </div>
 
-                    {/* Descripción (textarea) */}
+                    {/* Descripción */}
                     <div className="space-y-2">
                         <InputLabel htmlFor="descripcion" value="Descripción" />
                         <TextTareaInput
@@ -145,40 +180,21 @@ export default function ClassroomForm({ onCancel, initialData = null, onSubmitSu
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Estado */}
-                        <div className="space-y-2">
-                            <InputLabel htmlFor="estado" value="Estado" />
-                            <SelectInput
-                                id="estado"
-                                name="estado"
-                                value={formData.estado}
-                                onChange={handleChange}
-                                options={[
-                                    { value: "Disponible", label: "Disponible" },
-                                    { value: "No disponible", label: "No disponible" },
-                                ]}
-                                required
-                                error={errors.estado}
-                            />
-                        </div>
-
-                        {/* Select de Sede */}
-                        <div className="space-y-2">
-                            <InputLabel htmlFor="idSede" value="Sede" />
-                            <SelectInput
-                                id="idSede"
-                                name="idSede"
-                                value={formData.idSede}
-                                onChange={handleChange}
-                                options={sedes.map((s) => ({
-                                    value: s.idSede,
-                                    label: s.nombre,
-                                }))}
-                                required
-                                error={errors.idSede}
-                            />
-                        </div>
+                    {/* Estado */}
+                    <div className="space-y-2 md:col-span-2">
+                        <InputLabel htmlFor="estado" value="Estado" />
+                        <SelectInput
+                            id="estado"
+                            name="estado"
+                            value={formData.estado}
+                            onChange={handleChange}
+                            options={[
+                                { value: "Disponible", label: "Disponible" },
+                                { value: "No disponible", label: "No disponible" }
+                            ]}
+                            required
+                            error={errors.estado}
+                        />
                     </div>
 
                     {/* Botones de acción */}

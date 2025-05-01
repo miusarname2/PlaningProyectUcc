@@ -13,6 +13,17 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
     const api = getApi();
     const isEditMode = Boolean(initialData);
 
+    const generateCodigo = async () => {
+        try {
+            const resp = await api.get("/lote");
+            const next = resp.data.length + 1;
+            return `LO${String(next).padStart(3, "0")}`;
+        } catch (e) {
+            console.error("Error generating code:", e);
+            return "";
+        }
+    };
+
     const [programOptions, setProgramOptions] = useState([defaultProgramOption]);
 
     const [formData, setFormData] = useState({
@@ -68,6 +79,7 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
             if (isEditMode) {
                 await api.put(`/lote/${formData.idLote}`, payload);
             } else {
+                payload.codigo = await generateCodigo();
                 await api.post("/lote", payload);
             }
 
@@ -91,20 +103,6 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
                     <h2 className="text-xl font-semibold">Añadir nuevo lote</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {!isEditMode && (
-                            <div className="space-y-2">
-                                <InputLabel htmlFor="id" value="ID de lote" />
-                                <TextInput
-                                    id="id"
-                                    name="codigo"
-                                    value={formData.codigo}
-                                    onChange={handleChange}
-                                    placeholder="Introducir ID de lote"
-                                    required
-                                    error={errors.id}
-                                />
-                            </div>
-                        )}
 
                         <div className="space-y-2">
                             <InputLabel htmlFor="name" value="Nombre del lote" />
