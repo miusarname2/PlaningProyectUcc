@@ -50,7 +50,7 @@ export default function PrincipalClass() {
                 return {
                     ...horario,
                     id: horario.idHorario,
-                    nombreCiudad:horario.aula.sede.ciudad.nombre,
+                    nombreCiudad:horario?.aula?.sede?.ciudad?.nombre,
                     nombreCurso:horario.curso.nombre,
                     nombreProfesional:horario.profesional.nombreCompleto,
                     aulaNombreCodigo:`(${horario.aula.codigo}) ${horario.aula.nombre}`,
@@ -58,7 +58,7 @@ export default function PrincipalClass() {
                     idCurso: horario.curso.idCurso,
                     idProfesional: horario.profesional.idProfesional,
                     idFranjaHoraria: horario.franja_horaria.idFranjaHoraria,
-                    idSede: horario.aula.sede.idSede,
+                    idSede: horario?.aula?.sede?.idSede,
                     idAula: horario.aula.idAula,
                 };
             });

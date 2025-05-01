@@ -134,7 +134,7 @@ export default function ProfileForm({ onCancel, initialData = null, onSubmitSucc
                         </div>
 
                         <div className="space-y-2">
-                            <InputLabel htmlFor="roleId" value="Seleccionar Roles" className="text-sm" />
+                            <InputLabel htmlFor="roleId" value="Seleccionar Permisos" className="text-sm" />
                             {allRoles.map(({ value, label }) => (
                                 <CheckboxInput
                                     key={`rol_${value}`}

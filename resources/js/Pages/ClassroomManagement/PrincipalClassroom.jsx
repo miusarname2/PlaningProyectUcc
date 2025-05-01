@@ -12,8 +12,8 @@ const columns = [
     { title: "ID", key: "codigoAula" },
     { title: "Nombre", key: "nombre" },
     { title: "Descripcion", key: "descripcion" },
-    { title: "Sede", key: "sede", render: (val) => `${val.nombre}, ${val.acceso}` },
-    { title: "Ciudad", key: "sede", render: (value) => value.ciudad.nombre },
+    { title: "Sede", key: "sede", render: (val) => val ? `${val?.nombre}, ${val?.acceso}` : 'Sin Sede' },
+    { title: "Ciudad", key: "sede", render: (value) => value ? value?.ciudad?.nombre : 'Sin Ciudad' },
     { title: "capacidad", key: "capacidad" },
     {
         title: "Estado",
@@ -54,7 +54,7 @@ export default function PrincipalClassroom() {
             const transformed = response.data.map((aula) => ({
                 ...aula,
                 id: aula.idAula,
-                codigoAula:aula.codigo
+                codigoAula: aula.codigo
             }));
             setData(transformed);
         } catch (error) {

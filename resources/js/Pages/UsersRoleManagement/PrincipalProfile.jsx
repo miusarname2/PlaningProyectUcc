@@ -10,7 +10,7 @@ const columns = [
     { title: "Nombre del Perfil", key: "nombre" },
     { title: "Descripción", key: "descripcion" },
     {
-        title: "Roles Asignados",
+        title: "Permisos Asignados",
         key: "roles",
         render: (roles) =>
             Array.isArray(roles) && roles.length > 0 ? (
@@ -18,7 +18,7 @@ const columns = [
                     <ContainerShowData key={idx} text={r.nombre} />
                 ))
             ) : (
-                <span className="text-gray-400 text-xs italic">Sin roles</span>
+                <span className="text-gray-400 text-xs italic">Sin Permisos</span>
             ),
     },
     {
@@ -59,8 +59,8 @@ export default function PrincipalProfile() {
             const transformed = perfiles.map((profile) => ({
                 ...profile,
                 id: profile.idPerfil,
-                nombre:profile.nombre || "-------",
-                descripcion:profile.descripcion || "-------------------",
+                nombre:profile.nombre || "Sin Nombre",
+                descripcion:profile.descripcion || "Sin Descripción",
                 countUsers: profile.usuarios_count ?? 0
             }));
 
@@ -94,7 +94,7 @@ export default function PrincipalProfile() {
                         />
                         {loading ? (
                             <p className="text-center text-gray-500">
-                                Cargando usuarios...
+                                Cargando Perfiles...
                             </p>
                         ) : (
                             <DataTable

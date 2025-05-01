@@ -15,10 +15,10 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
         codigoCiudad: initialData?.codigoCiudad || "",
         idCiudad: initialData?.id || "",
         nombre: initialData?.nombre || "",
-        pais: initialData?.pais || "",
+        pais: initialData?.idPais?.toString() || "",
         idPais: initialData?.idPais || "",
-        region: initialData?.region || "",
-        estado: initialData?.estado || "",
+        region: initialData?.idRegion?.toString() || "",
+        estado: initialData?.idEstado?.toString() || "",
         codigoPostal: initialData?.codigoPostal || "",
     });
 
@@ -50,6 +50,23 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
     }, [formData.pais, countries]);
 
     useEffect(() => {
+    if (isEditMode && countries.length) {
+      const countryId = initialData.idPais.toString();
+      const regionId  = initialData.idRegion.toString();
+      const estadoId  = initialData.idEstado.toString();
+      setFormData((prev) => ({ ...prev, pais: countryId }));
+      console.log(countryId)
+      console.log(regionId);
+      setTimeout(() => {
+        setFormData((prev) => ({ ...prev, region: regionId }));
+        setTimeout(() => {
+          setFormData((prev) => ({ ...prev, estado: estadoId }));
+        }, 100);
+      }, 10);
+    }
+  }, [countries]);
+
+    useEffect(() => {
         const selectedRegion = regions.find((region) => region.idRegion === parseInt(formData.region));
         setEstados(selectedRegion?.estados || []);
         setFormData((prev) => ({ ...prev, estado: "" })); // Reinicia estado
@@ -73,12 +90,6 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
 
             if (isEditMode) {
                 await api.put(`/ciudad/${formData.idCiudad}`, payload);
-                await api.put(`/region/${formData.region}`, {
-                    nombre: formData.region
-                });
-                await api.put(`/pais/${formData.idPais}`, {
-                    nombre: formData.pais
-                });
             } else {
                 await api.post("/ciudad", payload);
             }
