@@ -7,12 +7,13 @@ import ButtonGradient from "@/Components/ButtonGradient";
 import CancelButton from "@/Components/CancelButton";
 import { Save } from "lucide-react";
 import { getApi } from "@/utils/generalFunctions";
+import { useLoader } from "@/Components/LoaderProvider";
 
 export default function ClassForm({ onCancel, initialData = null, onSubmitSuccess }) {
+    const { show, hide } = useLoader();
     const api = getApi();
     const { toast } = useToast()
     const isEditMode = Boolean(initialData);
-    console.log(isEditMode);
 
     // Master lists
     const [courses, setCourses] = useState([]);
@@ -75,6 +76,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
 
     // 5) Submit payload (PUT when editing, POST otherwise)
     const handleSubmit = async (e) => {
+        show();
         e.preventDefault();
         const payload = {
             idCurso: Number(formData.idCurso),
@@ -89,10 +91,12 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             } else {
                 await api.post("/Horario", payload);
             }
+            hide();
             setErrors({});
             onSubmitSuccess?.();
             onCancel();
         } catch (err) {
+            hide();
             if (err.response?.status == 422) {
                 setErrors(err.response.data.errors || {});
                 toast({
@@ -118,7 +122,6 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
     };
 
     const days = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-
     return (
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 border-gray-200">
             <form onSubmit={handleSubmit}>
