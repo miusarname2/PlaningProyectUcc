@@ -22,7 +22,7 @@ class HorarioController extends Controller
      */
     public function index()
     {
-        $horarios = Horario::with(["curso", "profesional", "aula", "FranjaHoraria", "aula.sede.ciudad"])->get();
+        $horarios = Horario::with(["curso", "profesional", "aula", "aula.sede.ciudad"])->get();
         return response()->json($horarios);
     }
 
@@ -33,38 +33,48 @@ class HorarioController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'idCurso' => "required|numeric|exists:curso,idCurso",
-                'idProfesional' => "required|numeric|exists:profesional,idProfesional",
-                'idAula' => "required|numeric|exists:aula,idAula",
-                'idFranjaHoraria' => "required|numeric|exists:franja_horaria,idFranjaHoraria",
-                'dia' => "required|string"
+                'idCurso'       => 'required|integer|exists:curso,idCurso',
+                'idProfesional' => 'required|integer|exists:profesional,idProfesional',
+                'idAula'        => 'required|integer|exists:aula,idAula',
+                'dia'           => ['required', 'in:Lunes,Martes,Miércoles,Jueves,Viernes,Sábado,Domingo'],
+                'hora_inicio'   => 'required|date_format:H:i:s',
+                'hora_fin'      => 'required|date_format:H:i:s|after:hora_inicio',
             ]);
         } catch (ValidationException $ex) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error en la validación de los datos.',
-                'errors'  => $ex->errors()
+                'errors'  => $ex->errors(),
             ], 422);
         }
 
-        $duplicate = Horario::query()
+        // Verificar solapamiento de horarios en la misma aula y día
+        $conflict = Horario::query()
             ->where('idAula', $validatedData['idAula'])
-            ->where('idFranjaHoraria', $validatedData['idFranjaHoraria'])
             ->where('dia', $validatedData['dia'])
+            ->where(function ($q) use ($validatedData) {
+                $q->where('hora_inicio', '<', $validatedData['hora_fin'])
+                    ->where('hora_fin', '>', $validatedData['hora_inicio']);
+            })
             ->exists();
 
-        if ($duplicate) {
+        if ($conflict) {
             return response()->json([
                 'success' => false,
-                'message' => 'Hay un conflicto en la inserción de los datos.'
+                'message' => 'El horario solicitado se solapa con otro existente en el mismo aula y día.',
             ], 409);
         }
 
+        // Crear el nuevo registro
         $horario = Horario::create($validatedData);
 
-        $horario->load(["curso", "profesional", "aula", "FranjaHoraria"]);
+        // Cargar relaciones para la respuesta
+        $horario->load(['curso', 'profesional', 'aula']);
 
-        return response()->json($horario, 201);
+        return response()->json([
+            'success' => true,
+            'data'    => $horario,
+        ], 201);
     }
 
     /**
@@ -72,7 +82,7 @@ class HorarioController extends Controller
      */
     public function show(string $id)
     {
-        $horario = Horario::with(["curso", "profesional", "aula", "aula.sede", "FranjaHoraria"])->findOrFail($id);
+        $horario = Horario::with(["curso", "profesional", "aula", "aula.sede"])->findOrFail($id);
         return response()->json($horario);
     }
 
@@ -83,38 +93,55 @@ class HorarioController extends Controller
     {
         try {
             $horario = Horario::findOrFail($id);
+
             $validatedData = $request->validate([
-                'idCurso' => "sometimes|numeric|exists:curso,idCurso",
-                'idProfesional' => "sometimes|numeric|exists:profesional,idProfesional",
-                'idAula' => "sometimes|numeric|exists:aula,idAula",
-                'idFranjaHoraria' => "sometimes|numeric|exists:franja_horaria,idFranjaHoraria",
-                'dia' => "sometimes|string"
+                'idCurso'       => 'sometimes|integer|exists:curso,idCurso',
+                'idProfesional' => 'sometimes|integer|exists:profesional,idProfesional',
+                'idAula'        => 'sometimes|integer|exists:aula,idAula',
+                'dia'           => ['sometimes', 'in:Lunes,Martes,Miércoles,Jueves,Viernes,Sábado,Domingo'],
+                'hora_inicio'   => 'sometimes|date_format:H:i:s',
+                'hora_fin'      => 'sometimes|date_format:H:i:s|after:hora_inicio',
             ]);
         } catch (ValidationException $ex) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error en la validación de los datos.',
-                'errors'  => $ex->errors()
+                'errors'  => $ex->errors(),
             ], 422);
         }
 
-        $duplicate = Horario::query()
-            ->where('idAula', $validatedData['idAula'])
-            ->where('idFranjaHoraria', $validatedData['idFranjaHoraria'])
-            ->where('dia', $validatedData['dia'])
+        // Valores efectivos para la comprobación:
+        $idAulaActual      = $validatedData['idAula'] ?? $horario->idAula;
+        $diaActual         = $validatedData['dia'] ?? $horario->dia;
+        $horaInicioActual  = $validatedData['hora_inicio'] ?? $horario->hora_inicio->format('H:i:s');
+        $horaFinActual     = $validatedData['hora_fin'] ?? $horario->hora_fin->format('H:i:s');
+
+        // Comprobar solapamientos en el mismo aula y día, excluyendo este registro
+        $conflict = Horario::query()
+            ->where('idAula', $idAulaActual)
+            ->where('dia', $diaActual)
             ->where('idHorario', '!=', $horario->idHorario)
+            ->where(function ($q) use ($horaInicioActual, $horaFinActual) {
+                $q->where('hora_inicio', '<', $horaFinActual)
+                    ->where('hora_fin', '>', $horaInicioActual);
+            })
             ->exists();
 
-        if ($duplicate) {
+        if ($conflict) {
             return response()->json([
                 'success' => false,
-                'message' => 'Hay un conflicto en la inserción de los datos.'
+                'message' => 'El horario actualizado se solapa con otro existente en el mismo aula y día.',
             ], 409);
         }
 
+        // Actualizar y cargar relaciones
         $horario->update($validatedData);
+        $horario->load(['curso', 'profesional', 'aula']);
 
-        return response()->json($horario, 201);
+        return response()->json([
+            'success' => true,
+            'data'    => $horario,
+        ], 200);
     }
 
     /**
@@ -131,29 +158,31 @@ class HorarioController extends Controller
 
     public function search(Request $request)
     {
+        // Validación
         $validator = Validator::make($request->all(), [
-            'idCurso'                   => 'nullable|integer',
-            'aula_sede'                 => 'nullable|integer',
-            'idProfesional'             => 'nullable|integer',
-            'idAula'                    => 'nullable|integer',
-            'idFranjaHoraria'           => 'nullable|integer',
-            'dia'                       => 'nullable|string|max:50',
-            'curso_nombre'              => 'nullable|string|max:255',
-            'curso_codigo'              => 'nullable|string|max:255',
-            'curso_creditos'            => 'nullable|integer',
-            'curso_horas'               => 'nullable|integer',
-            'profesional_codigo'        => 'nullable|string|max:255',
+            'idCurso'                    => 'nullable|integer',
+            'aula_sede'                  => 'nullable|integer',
+            'idProfesional'              => 'nullable|integer',
+            'idAula'                     => 'nullable|integer',
+            'dia'                        => 'nullable|string|max:50',
+            'hora_inicio_desde'          => 'nullable|date_format:H:i:s',
+            'hora_fin_hasta'             => 'nullable|date_format:H:i:s',
+            'curso_nombre'               => 'nullable|string|max:255',
+            'curso_codigo'               => 'nullable|string|max:255',
+            'curso_creditos'             => 'nullable|integer',
+            'curso_horas'                => 'nullable|integer',
+            'profesional_codigo'         => 'nullable|string|max:255',
             'profesional_nombreCompleto' => 'nullable|string|max:255',
-            'profesional_titulo'        => 'nullable|string|max:255',
-            'ciudad_id'                 => 'nullable|integer',
-            'entidad_id'                => 'nullable|integer',  // <-- Nuevo filtro por entidad
+            'profesional_titulo'         => 'nullable|string|max:255',
+            'ciudad_id'                  => 'nullable|integer',
+            'entidad_id'                 => 'nullable|integer',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'status'  => 'error',
                 'mensaje' => 'Error en los datos ingresados.',
-                'errores' => $validator->errors()
+                'errores' => $validator->errors(),
             ], 422);
         }
 
@@ -169,11 +198,16 @@ class HorarioController extends Controller
         if ($request->filled('idAula')) {
             $query->where('idAula', $request->input('idAula'));
         }
-        if ($request->filled('idFranjaHoraria')) {
-            $query->where('idFranjaHoraria', $request->input('idFranjaHoraria'));
-        }
         if ($request->filled('dia')) {
             $query->where('dia', 'like', '%' . trim($request->input('dia')) . '%');
+        }
+
+        // Filtros por hora
+        if ($request->filled('hora_inicio_desde')) {
+            $query->where('hora_inicio', '>=', $request->input('hora_inicio_desde'));
+        }
+        if ($request->filled('hora_fin_hasta')) {
+            $query->where('hora_fin', '<=', $request->input('hora_fin_hasta'));
         }
 
         // Filtros por relación: curso
@@ -227,28 +261,28 @@ class HorarioController extends Controller
             });
         }
 
-        // Nuevo filtro por entidad propietaria de la sede
+        // Filtro por entidad propietaria de la sede
         if ($request->filled('entidad_id')) {
             $query->whereHas('aula.sede.propietario', function ($q) use ($request) {
                 $q->where('idEntidad', $request->input('entidad_id'));
             });
         }
 
-        // Relaciona todo lo necesario
-        $query->with(['curso', 'profesional', 'aula', 'aula.sede', 'aula.sede.propietario', 'FranjaHoraria']);
+        // Cargamos relaciones necesarias (ya no usamos FranjaHoraria)
+        $query->with(['curso', 'profesional', 'aula', 'aula.sede', 'aula.sede.propietario']);
 
         try {
             $horarios = $query->paginate(10);
 
             return response()->json([
                 'status' => 'success',
-                'data'   => $horarios
+                'data'   => $horarios,
             ]);
-        } catch (\Exception $ex) {
+        } catch (Exception $ex) {
             Log::error('Error en búsqueda de horarios: ' . $ex->getMessage());
             return response()->json([
                 'status'  => 'error',
-                'mensaje' => 'Error interno del servidor.'
+                'mensaje' => 'Error interno del servidor.',
             ], 500);
         }
     }

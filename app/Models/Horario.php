@@ -16,9 +16,17 @@ class Horario extends Model
         'idCurso',
         'idProfesional',
         'idAula',
-        'idFranjaHoraria',
-        'dia'
+        'dia',
+        'hora_inicio',
+        'hora_fin',
     ];
+
+    // Casteo de columnas de tiempo a instancias Carbon
+    protected $casts = [
+        'hora_inicio' => 'datetime:H:i:s',
+        'hora_fin'    => 'datetime:H:i:s',
+    ];
+
 
     // Relación: un horario pertenece a un curso
     public function curso()
@@ -35,11 +43,6 @@ class Horario extends Model
     public function aula()
     {
         return $this->belongsTo(Aula::class, 'idAula', 'idAula');
-    }
-
-    public function FranjaHoraria()
-    {
-        return $this->belongsTo(FranjaHoraria::class, 'idFranjaHoraria', 'idFranjaHoraria');
     }
 
 }

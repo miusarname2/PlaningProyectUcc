@@ -101,7 +101,6 @@ let sections = [
             { text: 'Gestión por Lotes', icon: Layers, to: '/batchManagement' },
             { text: 'Gestión de Cursos', icon: BookOpen, to: '/course' },
             { text: 'Gestion de Clases', icon: CalendarDays, to:'/classManagement' },
-            { text: 'Gestión de Horario', icon: Clock, to: '/slotManagement' },
             { text: 'Gestión de Programas', icon: BookOpen, to: '/programmeManagement' },
             { text: 'Gestion de Profesionales', icon: Briefcase, to:'/specialtyProfessional/professionals' },
             { text: 'Cronograma de Horarios', icon: Timer, to: '/scheduleTimer' },

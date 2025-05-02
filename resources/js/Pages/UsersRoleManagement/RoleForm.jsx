@@ -20,7 +20,6 @@ export default function RoleForm({ onCancel, onSubmit, role }) {
         { key: 'professionals_management', label: 'Gestion de Profesionales' },
         { key: 'batches_management', label: 'Gestion de Lotes' },
         { key: 'programs_management', label: 'Gestion de Programas' },
-        { key: 'slots_management', label: 'Gestion de Horario' },
         { key: 'classroom_management', label: 'Gestion de Aulas' },
         { key: 'courses_management', label: 'Gestion de Cursos' },
         { key: 'classes_management', label: 'Gestion de Clases' },

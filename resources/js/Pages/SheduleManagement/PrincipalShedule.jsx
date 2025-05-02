@@ -84,15 +84,16 @@ export default function PrincipalShedule() {
 
   const transformScheduleData = (horarios) => {
     return horarios.map((item) => {
-      const startTime = convertirHora(item.franja_horaria?.horaInicio);
-      const endTime = convertirHora(item.franja_horaria?.horaFin);
+      console.log(item);
+      const startTime = convertirHora(item?.hora_inicio);
+      const endTime = convertirHora(item?.hora_fin);
       const color = getColorForRoom(item.aula?.codigo || "Sin aula");
 
       // Calcular bloques de tiempo que ocupa la clase
       const blocks = [];
-      if (item.franja_horaria?.horaInicio && item.franja_horaria?.horaFin) {
-        const [sh, sm] = item.franja_horaria.horaInicio.split(":").map(Number);
-        const [eh, em] = item.franja_horaria.horaFin.split(":").map(Number);
+      if (item?.hora_inicio && item?.hora_fin) {
+        const [sh, sm] = item?.hora_inicio.split(":").map(Number);
+        const [eh, em] = item?.hora_fin.split(":").map(Number);
 
         for (let h = sh; h <= eh; h++) {
           const period = h < 12 ? "a.m." : "p.m.";

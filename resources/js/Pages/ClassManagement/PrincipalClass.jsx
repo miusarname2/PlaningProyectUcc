@@ -54,10 +54,9 @@ export default function PrincipalClass() {
                     nombreCurso:horario.curso.nombre,
                     nombreProfesional:horario.profesional.nombreCompleto,
                     aulaNombreCodigo:`(${horario.aula.codigo}) ${horario.aula.nombre}`,
-                    RangoHorario: `${horario.franja_horaria.horaInicio} - ${horario.franja_horaria.horaFin}`,
+                    RangoHorario: `${horario.hora_inicio} - ${horario.hora_fin}`,
                     idCurso: horario.curso.idCurso,
                     idProfesional: horario.profesional.idProfesional,
-                    idFranjaHoraria: horario.franja_horaria.idFranjaHoraria,
                     idSede: horario?.aula?.sede?.idSede,
                     idAula: horario.aula.idAula,
                 };
