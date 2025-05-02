@@ -5,13 +5,18 @@ import SelectInput from "@/Components/SelectInput";
 import ButtonGradient from "@/Components/ButtonGradient";
 import CancelButton from "@/Components/CancelButton";
 import TextTareaInput from "@/Components/TextTareaInput";
-import { Save } from "lucide-react";
+import { Save, XCircle } from "lucide-react";
 import { getApi } from "@/utils/generalFunctions";
 
 export default function CourseForm({ onCancel, initialData = null, onSubmitSuccess }) {
     const api = getApi();
     const isEditMode = Boolean(initialData);
 
+    // State for dropdown data
+    const [specialties, setSpecialties] = useState([]);
+    const [programs, setPrograms] = useState([]);
+
+    // Form state with proper initialData mapping
     const [formData, setFormData] = useState({
         nombre: initialData?.nombre || "",
         descripcion: initialData?.descripcion || "",
@@ -19,11 +24,27 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
         horas: initialData?.horas ?? "",
         estado: initialData?.estado || "Activo",
         codigo: initialData?.codigo || "",
+        // Map initialData.especialidades to IDs
+        especialidades: initialData?.especialidades
+            ? [initialData.especialidades[0].idEspecialidad]
+            : [],
+        // Map initialData.programas to array of IDs
+        selectedPrograms: initialData?.programas
+            ? initialData.programas.map(p => p.idPrograma)
+            : []
     });
-
     const [errors, setErrors] = useState({});
 
-    // Auto‑genera el código solo en creación
+    // Fetch specialties and programs
+    useEffect(() => {
+        api.get('/especialidad')
+            .then(res => setSpecialties(res.data || []))
+            .catch(err => console.error('Error loading specialties', err));
+        api.get('/programa')
+            .then(res => setPrograms(res.data || []))
+            .catch(err => console.error('Error loading programs', err));
+    }, []);
+
     const generateCodigo = async () => {
         try {
             const resp = await api.get("/curso");
@@ -35,44 +56,73 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
         }
     };
 
-    const handleChange = (e) => {
+    const handleChange = e => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormData(prev => ({ ...prev, [name]: value }));
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: null }));
+        }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    // Handlers for programs tags
+    const handleSelectProgramToAdd = e => {
+        const id = parseInt(e.target.value, 10);
+        if (!id || formData.selectedPrograms.includes(id)) return;
+        setFormData(prev => ({
+            ...prev,
+            selectedPrograms: [...prev.selectedPrograms, id]
+        }));
+        e.target.value = "";
+        setErrors(prev => ({ ...prev, selectedPrograms: null }));
+    };
 
+    const handleRemoveProgram = idToRemove => {
+        setFormData(prev => ({
+            ...prev,
+            selectedPrograms: prev.selectedPrograms.filter(id => id !== idToRemove)
+        }));
+    };
+
+    const handleSubmit = async e => {
+        e.preventDefault();
         const payload = {
             nombre: formData.nombre,
             descripcion: formData.descripcion,
             creditos: Number(formData.creditos),
             horas: Number(formData.horas),
             estado: formData.estado,
+            especialidades: formData.especialidades,
+            programas: formData.selectedPrograms
         };
 
         if (!isEditMode) {
             payload.codigo = await generateCodigo();
         }
 
+        // In edit mode keep existing code
+        if (isEditMode) {
+            payload.codigo = initialData.codigo;
+        }
+
         try {
-            if (isEditMode) {
-                await api.put(`/curso/${initialData.id}`, payload);
-            } else {
-                await api.post("/curso", payload);
-            }
+            if (isEditMode) await api.put(`/curso/${initialData.idCurso}`, payload);
+            else await api.post('/curso', payload);
             setErrors({});
             onSubmitSuccess?.();
             onCancel();
         } catch (error) {
             if (error.response?.status === 422) {
                 setErrors(error.response.data.errors || {});
-                console.error("Validation errors:", error.response.data.errors);
             } else {
-                console.error("Error saving course:", error);
+                console.error('Error saving course:', error);
             }
         }
     };
+
+    // Filter available programs to exclude selected ones
+    const availableProgramOptions = programs
+        .filter(p => !formData.selectedPrograms.includes(p.idPrograma))
+        .map(p => ({ value: p.idPrograma, label: p.nombre }));
 
     return (
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 border-gray-200">
@@ -92,18 +142,20 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                                 error={errors.nombre}
                             />
                         </div>
-                        {/* Créditos */}
+                        {/* Especialidad */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="creditos" value="Créditos" />
-                            <TextInput
-                                id="creditos"
-                                name="creditos"
-                                type="number"
-                                value={formData.creditos}
-                                onChange={handleChange}
-                                placeholder="Ej: 3"
+                            <InputLabel htmlFor="especialidad" value="Especialidad" />
+                            <SelectInput
+                                id="especialidad"
+                                name="especialidades"
+                                value={formData.especialidades[0] || ""}
+                                onChange={e => setFormData(prev => ({ ...prev, especialidades: [parseInt(e.target.value, 10)] }))}
+                                options={[
+                                    { value: "", label: "Seleccionar Especialidad" },
+                                    ...specialties.map(s => ({ value: s.idEspecialidad, label: s.nombre }))
+                                ]}
                                 required
-                                error={errors.creditos}
+                                error={errors.especialidades}
                             />
                         </div>
                     </div>
@@ -124,7 +176,20 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
+                        {/* Créditos */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="creditos" value="Créditos" />
+                            <TextInput
+                                id="creditos"
+                                name="creditos"
+                                type="number"
+                                value={formData.creditos}
+                                onChange={handleChange}
+                                placeholder="Ej: 3"
+                                required
+                                error={errors.creditos}
+                            />
+                        </div>
                         {/* Horas */}
                         <div className="space-y-2">
                             <InputLabel htmlFor="horas" value="Horas" />
@@ -148,13 +213,36 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                                 name="estado"
                                 value={formData.estado}
                                 onChange={handleChange}
-                                options={[
-                                    { value: "Activo", label: "Activo" },
-                                    { value: "Inactivo", label: "Inactivo" },
-                                ]}
+                                options={[{ value: "Activo", label: "Activo" }, { value: "Inactivo", label: "Inactivo" }]}
                                 required
                                 error={errors.estado}
                             />
+                        </div>
+                    </div>
+
+                    {/* Programas */}
+                    <div className="space-y-2 md:col-span-2">
+                        <InputLabel htmlFor="addProgram" value="Programas" />
+                        <SelectInput
+                            id="addProgram"
+                            value=""
+                            onChange={handleSelectProgramToAdd}
+                            options={[{ value: "", label: "Agregar Programa" }, ...availableProgramOptions]}
+                        />
+                        {errors.selectedPrograms && <div className="text-red-500 text-sm">{errors.selectedPrograms}</div>}
+                        <div className="mt-2 flex flex-wrap items-center gap-2 border border-gray-300 p-2 rounded min-h-[40px]">
+                            {formData.selectedPrograms.length === 0 && <span className="text-gray-500 text-sm">Ningún programa seleccionado.</span>}
+                            {formData.selectedPrograms.map(id => {
+                                const prog = programs.find(p => p.idPrograma === id);
+                                return prog ? (
+                                    <div key={id} className="inline-flex items-center border border-blue-200 rounded-md pl-2 py-1 pr-1 bg-blue-50">
+                                        <span className="text-blue-700 text-sm font-medium">{prog.nombre}</span>
+                                        <button type="button" onClick={() => handleRemoveProgram(id)} className="ml-1 p-0.5 text-blue-600 hover:text-blue-800 focus:outline-none rounded-sm">
+                                            <XCircle size={14} />
+                                        </button>
+                                    </div>
+                                ) : null;
+                            })}
                         </div>
                     </div>
 

@@ -21,7 +21,7 @@ const columns = [
             return value.length > 0 ? (
                 <>
                     {value.map((programa, idx) => (
-                        <Badge label={programa.nombre} />
+                        <Badge label={programa.nombre} key={idx} />
                     ))}
                 </>
             ) : <Badge label="Sin Programa" color="rose" />
@@ -32,7 +32,7 @@ const columns = [
             return value.length > 0 ? (
                 <>
                     {value.map((especialidad, idx) => (
-                        <Badge label={especialidad.nombre} />
+                        <Badge label={especialidad.nombre} key={idx} />
                     ))}
                 </>
             ) : <Badge label="Sin Especialidad" color="pink" />
@@ -44,42 +44,6 @@ const columns = [
         render: (value) => <StatusBadge status={value} />,
     },
 ];
-const fakeData = [
-    {
-        id: 1,
-        codigoLote: "B001",
-        nombre: "Lote Alfa",
-        fechaInicio: "2025-04-01",
-        fechaFin: "2025-06-30",
-        estudiantes: 25,
-        cursos: 5,
-        programa: "Desarrollo Web",
-        estado: "Activo",
-    },
-    {
-        id: 2,
-        codigoLote: "B002",
-        nombre: "Lote Beta",
-        fechaInicio: "2025-05-15",
-        fechaFin: "2025-08-15",
-        estudiantes: 30,
-        cursos: 6,
-        programa: "Ciencia de Datos",
-        estado: "Próximamente",
-    },
-    {
-        id: 3,
-        codigoLote: "B003",
-        nombre: "Lote Gamma",
-        fechaInicio: "2025-07-01",
-        fechaFin: "2025-09-30",
-        estudiantes: 20,
-        cursos: 4,
-        programa: "Inteligencia Artificial",
-        estado: "Próximamente",
-    },
-];
-
 
 export default function PrincipalCourse() {
     const [showForm, setShowForm] = useState(false);
@@ -98,7 +62,7 @@ export default function PrincipalCourse() {
         if (!confirm(`¿Estás seguro de eliminar el lote "${row.nombre}"?`)) return;
 
         try {
-            await api.delete(`/lote/${row.id}`);
+            await api.delete(`/curso/${row.id}`);
             fetchData();
         } catch (error) {
             console.error("Error eliminando lote:", error);
@@ -106,24 +70,6 @@ export default function PrincipalCourse() {
         }
     }
 
-    // async function fetchData() {
-    //     try {
-    //         const response = await api.get("/lote");
-    //         const transformed = response.data.map((lote) => ({
-    //             ...lote,
-    //             id: lote.id,
-    //             codigoLote: lote.codigoLote || `B${String(lote.id).padStart(3, "0")}`,
-    //             estudiantes: lote.estudiantes?.length || 0,
-    //             cursos: lote.cursos?.length || 0,
-    //             programa: lote.programa?.nombre || "Sin asignar",
-    //         }));
-    //         setData(transformed);
-    //     } catch (error) {
-    //         console.error("Error obteniendo lotes:", error);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // }
     async function fetchData() {
         try {
             const response = await api.get("/curso");

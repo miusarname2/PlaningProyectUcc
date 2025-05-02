@@ -7,6 +7,7 @@ use App\Models\Ciudad;
 use App\Models\Curso;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -34,7 +35,11 @@ class CursoController extends Controller
                 'descripcion' => "required|string",
                 'creditos' => 'required|numeric',
                 'horas' => "required|numeric",
-                'estado' => 'required|in:Activo,Inactivo'
+                'estado' => 'required|in:Activo,Inactivo',
+                'programas'       => 'sometimes|array',
+                'programas.*'     => 'integer|exists:programa,idPrograma',
+                'especialidades'  => 'sometimes|array',
+                'especialidades.*' => 'integer|exists:especialidad,idEspecialidad'
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -44,13 +49,51 @@ class CursoController extends Controller
             ], 422);
         }
 
-        $curso = Curso::create($validateData);
+        try {
+            DB::beginTransaction();
+
+            $curso = Curso::create($validateData);
+
+            if (! empty($validateData['programas'])) {
+                // sync() reemplaza todas las relaciones. attach() añade sin eliminar previas.
+                $curso->programas()->sync($validateData['programas']);
+            }
+
+            if (! empty($validateData['especialidades'])) {
+                $curso->especialidades()->sync($validateData['especialidades']);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'curso'   => $curso->load('programas', 'especialidades')
+            ], 201);
+
+            // Si se envían programas, sincronizamos la relación
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $e->errors()
+            ], 422);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al crear el curso.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+
         return response()->json($curso);
     }
 
     /**
      * Display the specified resource.
-     */     public function show(string $id)
+     */
+    public function show(string $id)
     {
         $curso = Curso::findOrFail($id);
         return response()->json($curso);
@@ -64,15 +107,59 @@ class CursoController extends Controller
         $curso = Curso::findOrFail($id);
 
         $validateData = $request->validate([
-            'codigo' => "sometimes|required|string|12",
+            'codigo' => "sometimes|required|string|max:12",
             'nombre' => "sometimes|required|string|max:100",
             'descripcion' => 'sometimes|required|string',
             'creditos' => "sometimes|required|numeric",
             'horas' => "sometimes|required|numeric",
-            'estado' => 'sometimes|required|in:Activo,Inactivo'
+            'estado' => 'sometimes|required|in:Activo,Inactivo',
+            'programas'       => 'sometimes|array',
+            'programas.*'     => 'integer|exists:programa,idPrograma',
+            'especialidades'  => 'sometimes|array',
+            'especialidades.*' => 'integer|exists:especialidad,idEspecialidad',
         ]);
 
-        $curso->update($validateData);
+        try {
+            DB::beginTransaction();
+
+            // 3. Actualizar campos del curso
+            $curso->update($validateData);
+
+            // 4. Sincronizar programas
+            if (array_key_exists('programas', $validateData)) {
+                // Reemplaza las relaciones por las enviadas
+                $curso->programas()->sync($validateData['programas']);
+            }
+
+            // 5. Sincronizar especialidades
+            if (array_key_exists('especialidades', $validateData)) {
+                $curso->especialidades()->sync($validateData['especialidades']);
+            }
+
+            DB::commit();
+
+            // 6. Devolver el curso con sus relaciones cargadas
+            return response()->json([
+                'success' => true,
+                'curso'   => $curso->load('programas', 'especialidades')
+            ], 200);
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $e->errors()
+            ], 422);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al actualizar el curso.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+
+        //$curso->update($validateData);
         return response()->json($curso);
     }
 
