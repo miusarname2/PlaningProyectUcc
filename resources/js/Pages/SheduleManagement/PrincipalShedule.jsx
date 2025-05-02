@@ -12,10 +12,12 @@ export default function PrincipalShedule() {
   const [scheduleData, setScheduleData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sedes, setSedes] = useState([]);
+  const [entidades, setEntidades] = useState([]);
   const [ciudades, setCiudades] = useState([]);
   const [formData, setFormData] = useState({
     sede: "",
     ciudad: "",
+    entidad: "",
     filtro: "",
     searchValue: "",
   });
@@ -171,8 +173,14 @@ export default function PrincipalShedule() {
     }
   }
 
-
-
+  async function fetchDataEntidades() {
+    try {
+      const response = await api.get("/entidad");
+      setEntidades(response.data);
+    } catch (error) {
+      console.error("Error fetching entidades:", error);
+    }
+  }
 
   async function fetchDataSedes() {
     try {
@@ -217,6 +225,16 @@ export default function PrincipalShedule() {
     if (name === "sede" && !value) {
       fetchData();
     }
+
+    if (name === "entidad") {
+      if (value) {
+        resetFields(["ciudad", "sede", "filtro", "searchValue"]);
+        fetchData("entidad_id", value);  // <-- Filtro por entidad
+      } else {
+        fetchData();
+      }
+    }
+
     if (name === "filtro" && value && formData.searchValue) {
       resetFields(["ciudad", "sede"]);
       fetchData(value, formData.searchValue);
@@ -233,6 +251,7 @@ export default function PrincipalShedule() {
     fetchData();
     fetchDataSedes();
     fetchDataCiudad();
+    fetchDataEntidades();
   }, []);
 
   return (
@@ -390,6 +409,20 @@ export default function PrincipalShedule() {
                     value: sede.idSede,
                     label: sede.nombre,
                   })),
+                ]}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <InputLabel htmlFor="entidad" value="Entidad" className="text-sm" />
+              <SelectInput
+                id="entidad"
+                name="entidad"
+                value={formData.entidad}
+                onChange={handleChange}
+                options={[
+                  { value: "", label: "Todas las Entidades" },
+                  ...entidades.map((ent) => ({ value: ent.idEntidad, label: ent.nombre })),
                 ]}
                 required
               />

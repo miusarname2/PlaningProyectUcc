@@ -72,7 +72,7 @@ class HorarioController extends Controller
      */
     public function show(string $id)
     {
-        $horario = Horario::with(["curso", "profesional", "aula","aula.sede", "FranjaHoraria"])->findOrFail($id);
+        $horario = Horario::with(["curso", "profesional", "aula", "aula.sede", "FranjaHoraria"])->findOrFail($id);
         return response()->json($horario);
     }
 
@@ -132,20 +132,21 @@ class HorarioController extends Controller
     public function search(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'idCurso'         => 'nullable|integer',
-            'aula_sede'       => 'nullable|integer',
-            'idProfesional'   => 'nullable|integer',
-            'idAula'          => 'nullable|integer',
-            'idFranjaHoraria' => 'nullable|integer',
-            'dia'             => 'nullable|string|max:50',
-            'curso_nombre'    => 'nullable|string|max:255',
-            'curso_codigo'    => 'nullable|string|max:255',
-            'curso_creditos'  => 'nullable|integer',
-            'curso_horas'     => 'nullable|integer',
-            'profesional_codigo' => 'nullable|string|max:255',
+            'idCurso'                   => 'nullable|integer',
+            'aula_sede'                 => 'nullable|integer',
+            'idProfesional'             => 'nullable|integer',
+            'idAula'                    => 'nullable|integer',
+            'idFranjaHoraria'           => 'nullable|integer',
+            'dia'                       => 'nullable|string|max:50',
+            'curso_nombre'              => 'nullable|string|max:255',
+            'curso_codigo'              => 'nullable|string|max:255',
+            'curso_creditos'            => 'nullable|integer',
+            'curso_horas'               => 'nullable|integer',
+            'profesional_codigo'        => 'nullable|string|max:255',
             'profesional_nombreCompleto' => 'nullable|string|max:255',
-            'profesional_titulo' => 'nullable|string|max:255',
-            'ciudad_id' => 'nullable|integer',
+            'profesional_titulo'        => 'nullable|string|max:255',
+            'ciudad_id'                 => 'nullable|integer',
+            'entidad_id'                => 'nullable|integer',  // <-- Nuevo filtro por entidad
         ]);
 
         if ($validator->fails()) {
@@ -172,8 +173,7 @@ class HorarioController extends Controller
             $query->where('idFranjaHoraria', $request->input('idFranjaHoraria'));
         }
         if ($request->filled('dia')) {
-            $dia = trim($request->input('dia'));
-            $query->where('dia', 'like', '%' . $dia . '%');
+            $query->where('dia', 'like', '%' . trim($request->input('dia')) . '%');
         }
 
         // Filtros por relación: curso
@@ -204,11 +204,6 @@ class HorarioController extends Controller
                 $q->where('codigo', 'like', '%' . $request->input('profesional_codigo') . '%');
             });
         }
-        if ($request->filled('aula_sede')) {
-            $query->whereHas('aula', function ($q) use ($request) {
-                $q->where('idSede', 'like', '%' . $request->input('aula_sede') . '%');
-            });
-        }
         if ($request->filled('profesional_nombreCompleto')) {
             $query->whereHas('profesional', function ($q) use ($request) {
                 $q->where('nombreCompleto', 'like', '%' . $request->input('profesional_nombreCompleto') . '%');
@@ -219,14 +214,28 @@ class HorarioController extends Controller
                 $q->where('titulo', 'like', '%' . $request->input('profesional_titulo') . '%');
             });
         }
+
+        // Filtros por relación: sede y ciudad
+        if ($request->filled('aula_sede')) {
+            $query->whereHas('aula', function ($q) use ($request) {
+                $q->where('idSede', $request->input('aula_sede'));
+            });
+        }
         if ($request->filled('ciudad_id')) {
             $query->whereHas('aula.sede', function ($q) use ($request) {
                 $q->where('idCiudad', $request->input('ciudad_id'));
             });
         }
 
+        // Nuevo filtro por entidad propietaria de la sede
+        if ($request->filled('entidad_id')) {
+            $query->whereHas('aula.sede.propietario', function ($q) use ($request) {
+                $q->where('idEntidad', $request->input('entidad_id'));
+            });
+        }
+
         // Relaciona todo lo necesario
-        $query->with(['curso', 'profesional', 'aula', 'aula.sede',  'FranjaHoraria']);
+        $query->with(['curso', 'profesional', 'aula', 'aula.sede', 'aula.sede.propietario', 'FranjaHoraria']);
 
         try {
             $horarios = $query->paginate(10);
@@ -235,7 +244,7 @@ class HorarioController extends Controller
                 'status' => 'success',
                 'data'   => $horarios
             ]);
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             Log::error('Error en búsqueda de horarios: ' . $ex->getMessage());
             return response()->json([
                 'status'  => 'error',
@@ -243,6 +252,7 @@ class HorarioController extends Controller
             ], 500);
         }
     }
+
 
     public function exportXls()
     {
