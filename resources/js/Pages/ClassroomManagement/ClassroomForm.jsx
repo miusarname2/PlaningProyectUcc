@@ -16,7 +16,7 @@ export default function ClassroomForm({ onCancel, initialData = null, onSubmitSu
     // Todos las sedes y entidades propietarias extraídas
     const [sedes, setSedes] = useState([]);
     const [entidades, setEntidades] = useState([]);
-    const [filteredSedes, setFilteredSedes] = useState([]);
+    const [filteredSedes, setFilteredSedes] = useState([{ idSede: "", nombre: "Selecciona Sede" }]);
 
     // Filtros de usuario
     const [selectedEntity, setSelectedEntity] = useState(initialData?.propietario?.idEntidad || "");
@@ -43,7 +43,8 @@ export default function ClassroomForm({ onCancel, initialData = null, onSubmitSu
                 setEntidades([{ idEntidad: "", nombre: "Seleccionar entidad" }, ...unique]);
                 // Inicializar filteredSedes si hay entidad por defecto
                 if (selectedEntity) {
-                    setFilteredSedes(response.data.filter(s => s.propietario.idEntidad === selectedEntity));
+                    const filtered = response.data.filter(s => s.propietario.idEntidad === selectedEntity);
+                    setFilteredSedes([{ idSede: "", nombre: "Selecciona Sede" }, ...filtered]);
                 }
             } catch (error) {
                 console.error("Error fetching sedes:", error);
@@ -58,9 +59,11 @@ export default function ClassroomForm({ onCancel, initialData = null, onSubmitSu
         setSelectedEntity(entId);
         setFormData(prev => ({ ...prev, idSede: "" }));
         if (entId) {
-            setFilteredSedes(sedes.filter(s => String(s.propietario.idEntidad) === entId));
+            const filtered = sedes.filter(s => String(s.propietario.idEntidad) === entId);
+            setFilteredSedes([{ idSede: "", nombre: "Selecciona Sede" }, ...filtered]);
         } else {
-            setFilteredSedes([]);
+            // Solo placeholder cuando no hay entidad seleccionada
+            setFilteredSedes([{ idSede: "", nombre: "Selecciona Sede" }]);
         }
     };
 
