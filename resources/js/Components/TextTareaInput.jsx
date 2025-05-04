@@ -10,7 +10,7 @@ export default function TextTareaInput({
     ...props
 }) {
     const baseClasses =
-        "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/30 sm:text-sm";
+        "block w-full border border-input rounded-md bg-white px-3 py-2.5 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-neutral-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 text-sm";
 
     return (
         <textarea
