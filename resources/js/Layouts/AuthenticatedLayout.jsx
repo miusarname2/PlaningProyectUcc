@@ -12,7 +12,7 @@ export default function Authenticated({ user, children }) {
 
     return (
         <div className="min-h-screen bg-gray-100 flex flex-col">
-            <nav className="bg-white border-b">
+            <nav className="bg-white border-b border-stone-200">
                 <div className="h-[60px] h-14 mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-[60px] items-center">
                         <div className="flex items-center">

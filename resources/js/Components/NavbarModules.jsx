@@ -4,7 +4,7 @@ import ButtonGradient from '@/Components/ButtonGradient';
 
 export default function NavbarModules({ title, backTo = '/', exitTo = '/', exitText = 'Exit' }) {
     return (
-        <nav className="bg-white border-b">
+        <nav className="bg-white ">
             <div className="h-[60px] mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-[60px] items-center">
                     <div className="flex items-center gap-4">
