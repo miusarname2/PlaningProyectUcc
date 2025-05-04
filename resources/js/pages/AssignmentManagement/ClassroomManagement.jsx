@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalClassroom from '@/Pages/ClassroomManagement/PrincipalClassroom';
+import PrincipalClassroom from '@/pages/ClassroomManagement/PrincipalClassroom';
 import { Head } from '@inertiajs/react';
 
 export default function ClassroomManagement({ auth }) {
