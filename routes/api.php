@@ -27,10 +27,10 @@ Route::get('/user', function (Request $request) {
 Route::post('login', [UsuarioController::class, 'login']);
 Route::post('register', [UsuarioController::class, 'store']);
 
+Route::get('user/search', [UsuarioController::class, 'search']);
 Route::middleware(['auth:sanctum', 'throttle:search'])
     ->withoutMiddleware('throttle:api')
     ->group(function () {
-        Route::get('user/search', [UsuarioController::class, 'search']);
         Route::get('ciudad/search', [CiudadController::class, 'search']);
         Route::get('curso/search', [CursoController::class, 'search']);
         Route::get('entidad/search', [EntidadController::class, 'search']);
