@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalProfessonalsManagement from '@/Pages/SpacialityAndProfessionals/PrincipalProfessonalsManagement';
+import PrincipalProfessonalsManagement from '@/pages/SpacialityAndProfessionals/PrincipalProfessonalsManagement';
 import { Head } from '@inertiajs/react';
 
 export default function PrincipalProfessonals({ auth }) {

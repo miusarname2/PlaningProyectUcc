@@ -5,7 +5,7 @@ import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import ContainerShowData from "@/Components/ContainerShowData";
-import SitiesForm from "@/Pages/SitesAndEntities/SitiesForm";
+import SitiesForm from "@/pages/SitesAndEntities/SitiesForm";
 import { ExternalLink, Pencil, Trash2 } from "lucide-react";
 import LinkConIcono from "@/Components/LinkConIcono";
 

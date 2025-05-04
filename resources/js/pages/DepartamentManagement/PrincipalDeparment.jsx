@@ -3,7 +3,7 @@ import InputSearch from "@/Components/InputSearch";
 import DataTable from "@/Components/DataTable";
 import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
-import DeparmentForm from "@/Pages/DepartamentManagement/DeparmentForm";
+import DeparmentForm from "@/pages/DepartamentManagement/DeparmentForm";
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [

@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalProccess from '@/Pages/ProccessManagement/PrincipalProccess';
+import PrincipalProccess from '@/pages/ProccessManagement/PrincipalProccess';
 import { Head } from '@inertiajs/react';
 
 export default function ProccessManagement({ auth }) {

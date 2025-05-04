@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalUserRole from '@/Pages/UsersRoleManagement/PrincipalUserRole';
+import PrincipalUserRole from '@/pages/UsersRoleManagement/PrincipalUserRole';
 import { Head } from '@inertiajs/react';
 
 export default function UsersRoleManagement({ auth }) {

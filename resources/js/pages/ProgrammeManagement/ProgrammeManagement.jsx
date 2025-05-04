@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalProgramme from '@/Pages/ProgrammeManagement/PrincipalProgramme';
+import PrincipalProgramme from '@/pages/ProgrammeManagement/PrincipalProgramme';
 import { Head } from '@inertiajs/react';
 
 export default function ProgrammeManagement({ auth }) {

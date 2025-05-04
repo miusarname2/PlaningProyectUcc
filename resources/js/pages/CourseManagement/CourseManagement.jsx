@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalCourse from '@/Pages/CourseManagement/PrincipalCourse';
+import PrincipalCourse from '@/pages/CourseManagement/PrincipalCourse';
 import { Head } from '@inertiajs/react';
 
 export default function CourseManagement({ auth }) {

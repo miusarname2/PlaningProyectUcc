@@ -4,7 +4,7 @@ import DataTable from "@/Components/DataTable";
 import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import ContainerShowData from "@/Components/ContainerShowData";
-import ProfileForm from "@/Pages/UsersRoleManagement/ProfileForm";
+import ProfileForm from "@/pages/UsersRoleManagement/ProfileForm";
 import { Pencil } from "lucide-react";
 const columns = [
     { title: "Nombre del Perfil", key: "nombre" },

@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalRegion from '@/Pages/RegionManagement/PrincipalRegion';
+import PrincipalRegion from '@/pages/RegionManagement/PrincipalRegion';
 import { Head } from '@inertiajs/react';
 
 export default function CityManagement({ auth }) {

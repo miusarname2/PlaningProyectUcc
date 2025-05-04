@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalClass from '@/Pages/ClassManagement/PrincipalClass';
+import PrincipalClass from '@/pages/ClassManagement/PrincipalClass';
 import { Head } from '@inertiajs/react';
 
 export default function ClassManagement({ auth }) {

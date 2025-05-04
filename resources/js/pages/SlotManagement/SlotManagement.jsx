@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalRol from '@/Pages/SlotManagement/PrincipalSlot';
+import PrincipalRol from '@/pages/SlotManagement/PrincipalSlot';
 import { Head } from '@inertiajs/react';
 
 export default function SlotManagement({ auth }) {

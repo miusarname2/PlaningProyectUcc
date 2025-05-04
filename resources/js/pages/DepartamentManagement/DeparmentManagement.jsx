@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalDeparment from '@/Pages/DepartamentManagement/PrincipalDeparment';
+import PrincipalDeparment from '@/pages/DepartamentManagement/PrincipalDeparment';
 import { Head } from '@inertiajs/react';
 
 export default function CityManagement({ auth }) {

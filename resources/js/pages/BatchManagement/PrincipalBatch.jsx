@@ -5,7 +5,7 @@ import { getApi, formatFechaLocal } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import ContainerShowData from "@/Components/ContainerShowData";
-import BatchForm from "@/Pages/BatchManagement/BatchForm";
+import BatchForm from "@/pages/BatchManagement/BatchForm";
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [

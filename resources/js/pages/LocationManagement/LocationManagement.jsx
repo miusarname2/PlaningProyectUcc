@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalLocation from '@/Pages/LocationManagement/PrincipalLocation';
+import PrincipalLocation from '@/pages/LocationManagement/PrincipalLocation';
 import { Head } from '@inertiajs/react';
 
 export default function LocationManagement({ auth }) {

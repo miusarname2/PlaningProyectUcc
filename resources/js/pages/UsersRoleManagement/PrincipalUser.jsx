@@ -4,7 +4,7 @@ import DataTable from "@/Components/DataTable";
 import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
-import UserForm from "@/Pages/UsersRoleManagement/UserForm";
+import UserForm from "@/pages/UsersRoleManagement/UserForm";
 import { Pencil, Trash2, UserX, UserCheck } from "lucide-react";
 import { filtered } from "@/Components/SideBar";
 const columns = [

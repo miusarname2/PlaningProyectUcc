@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalSitiesEntities from '@/Pages/SitesAndEntities/PrincipalSitiesEntities';
+import PrincipalSitiesEntities from '@/pages/SitesAndEntities/PrincipalSitiesEntities';
 import { Head } from '@inertiajs/react';
 
 export default function SitesAndEntities({ auth }) {

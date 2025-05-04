@@ -4,7 +4,7 @@ import DataTable from "@/Components/DataTable";
 import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
-import CityForm from "@/Pages/CityManagement/CityForm";
+import CityForm from "@/pages/CityManagement/CityForm";
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [

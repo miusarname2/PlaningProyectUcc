@@ -5,7 +5,7 @@ import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import ContainerShowData from "@/Components/ContainerShowData";
-import ProccessForm from "@/Pages/ProccessManagement/ProccessForm";
+import ProccessForm from "@/pages/ProccessManagement/ProccessForm";
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [

@@ -5,7 +5,7 @@ import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import ContainerShowData from "@/Components/ContainerShowData";
-import ProfessonalForm from "@/Pages/SpacialityAndProfessionals/ProfessonalForm";
+import ProfessonalForm from "@/pages/SpacialityAndProfessionals/ProfessonalForm";
 import LinkConIcono from "@/Components/LinkConIcono";
 import { ExternalLink, Pencil, Trash2 } from "lucide-react";
 

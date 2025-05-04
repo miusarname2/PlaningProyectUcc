@@ -5,7 +5,7 @@ import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import { Badge } from "@/Components/Badge";
 import ContainerShowData from "@/Components/ContainerShowData";
-import ClassroomForm from "@/Pages/ClassroomManagement/ClassroomForm";
+import ClassroomForm from "@/pages/ClassroomManagement/ClassroomForm";
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [

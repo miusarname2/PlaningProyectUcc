@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalSpacialityManagement from '@/Pages/SpacialityAndProfessionals/PrincipalSpacialityManagement';
+import PrincipalSpacialityManagement from '@/pages/SpacialityAndProfessionals/PrincipalSpacialityManagement';
 import { Head } from '@inertiajs/react';
 
 export default function PrincipalSpacialyty({ auth }) {

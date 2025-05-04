@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalSpacialityProfessionals from '@/Pages/SpacialityAndProfessionals/PrincipalSpacialityProfessionals';
+import PrincipalSpacialityProfessionals from '@/pages/SpacialityAndProfessionals/PrincipalSpacialityProfessionals';
 import { Head } from '@inertiajs/react';
 
 export default function SpacialityAndProfessionals({ auth }) {

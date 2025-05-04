@@ -1,5 +1,5 @@
 import ModulesLayout from "@/Layouts/ModulesLayout";
-import PrincipalShedule from "@/Pages/SheduleManagement/PrincipalShedule";
+import PrincipalShedule from "@/pages/SheduleManagement/PrincipalShedule";
 import { Head } from "@inertiajs/react";
 import HeaderSchedule from "@/Components/HeaderSchedule"
 import { getApi } from "@/utils/generalFunctions";

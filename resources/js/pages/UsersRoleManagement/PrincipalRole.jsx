@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import RolesList from "@/Components/RolesList";
 import RolePlaceHolder from "@/Components/RolePlaceHolder";
-import RoleForm from "@/Pages/UsersRoleManagement/RoleForm";
+import RoleForm from "@/pages/UsersRoleManagement/RoleForm";
 import { UserCog } from "lucide-react";
 import { getApi } from "@/utils/generalFunctions";
 

@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalCountry from '@/Pages/CountryManagement/PrincipalCountry';
+import PrincipalCountry from '@/pages/CountryManagement/PrincipalCountry';
 import { Head } from '@inertiajs/react';
 
 export default function CountryManagement({ auth }) {

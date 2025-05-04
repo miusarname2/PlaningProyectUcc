@@ -1,6 +1,6 @@
 import { filtered } from '@/Components/SideBar';
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalUser from '@/Pages/UsersRoleManagement/PrincipalUser';
+import PrincipalUser from '@/pages/UsersRoleManagement/PrincipalUser';
 import { RouteGuard } from '@/utils/RouteGuard';
 import { Head } from '@inertiajs/react';
 

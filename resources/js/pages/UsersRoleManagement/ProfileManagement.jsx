@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalProfile from '@/Pages/UsersRoleManagement/PrincipalProfile';
+import PrincipalProfile from '@/pages/UsersRoleManagement/PrincipalProfile';
 import { Head } from '@inertiajs/react';
 
 export default function ProfileManagement({ auth }) {

@@ -5,7 +5,7 @@ import { getApi, formatFechaLocal } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import ContainerShowData from "@/Components/ContainerShowData";
-import SlotForm from "@/Pages/SlotManagement/SlotForm";
+import SlotForm from "@/pages/SlotManagement/SlotForm";
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [

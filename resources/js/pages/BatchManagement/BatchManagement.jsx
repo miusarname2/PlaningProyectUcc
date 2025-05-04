@@ -1,5 +1,5 @@
 import ModulesLayout from '@/Layouts/ModulesLayout';
-import PrincipalBatch from '@/Pages/BatchManagement/PrincipalBatch';
+import PrincipalBatch from '@/pages/BatchManagement/PrincipalBatch';
 import { Head } from '@inertiajs/react';
 
 export default function BatchManagement({ auth }) {
