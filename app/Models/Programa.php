@@ -16,16 +16,9 @@ class Programa extends Model
         'codigo',
         'nombre',
         'descripcion',
-        'duracion',
-        'idEspecialidad',
         'estado'
     ];
 
-    // Un programa pertenece a una especialidad
-    public function especialidad()
-    {
-        return $this->belongsTo(Especialidad::class, 'idEspecialidad', 'idEspecialidad');
-    }
 
     public function lotes()
     {

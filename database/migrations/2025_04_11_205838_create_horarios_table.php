@@ -16,7 +16,8 @@ return new class extends Migration
             $table->unsignedInteger('idCurso');
             $table->unsignedInteger('idProfesional');
             $table->unsignedInteger('idAula')->nullable();
-            $table->unsignedInteger('idFranjaHoraria')->nullable();
+            $table->time('hora_inicio');
+            $table->time('hora_fin');
             $table->enum('dia', ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']);
             $table->timestamps();
         
@@ -33,11 +34,6 @@ return new class extends Migration
             // FK a aula, con SET NULL al borrar el aula
             $table->foreign('idAula')
                   ->references('idAula')->on('aula')
-                  ->onDelete('set null');
-        
-            // FK a franja_horaria, con SET NULL al borrar la franja
-            $table->foreign('idFranjaHoraria')
-                  ->references('idFranjaHoraria')->on('franja_horaria')
                   ->onDelete('set null');
         });
         

@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('curso', function (Blueprint $table) {
             $table->increments('idCurso');
-            $table->string('codigo', 20)->unique();
+            $table->string('codigo', 26)->unique();
+            $table->string('codigoGrupo', 30)->nullable();
             $table->string('nombre', 100);
             $table->text('descripcion')->nullable();
+            $table->enum('nivel', ['Avanzado', 'Intermedio', 'Basico'])->nullable();
+            $table->unsignedInteger('cohorte')->nullable();
             $table->integer('creditos')->unsigned();
             $table->integer('horas')->unsigned();
             $table->enum('estado', ['Activo', 'Inactivo']);

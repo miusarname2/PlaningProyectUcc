@@ -4,8 +4,8 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Laravel\Sanctum\PersonalAccessToken;
+use Symfony\Component\HttpFoundation\Response;
 
 class VerifyToken
 {
@@ -16,27 +16,23 @@ class VerifyToken
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // 1) Extraer el token del header Authorization
+        // 1) Extraer token Bearer
         $token = $request->bearerToken();
         if (! $token) {
-            return response()->json([
-                'error' => 'Token no proporcionado'
-            ], 401);
+            return response()->json(['error' => 'Token no proporcionado'], 401);
         }
 
-        // 2) Buscar el token en la tabla personal_access_tokens
+        // 2) Validar en personal_access_tokens
         $accessToken = PersonalAccessToken::findToken($token);
         if (! $accessToken) {
-            return response()->json([
-                'error' => 'Token inválido o expirado'
-            ], 401);
+            return response()->json(['error' => 'Token inválido o expirado'], 401);
         }
 
-        // 3) Resolver el usuario asociado al token
+        // 3) Resolver usuario asociado
         $user = $accessToken->tokenable;
         $request->setUserResolver(fn() => $user);
 
-        // 4) Continuar con la petición (equivalente a auth:sanctum)
+        // 4) Continuar con la petición
         return $next($request);
     }
 }

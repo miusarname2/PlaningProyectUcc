@@ -22,15 +22,4 @@ class Profesional extends Model
         'perfil'
     ];
 
-    // Relación muchos a muchos con Especialidad
-    public function especialidades()
-    {
-        return $this->belongsToMany(
-            Especialidad::class,
-            'profesional_especialidad',
-            'idProfesional',
-            'idEspecialidad'
-        );
-    }
-
 }

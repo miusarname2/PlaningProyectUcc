@@ -15,12 +15,24 @@ class Curso extends Model
 
     protected $fillable = [
         'codigo',
+        'codigoGrupo',
         'nombre',
         'descripcion',
+        'nivel',
+        'cohorte',
         'creditos',
         'horas',
         'estado'
     ];
+
+    protected $casts = [
+        'cohorte'   => 'integer',
+        'creditos'  => 'integer',
+    ];
+
+    public const NIVELES = ['Avanzado', 'Intermedio', 'Basico'];
+
+    public const ESTADOS = ['Activo', 'Inactivo'];
 
     // Relación muchos a muchos con Programa
     public function programas()
@@ -28,11 +40,6 @@ class Curso extends Model
         return $this->belongsToMany(Programa::class, 'curso_programa', 'idCurso', 'idPrograma');
     }
 
-    // Relación muchos a muchos con Especialidad
-    public function especialidades()
-    {
-        return $this->belongsToMany(Especialidad::class, 'curso_especialidad', 'idCurso', 'idEspecialidad');
-    }
 
     // Relación uno a muchos con Horario
     public function horarios()

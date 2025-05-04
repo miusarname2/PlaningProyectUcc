@@ -287,66 +287,81 @@ class HorarioController extends Controller
         }
     }
 
-
     public function exportXls()
     {
-        // 1) Carga de datos
-        $horarios = Horario::with(['curso', 'profesional', 'aula.sede', 'FranjaHoraria'])->get();
+        // 1) Carga de datos con relaciones
+        $horarios = Horario::with(['curso', 'profesional', 'aula.sede'])
+            ->orderBy('hora_inicio')
+            ->get();
 
-        // 2) Definir días y franjas
-        $dias   = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
-        $franjas = FranjaHoraria::orderBy('horaInicio')->get();
+        // 2) Definir días de la semana
+        $dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
-        // 3) Mapear datos [“HH:MM – HH:MM”][“Día”] => texto
+        // 3) Construir lista única de franjas (hora_inicio–hora_fin)
+        $franjas = $horarios
+            ->map(fn($h) => sprintf(
+                '%s - %s',
+                $h->hora_inicio->format('H:i'),
+                $h->hora_fin->format('H:i')
+            ))
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        // 4) Mapear [“HH:MM–HH:MM”][“Día”] => texto
         $map = [];
         foreach ($horarios as $h) {
-            $keyF = $h->FranjaHoraria->horaInicio . ' - ' . $h->FranjaHoraria->horaFin;
+            $keyF = sprintf(
+                '%s - %s',
+                $h->hora_inicio->format('H:i'),
+                $h->hora_fin->format('H:i')
+            );
             $map[$keyF][$h->dia] = sprintf(
-                "%s (Aula %s)\n%s",
+                '%s (Aula %s)%s%s',
                 $h->curso->codigo,
                 $h->aula->codigo,
+                PHP_EOL,
                 $h->aula->sede->nombre
             );
         }
 
-        // 4) Crear la hoja de cálculo
+        // 5) Crear y poblar spreadsheet
         $spreadsheet = new Spreadsheet();
         $sheet       = $spreadsheet->getActiveSheet();
 
-        // 5) Encabezados: A1 = “HORAS”, B1…F1 = días
+        // 5.1) Encabezados
         $sheet->setCellValue('A1', 'HORAS');
         foreach ($dias as $i => $dia) {
-            // Convertir índice numérico a letra (1=A, 2=B, …)
-            $colLetter = Coordinate::stringFromColumnIndex($i + 2);
-            $sheet->setCellValue("{$colLetter}1", $dia);  // sin métodos depredados :contentReference[oaicite:3]{index=3}
+            $col = Coordinate::stringFromColumnIndex($i + 2);
+            $sheet->setCellValue("{$col}1", $dia);
         }
 
-        // 6) Filas por cada franja
+        // 5.2) Filas de franjas
         $row = 2;
-        foreach ($franjas as $franja) {
-            $label = $franja->horaInicio . ' - ' . $franja->horaFin;
+        foreach ($franjas as $label) {
             $sheet->setCellValue("A{$row}", $label);
-
             foreach ($dias as $i => $dia) {
-                $colLetter = Coordinate::stringFromColumnIndex($i + 2);
+                $col = Coordinate::stringFromColumnIndex($i + 2);
                 if (! empty($map[$label][$dia])) {
-                    $sheet->setCellValue("{$colLetter}{$row}", $map[$label][$dia]);
-                    // fondo verde suave para celdas con datos
-                    $sheet->getStyle("{$colLetter}{$row}")
+                    $sheet->setCellValue("{$col}{$row}", $map[$label][$dia]);
+                    // fondo verde suave
+                    $sheet->getStyle("{$col}{$row}")
                         ->getFill()
                         ->setFillType(Fill::FILL_SOLID)
-                        ->getStartColor()->setRGB('C6EFCE');
+                        ->getStartColor()
+                        ->setRGB('C6EFCE');
                 }
             }
             $row++;
         }
 
-        // 7) Auto–ajustar ancho de columnas
+        // 6) Auto-ajustar anchos
         foreach (range('A', $sheet->getHighestColumn()) as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // 8) Generar XLS en memoria y codificar a Base64
+        // 7) Generar XLS y devolver Base64
         $writer = new Xls($spreadsheet);
         ob_start();
         $writer->save('php://output');
