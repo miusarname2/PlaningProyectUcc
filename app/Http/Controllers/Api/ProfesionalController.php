@@ -16,8 +16,8 @@ class ProfesionalController extends Controller
      */
     public function index()
     {
-        $profesional = Profesional::with("especialidades")->get();
-        return response()->json($profesional);
+        $profesionales = Profesional::all();
+        return response()->json($profesionales);
     }
 
     /**
@@ -45,12 +45,6 @@ class ProfesionalController extends Controller
 
         $profesional = Profesional::create($validatedData);
 
-        if ($request->has('especialidades')) {
-            $profesional->especialidades()->sync($validatedData['especialidades']);
-        }
-
-        $profesional->load('especialidades');
-
         return response()->json($profesional, 201);
     }
 
@@ -59,7 +53,7 @@ class ProfesionalController extends Controller
      */
     public function show(string $id)
     {
-        $profesional = Profesional::with("especialidades")->findOrFail($id);
+        $profesional = Profesional::findOrFail($id);
         return response()->json($profesional);
     }
 
@@ -83,13 +77,7 @@ class ProfesionalController extends Controller
         );
 
         $profesional->update($validatedData);
-
-        if ($request->has('especialidades')) {
-            $profesional->especialidades()->sync($validatedData['especialidades']);
-        }
-
-        $profesional->load('especialidades');
-
+        
         return response()->json($profesional);
     }
 

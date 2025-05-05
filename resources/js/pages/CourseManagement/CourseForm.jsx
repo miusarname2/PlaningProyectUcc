@@ -124,6 +124,20 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
             <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Codigo */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="codigo" value="codigo" />
+                            <TextInput
+                                id="codigo"
+                                name="codigo"
+                                value={formData.codigo}
+                                onChange={handleChange}
+                                placeholder="Ingrese el codigo del curso"
+                                required
+                                error={errors.nombre}
+                            />
+                        </div>
+
                         {/* Nombre */}
                         <div className="space-y-2">
                             <InputLabel htmlFor="nombre" value="Nombre" />
@@ -137,7 +151,9 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                                 error={errors.nombre}
                             />
                         </div>
+
                     </div>
+
 
                     {/* Descripción */}
                     <div className="space-y-2">

@@ -55,7 +55,7 @@ export default function PrincipalProfessonalsManagement() {
     }
 
     async function handleDelete(row) {
-        if (!confirm(`¿Estás seguro de eliminar el profesional: "${row.nombre}"?`)) return;
+        if (!confirm(`¿Estás seguro de eliminar el profesional: "${row.nombreCompleto}"?`)) return;
 
         try {
             await api.delete(`/profesional/${row.id}`);

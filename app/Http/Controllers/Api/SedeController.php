@@ -41,7 +41,7 @@ class SedeController extends Controller
                 'acceso'                  => 'required|string',
                 'idCiudad'                => 'required|integer|exists:ciudad,idCiudad',
                 'idEntidadPropietaria'    => 'required|integer|exists:entidad,idEntidad',
-                'entidades_prestatarias'  => 'required|array|min:1',
+                'entidades_prestatarias'  => 'present|array',
                 'entidades_prestatarias.*.idEntidad'      => 'required|integer|exists:entidad,idEntidad',
                 'entidades_prestatarias.*.fechaInicio'    => 'required|date',
                 'entidades_prestatarias.*.fechaFin'       => 'required|date|after_or_equal:entidades_prestatarias.*.fechaInicio',

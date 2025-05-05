@@ -19,7 +19,7 @@ class CursoController extends Controller
      */
     public function index()
     {
-        $cursos = Curso::with(['programas', 'especialidades'])->get();
+        $cursos = Curso::with(['programas'])->get();
         return response()->json($cursos);
     }
 
@@ -38,8 +38,6 @@ class CursoController extends Controller
                 'estado' => 'required|in:Activo,Inactivo',
                 'programas'       => 'sometimes|array',
                 'programas.*'     => 'integer|exists:programa,idPrograma',
-                'especialidades'  => 'sometimes|array',
-                'especialidades.*' => 'integer|exists:especialidad,idEspecialidad'
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -59,15 +57,11 @@ class CursoController extends Controller
                 $curso->programas()->sync($validateData['programas']);
             }
 
-            if (! empty($validateData['especialidades'])) {
-                $curso->especialidades()->sync($validateData['especialidades']);
-            }
-
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'curso'   => $curso->load('programas', 'especialidades')
+                'curso'   => $curso->load('programas')
             ], 201);
 
             // Si se envían programas, sincronizamos la relación
@@ -114,9 +108,7 @@ class CursoController extends Controller
             'horas' => "sometimes|required|numeric",
             'estado' => 'sometimes|required|in:Activo,Inactivo',
             'programas'       => 'sometimes|array',
-            'programas.*'     => 'integer|exists:programa,idPrograma',
-            'especialidades'  => 'sometimes|array',
-            'especialidades.*' => 'integer|exists:especialidad,idEspecialidad',
+            'programas.*'     => 'integer|exists:programa,idPrograma'
         ]);
 
         try {
@@ -131,17 +123,12 @@ class CursoController extends Controller
                 $curso->programas()->sync($validateData['programas']);
             }
 
-            // 5. Sincronizar especialidades
-            if (array_key_exists('especialidades', $validateData)) {
-                $curso->especialidades()->sync($validateData['especialidades']);
-            }
-
             DB::commit();
 
             // 6. Devolver el curso con sus relaciones cargadas
             return response()->json([
                 'success' => true,
-                'curso'   => $curso->load('programas', 'especialidades')
+                'curso'   => $curso->load('programas')
             ], 200);
         } catch (ValidationException $e) {
             DB::rollBack();
@@ -234,9 +221,8 @@ class CursoController extends Controller
 
         // Incluimos las relaciones definidas en el modelo Curso:
         // - 'programas' para la relación muchos a muchos con Programa
-        // - 'especialidades' para la relación muchos a muchos con Especialidad
         // - 'horarios' para la relación uno a muchos con Horario
-        $query->with(['programas', 'especialidades', 'horarios']);
+        $query->with(['programas', 'horarios']);
 
         try {
             // Se recomienda paginar los resultados para evitar sobrecargar la respuesta

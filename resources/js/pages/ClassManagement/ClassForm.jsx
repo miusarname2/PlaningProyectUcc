@@ -157,7 +157,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                         <div className="space-y-2">
                             <InputLabel htmlFor="dia" value="Día" />
                             <SelectInput id="dia" name="dia" value={formData.dia} onChange={handleChange}
-                                options={days.map(d => ({ value: d, label: d }))}
+                                options={[{ value: '', label: 'Seleccione Día.' }, ...days.map(d => ({ value: d, label: d }))]}
                                 required error={errors.dia} />
                         </div>
 
