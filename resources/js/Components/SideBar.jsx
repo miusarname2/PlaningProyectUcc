@@ -124,7 +124,7 @@ export default function SideBar({ isOpen, onClose }) {
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 bg-black bg-opacity-40 z-30 md:hidden"
+          className="fixed inset-0 bg-stone-500/30 z-30 md:hidden"
         />
       )}
 
