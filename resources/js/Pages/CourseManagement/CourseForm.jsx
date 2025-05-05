@@ -24,10 +24,6 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
         horas: initialData?.horas ?? "",
         estado: initialData?.estado || "Activo",
         codigo: initialData?.codigo || "",
-        // Map initialData.especialidades to IDs
-        especialidades: initialData?.especialidades
-            ? [initialData.especialidades[0].idEspecialidad]
-            : [],
         // Map initialData.programas to array of IDs
         selectedPrograms: initialData?.programas
             ? initialData.programas.map(p => p.idPrograma)
@@ -91,7 +87,6 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
             creditos: Number(formData.creditos),
             horas: Number(formData.horas),
             estado: formData.estado,
-            especialidades: formData.especialidades,
             programas: formData.selectedPrograms
         };
 
@@ -140,22 +135,6 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                                 placeholder="Ingrese el nombre del curso"
                                 required
                                 error={errors.nombre}
-                            />
-                        </div>
-                        {/* Especialidad */}
-                        <div className="space-y-2">
-                            <InputLabel htmlFor="especialidad" value="Especialidad" />
-                            <SelectInput
-                                id="especialidad"
-                                name="especialidades"
-                                value={formData.especialidades[0] || ""}
-                                onChange={e => setFormData(prev => ({ ...prev, especialidades: [parseInt(e.target.value, 10)] }))}
-                                options={[
-                                    { value: "", label: "Seleccionar Especialidad" },
-                                    ...specialties.map(s => ({ value: s.idEspecialidad, label: s.nombre }))
-                                ]}
-                                required
-                                error={errors.especialidades}
                             />
                         </div>
                     </div>

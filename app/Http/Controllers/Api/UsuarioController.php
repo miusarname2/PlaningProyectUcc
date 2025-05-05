@@ -22,7 +22,7 @@ class UsuarioController extends Controller
     public function index()
     {
         try {
-            $usuarios = Usuario::with(['roles','usuarioPerfil','usuarioPerfil.perfil'])->get();
+            $usuarios = Usuario::with(['roles', 'usuarioPerfil', 'usuarioPerfil.perfil'])->get();
             return response()->json($usuarios);
         } catch (Exception $e) {
             return response()->json([
@@ -93,7 +93,7 @@ class UsuarioController extends Controller
             $validatedData['password'] = Hash::make($validatedData['password']);
         }
 
-        $usuario->load(['usuarioPerfil','roles']);
+        $usuario->load(['usuarioPerfil', 'roles']);
 
         $usuario->update($validatedData);
         return response()->json($usuario);
@@ -177,7 +177,7 @@ class UsuarioController extends Controller
             'email'         => 'nullable|max:255',
             'estado'        => 'nullable|string|max:50',
             'password'      => 'nullable|string|max:255',
-            'nombreCompleto'=> 'nullable|string|max:255'
+            'nombreCompleto' => 'nullable|string|max:255'
         ]);
 
         if ($validator->fails()) {
@@ -233,6 +233,5 @@ class UsuarioController extends Controller
                 'mensaje' => 'Error interno del servidor.'
             ], 500);
         }
-
     }
 }

@@ -9,15 +9,9 @@ import ProgrammeForm from "@/Pages/ProgrammeManagement/ProgrammeForm";
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [
-    { title: "ID", key: "codigo" },
+    { title: "Sigla", key: "codigo" },
     { title: "Nombre", key: "nombre" },
     { title: "Descripción", key: "descripcion" },
-    {
-        title: "Duración",
-        key: "duracion",
-        render: (value, row) => `${value} MInutos`,
-    },
-    { title: "Especialidad", key: "especialidad" },
     { title: "Lotes", key: "cantidadLotes" },
     { title: "Cursos", key: "cantidadCursos" },
     {
@@ -87,8 +81,6 @@ export default function PrincipalProgramme() {
                 descripcion: program.descripcion ?? "",
                 cantidadLotes: program.lotes?.length ?? 0,
                 cantidadCursos: program.cursos?.length ?? 0,
-                especialidad: program.especialidad?.nombre ?? "N/A",
-                idEspecialidad: program.idEspecialidad ?? "N/A",
                 duracion: program.duracion ?? 0,
                 codigo: program.codigo ?? "",
             }));

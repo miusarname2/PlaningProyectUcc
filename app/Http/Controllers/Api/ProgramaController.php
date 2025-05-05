@@ -31,8 +31,7 @@ class ProgramaController extends Controller
                 'codigo'        => 'required|string|max:255',
                 'nombre'        => 'required|string|max:255',
                 'descripcion'   => 'nullable|string',
-                'duracion'      => 'required|string|max:255',
-                'idEspecialidad' => 'required|integer|exists:especialidad,idEspecialidad',
+                'duracion'      => 'required|int',
                 'estado'        => 'required|string'
             ]);
         } catch (ValidationException $e) {
@@ -44,7 +43,6 @@ class ProgramaController extends Controller
         }
 
         $programa = Programa::create($validatedData);
-        $programa->load('especialidad');
         return response()->json($programa, 201);
     }
 
@@ -68,7 +66,7 @@ class ProgramaController extends Controller
             'codigo'        => 'sometimes|required|string|max:255',
             'nombre'        => 'sometimes|required|string|max:255',
             'descripcion'   => 'sometimes|nullable|string',
-            'duracion'      => 'sometimes|required|string|max:255',
+            'duracion'      => 'sometimes|required|int',
             'idEspecialidad' => 'sometimes|required|integer|exists:especialidad,idEspecialidad',
             'estado'        => 'sometimes|required|string'
         ]);

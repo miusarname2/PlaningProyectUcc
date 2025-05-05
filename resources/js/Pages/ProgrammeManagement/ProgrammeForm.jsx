@@ -18,7 +18,6 @@ export default function ProgrammeForm({ onCancel, initialData = null, onSubmitSu
         descripcion: initialData?.descripcion || "",
         duration: initialData?.duration || "",
         durationUnit: initialData?.durationUnit || "months",
-        idEspecialidad: initialData?.idEspecialidad || "",
         estado: initialData?.estado || "Activo",
         duracion: initialData?.duracion || 0,
         codigo: initialData?.codigo ,
@@ -80,13 +79,13 @@ export default function ProgrammeForm({ onCancel, initialData = null, onSubmitSu
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {!isEditMode && (
                                 <div className="space-y-2">
-                                    <InputLabel htmlFor="id" value="Identificación del programa" />
+                                    <InputLabel htmlFor="id" value="Sigla del programa" />
                                     <TextInput
                                         id="id"
                                         name="codigo"
                                         value={formData.codigo}
                                         onChange={handleChange}
-                                        placeholder="Introduzca el codigo del programa"
+                                        placeholder="Introduzca la sigla del programa"
                                         required
                                     />
                                 </div>
@@ -113,51 +112,6 @@ export default function ProgrammeForm({ onCancel, initialData = null, onSubmitSu
                                     onChange={handleChange}
                                     placeholder="Introduzca la descripción del programa..."
                                     rows={3}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <InputLabel htmlFor="duration" value="Duración" />
-                                <TextInput
-                                    id="duration"
-                                    name="duracion"
-                                    type="number"
-                                    value={formData.duracion}
-                                    onChange={handleChange}
-                                    placeholder="Ej: 12"
-                                    required
-                                />
-                            </div>
-
-                            {/* <div className="space-y-2">
-                                <InputLabel htmlFor="durationUnit" value="Unidad de duración" />
-                                <SelectInput
-                                    id="durationUnit"
-                                    name="durationUnit"
-                                    value={formData.durationUnit}
-                                    onChange={handleChange}
-                                    options={[
-                                        { value: "days", label: "Días" },
-                                        { value: "weeks", label: "Semanas" },
-                                        { value: "months", label: "Meses" },
-                                        { value: "years", label: "Años" },
-                                    ]}
-                                    required
-                                />
-                            </div> */}
-
-                            <div className="space-y-2">
-                                <InputLabel htmlFor="specialtyId" value="Especialidad" />
-                                <SelectInput
-                                    id="specialtyId"
-                                    name="idEspecialidad"
-                                    value={formData.idEspecialidad}
-                                    onChange={handleChange}
-                                    options={specialties.map((s) => ({
-                                        value: s.idEspecialidad,
-                                        label: s.nombre,
-                                    }))}
-                                    required
                                 />
                             </div>
 

@@ -28,17 +28,6 @@ const columns = [
         },
     },
     {
-        title: "Especialidad", key: "especialidades", render: (value) => {
-            return value.length > 0 ? (
-                <>
-                    {value.map((especialidad, idx) => (
-                        <Badge label={especialidad.nombre} key={idx} />
-                    ))}
-                </>
-            ) : <Badge label="Sin Especialidad" color="pink" />
-        },
-    },
-    {
         title: "Estado",
         key: "estado",
         render: (value) => <StatusBadge status={value} />,
