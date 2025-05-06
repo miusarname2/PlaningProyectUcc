@@ -12,6 +12,7 @@ import { ExternalLink, Pencil, Trash2 } from "lucide-react";
 const columns = [
     { title: "Id", key: "codigo" },
     { title: "Profesional", key: "nombreCompleto" },
+    { title: "Numero de identificacion", key: "identificacion" },
     { title: "Email", key: "email" },
     { title: "Cualificación", key: "titulo" },
     { title: "Experiencia(Años)", key: "experiencia" },
