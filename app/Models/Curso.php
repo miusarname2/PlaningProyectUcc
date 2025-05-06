@@ -21,6 +21,7 @@ class Curso extends Model
         'nivel',
         'cohorte',
         'creditos',
+        'modalidad',
         'horas',
         'estado'
     ];
@@ -31,6 +32,8 @@ class Curso extends Model
     ];
 
     public const NIVELES = ['Avanzado', 'Intermedio', 'Basico'];
+
+    public const MODALIDAD = ['Presencial','Virtual'];
 
     public const ESTADOS = ['Activo', 'Inactivo'];
 

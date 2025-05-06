@@ -22,7 +22,11 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
         descripcion: initialData?.descripcion || "",
         creditos: initialData?.creditos ?? "",
         horas: initialData?.horas ?? "",
-        estado: initialData?.estado || "Activo",
+        estado: initialData?.estado || "",
+        modalidad: initialData?.modalidad || "",
+        cohorte: initialData?.cohorte || "",
+        codigoGrupo: initialData?.codigoGrupo || "",
+        nivel: initialData?.nivel || "",
         codigo: initialData?.codigo || "",
         // Map initialData.programas to array of IDs
         selectedPrograms: initialData?.programas
@@ -82,22 +86,18 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
     const handleSubmit = async e => {
         e.preventDefault();
         const payload = {
+            codigo: formData.codigo,
             nombre: formData.nombre,
             descripcion: formData.descripcion,
             creditos: Number(formData.creditos),
             horas: Number(formData.horas),
             estado: formData.estado,
+            modalidad: formData.modalidad,
+            codigoGrupo: formData.codigoGrupo,
+            cohorte: formData.cohorte,
+            nivel: formData.nivel,
             programas: formData.selectedPrograms
         };
-
-        if (!isEditMode) {
-            payload.codigo = await generateCodigo();
-        }
-
-        // In edit mode keep existing code
-        if (isEditMode) {
-            payload.codigo = initialData.codigo;
-        }
 
         try {
             if (isEditMode) await api.put(`/curso/${initialData.idCurso}`, payload);
@@ -208,9 +208,66 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                                 name="estado"
                                 value={formData.estado}
                                 onChange={handleChange}
-                                options={[{ value: "Activo", label: "Activo" }, { value: "Inactivo", label: "Inactivo" }]}
+                                options={[{ value: "", label: "Seleccione el Estado" }, { value: "Activo", label: "Activo" }, { value: "Inactivo", label: "Inactivo" }]}
                                 required
                                 error={errors.estado}
+                            />
+                        </div>
+
+                        {/* Modalidad */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="modalidad" value="modalidad" />
+                            <SelectInput
+                                id="modalidad"
+                                name="modalidad"
+                                value={formData.modalidad}
+                                onChange={handleChange}
+                                options={[{ value: "", label: "Seleccione Modalidad" }, { value: "Presencial", label: "Presencial" }, { value: "Virtual", label: "Virtual" }]}
+                                required
+                                error={errors.modalidad}
+                            />
+                        </div>
+
+                        {/* Codigo grupo */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="codigoGrupo" value="Codigo del Grupo" />
+                            <TextInput
+                                id="codigoGrupo"
+                                name="codigoGrupo"
+                                value={formData.codigoGrupo}
+                                onChange={handleChange}
+                                placeholder="Ingrese el codigo del Grupo"
+                                required
+                                error={errors.nombre}
+                            />
+                        </div>
+
+                        {/* Cohorte */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="cohorte" value="cohorte" />
+                            <TextInput
+                                id="cohorte"
+                                name="cohorte"
+                                type="number"
+                                value={formData.cohorte}
+                                onChange={handleChange}
+                                placeholder="Ej: 3"
+                                required
+                                error={errors.cohorte}
+                            />
+                        </div>
+
+                        {/* Nivel */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="nivel" value="nivel" />
+                            <SelectInput
+                                id="nivel"
+                                name="nivel"
+                                value={formData.nivel}
+                                onChange={handleChange}
+                                options={[{ value: "", label: "Seleccione el Nivel" }, { value: "Avanzado", label: "Avanzado" }, { value: "Intermedio", label: "Intermedio" }, { value: "Basico", label: "Basico" }]}
+                                required
+                                error={errors.nivel}
                             />
                         </div>
                     </div>

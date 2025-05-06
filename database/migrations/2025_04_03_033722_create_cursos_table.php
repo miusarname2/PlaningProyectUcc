@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('codigoGrupo', 30)->nullable();
             $table->string('nombre', 100);
             $table->text('descripcion')->nullable();
+            $table->enum('modalidad', ['Presencial', 'Virtual'])->nullable();
             $table->enum('nivel', ['Avanzado', 'Intermedio', 'Basico'])->nullable();
             $table->unsignedInteger('cohorte')->nullable();
             $table->integer('creditos')->unsigned();
