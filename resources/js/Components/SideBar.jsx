@@ -117,7 +117,7 @@ let sections = [
 
 export const filtered = filterSectionsByPermissions(sections, permissionStrings, keywordMap, ['read', 'edit', 'create', 'delete', 'manage']);
 
-//sections = filtered;
+sections = filtered;
 export default function SideBar({ isOpen, onClose }) {
   return (
     <>
