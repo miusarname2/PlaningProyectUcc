@@ -27,7 +27,8 @@ class ProfesionalController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'codigo' => "required|string|max:100",
+                'codigo' => "required|string|max:20",
+                'identificacion' => "required|string|max:20",
                 'nombreCompleto' => "required|string|max:100",
                 'email' => "required|email|unique:profesional,email",
                 'titulo' => "required|string|max:200",
@@ -66,7 +67,8 @@ class ProfesionalController extends Controller
 
         $validatedData = $request->validate(
             [
-                'codigo'         => 'sometimes|required|string|max:255',
+                'codigo'         => 'sometimes|required|string|max:20',
+                'identificacion' => "sometimes|string|max:20",
                 'nombreCompleto' => 'sometimes|required|string|max:255',
                 'email'          => 'sometimes|required|email|unique:profesional,email,' . $id . ',idProfesional',
                 'titulo'         => 'sometimes|required|string|max:255',
@@ -77,7 +79,7 @@ class ProfesionalController extends Controller
         );
 
         $profesional->update($validatedData);
-        
+
         return response()->json($profesional);
     }
 
@@ -119,6 +121,10 @@ class ProfesionalController extends Controller
         // 3. Aplicamos filtros si vienen en la petición
         if ($request->filled('codigo')) {
             $query->where('codigo', 'like', '%' . trim($request->input('codigo')) . '%');
+        }
+
+        if ($request->filled('identificacion')) {
+            $query->where('identificacion', 'like', '%' . trim($request->input('identificacion')) . '%');
         }
 
         if ($request->filled('nombreCompleto')) {

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AulaController;
 use App\Http\Controllers\Api\CiudadController;
 use App\Http\Controllers\Api\CursoController;
+use App\Http\Controllers\Api\DiaController;
 use App\Http\Controllers\Api\EntidadController;
 use App\Http\Controllers\Api\EstadoController;
 use App\Http\Controllers\Api\HorarioController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Api\ProfesionalController;
 use App\Http\Controllers\Api\ProgramaController;
 use App\Http\Controllers\Api\RegionController;
 use App\Http\Controllers\Api\RolController;
+use App\Http\Controllers\Api\RolDocenteController;
 use App\Http\Controllers\Api\SedeController;
 use App\Http\Controllers\Api\UsuarioController;
 use App\Http\Controllers\Api\UsuarioPerfilController;
@@ -28,6 +30,7 @@ Route::post('login', [UsuarioController::class, 'login']);
 Route::post('register', [UsuarioController::class, 'store']);
 
 Route::get('user/search', [UsuarioController::class, 'search']);
+
 Route::middleware(['auth:sanctum', 'throttle:search'])
     ->withoutMiddleware('throttle:api')
     ->group(function () {
@@ -72,5 +75,6 @@ Route::middleware(['auth:sanctum', 'throttle:search'])
         Route::resource('usuarioPerfil', UsuarioPerfilController::class);
         Route::resource('aula', AulaController::class);
         Route::resource('estado', EstadoController::class);
+        Route::resource('rolDocente', RolDocenteController::class);
+        Route::resource('dia', DiaController::class);
     });
-    

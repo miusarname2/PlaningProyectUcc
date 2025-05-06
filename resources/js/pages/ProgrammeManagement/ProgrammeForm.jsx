@@ -55,20 +55,6 @@ export default function ProgrammeForm({ onCancel, initialData = null, onSubmitSu
         }
     };
 
-    // Obtener especialidades al cargar el formulario
-    useEffect(() => {
-        async function fetchSpecialties() {
-            try {
-                const response = await api.get("/especialidad");
-                setSpecialties(response.data);
-            } catch (error) {
-                console.error("Error fetching specialties:", error);
-            }
-        }
-
-        fetchSpecialties();
-    }, []);
-
     return (
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm border-gray-200">
             <div className="p-6">

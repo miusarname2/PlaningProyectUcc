@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('profesional', function (Blueprint $table) {
             $table->increments('idProfesional');
             $table->string('codigo', 20)->unique();
+            $table->string('identificacion', 20)->unique();
             $table->string('nombreCompleto', 200);
             $table->string('email', 100)->unique();
             $table->string('titulo', 100);

@@ -14,30 +14,24 @@ class Horario extends Model
 
     protected $fillable = [
         'idCurso',
-        'idProfesional',
-        'idAula',
-        'dia',
-        'hora_inicio',
-        'hora_fin',
-    ];
-
-    // Casteo de columnas de tiempo a instancias Carbon
-    protected $casts = [
-        'hora_inicio' => 'datetime:H:i:s',
-        'hora_fin'    => 'datetime:H:i:s',
+        'idAula'
     ];
 
 
-    // Relación: un horario pertenece a un curso
     public function curso()
     {
         return $this->belongsTo(Curso::class, 'idCurso', 'idCurso');
     }
 
-    // Relación: un horario pertenece a un profesional
-    public function profesional()
+    public function profesionales()
     {
-        return $this->belongsTo(Profesional::class, 'idProfesional', 'idProfesional');
+        return $this->belongsToMany(
+            Profesional::class,
+            'horario_profesional',
+            'idHorario',
+            'idProfesional'
+        )
+            ->withPivot('idRolDocente');
     }
 
     public function aula()
@@ -45,4 +39,14 @@ class Horario extends Model
         return $this->belongsTo(Aula::class, 'idAula', 'idAula');
     }
 
+    public function dias()
+    {
+        return $this->belongsToMany(
+            Dia::class,
+            'horario_dia',
+            'idHorario',
+            'idDia'
+        )
+            ->withPivot('hora_inicio', 'hora_fin');
+    }
 }

@@ -3,17 +3,42 @@ import InputSearch from "@/Components/InputSearch";
 import DataTable from "@/Components/DataTable";
 import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
-import StatusBadge from "@/Components/StatusBadge";
+import ContainerShowData from "@/Components/ContainerShowData";
 import ClassForm from "@/pages/ClassManagement/ClassForm";
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [
     { title: "Curso", key: "nombreCurso" },
-    { title: "Profesional/docente", key: "nombreProfesional" },
-    { title: "Aula", key: "aulaNombreCodigo"},
+    {
+        title: "Profesional/docente", key: "profesionales", render: (row) => {
+            console.log(row[0].rolDocente.nombre == "Ejecutor");
+            const ejecutor = row.filter((profesional) => profesional.rolDocente.nombre == "Ejecutor");
+            console.log(ejecutor)
+            if (ejecutor.length > 0) {
+                return ejecutor[0].nombreCompleto + " (Ejecutor)"
+            }
+            const mentor = row.filter((profesional) => profesional.rolDocente.nombre == "Mentor");
+            if (mentor.length > 0) {
+                return mentor[0].nombreCompleto + " (Mentor)"
+            }
+            const tutor = row.filter((profesional) => profesional.rolDocente.nombre == "Tutor");
+            if (tutor.length > 0) {
+                return tutor[0].nombreCompleto + " (Tutor)"
+            }
+        }
+    },
+    { title: "Aula", key: "aulaNombreCodigo" },
     { title: "Ciudad", key: "nombreCiudad" },
-    { title: "Rango horario", key: "RangoHorario" },
-    { title: "dia", key: "dia" },
+    {
+        title: "Rango horario", key: "dias", render: (row) =>
+            Array.isArray(row) && row.length > 0 ? (
+                row.map((r, idx) => (
+                    <ContainerShowData key={idx} text={`${r.nombre} ( ${r.pivot.hora_inicio} - ${r.pivot.hora_fin} )`} bg={"bg-stone-100"} colortext={"text-stone-800"}/>
+                ))
+            ) : (
+                <span className="text-gray-400 text-xs italic">Sin prestamos</span>
+            ),
+    },
 ];
 
 export default function PrincipalClass() {
@@ -46,17 +71,14 @@ export default function PrincipalClass() {
             const response = await api.get("/Horario");
             console.log(response);
             const transformed = response.data.map((horario) => {
-                console.log(horario);
+                console.log(horario.profesionales);
                 return {
                     ...horario,
                     id: horario.idHorario,
-                    nombreCiudad:horario?.aula?.sede?.ciudad?.nombre,
-                    nombreCurso:horario.curso.nombre,
-                    nombreProfesional:horario.profesional.nombreCompleto,
-                    aulaNombreCodigo:`(${horario.aula.codigo}) ${horario.aula.nombre}`,
-                    RangoHorario: `${horario.hora_inicio} - ${horario.hora_fin}`,
+                    nombreCiudad: horario?.aula?.sede?.ciudad?.nombre,
+                    nombreCurso: horario.curso.nombre,
+                    aulaNombreCodigo: `(${horario.aula.codigo}) ${horario.aula.nombre}`,
                     idCurso: horario.curso.idCurso,
-                    idProfesional: horario.profesional.idProfesional,
                     idSede: horario?.aula?.sede?.idSede,
                     idAula: horario.aula.idAula,
                 };

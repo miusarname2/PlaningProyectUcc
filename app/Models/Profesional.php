@@ -14,6 +14,7 @@ class Profesional extends Model
 
     protected $fillable = [
         'codigo',
+        'identificacion',
         'nombreCompleto',
         'email',
         'titulo',
@@ -22,4 +23,19 @@ class Profesional extends Model
         'perfil'
     ];
 
+    public function roles()
+    {
+        return $this->belongsToMany(RolDocente::class, 'profesional_rol', 'idProfesional', 'idRol');
+    }
+
+    public function horarios()
+    {
+        return $this->belongsToMany(
+            Horario::class,
+            'horario_profesional',
+            'idProfesional',
+            'idHorario'
+        )
+            ->withPivot('idRolDocente');
+    }
 }

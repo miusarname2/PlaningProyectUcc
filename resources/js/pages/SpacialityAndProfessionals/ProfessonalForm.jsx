@@ -19,6 +19,7 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
     const [formData, setFormData] = useState({
         nombreCompleto: initialData?.nombreCompleto || "",
         email: initialData?.email || "",
+        identificacion: initialData?.identificacion || "",
         titulo: initialData?.titulo || "",
         experiencia: parseInt(initialData?.experiencia) || "",
         estado: initialData?.estado || "Activo",
@@ -64,7 +65,7 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
         e.preventDefault();
         try {
             const payload = { ...formData };
-            
+
             if (isEditMode) {
                 await api.put(`/profesional/${initialData.id}`, payload);
             } else {
@@ -104,6 +105,19 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
                                 value={formData.nombreCompleto}
                                 onChange={handleChange}
                                 placeholder="Ingrese el nombre completo"
+                                required
+                            />
+                        </div>
+
+                        {/* Campo Identificacion */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="identificacion" value="identificacion" />
+                            <TextInput
+                                id="identificacion"
+                                name="identificacion"
+                                value={formData.identificacion}
+                                onChange={handleChange}
+                                placeholder="Ingrese su Documento de Identificacion"
                                 required
                             />
                         </div>
