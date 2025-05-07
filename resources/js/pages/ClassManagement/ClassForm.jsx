@@ -14,12 +14,10 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
     const api = getApi();
     const { toast } = useToast();
 
-    // Assumes initialData now represents the 'Class' entity, not just a single 'Horario'
-    const isEditMode = Boolean(initialData?.id); // Check for the class ID for edit mode
+    const isEditMode = Boolean(initialData?.id);
 
-    // Master lists
     const [courses, setCourses] = useState([]);
-    const [professionals, setProfessionals] = useState([]); // Full list of professionals
+    const [professionals, setProfessionals] = useState([]);
     const [rolesDocentes, setRolesDocentes] = useState([]);
     const [cities, setCities] = useState([]);
     const [sedes, setSedes] = useState([]);
@@ -29,10 +27,9 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
 
     // Form state - Adjusted for multiple professionals and multiple schedule slots
     const [formData, setFormData] = useState(() => {
-        // Transform initialData if it exists to match the new structure
         const initialProfessionals = initialData?.profesionales?.map(prof => ({
             idProfesional: prof.idProfesional,
-            role: String(prof.pivot.idRolDocente), // Adapt based on actual initialData structure
+            role: String(prof.pivot.idRolDocente),
         })) || [];
 
         const initialScheduleSlots = initialData?.dias?.map(slot => ({
@@ -43,29 +40,25 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
 
         return {
             idCurso: initialData?.idCurso || "",
-            // idProfesional is replaced by the array below
-            ciudad: "", // Derived
-            idSede: initialData?.idSede || "", // Can be derived from initialData?.idAula
+            ciudad: "",
+            idSede: initialData?.idSede || "",
             idAula: initialData?.idAula || "",
-            // dia, hora_inicio, hora_fin are replaced by the array below
 
-            // New fields for multiple professionals and schedules
-            selectedProfessionals: initialProfessionals, // Array of { idProfesional, role }
-            selectedScheduleSlots: initialScheduleSlots, // Array of { dia, hora_inicio, hora_fin }
+            selectedProfessionals: initialProfessionals,
+            selectedScheduleSlots: initialScheduleSlots,
         };
     });
 
-    // State for handling professional assignment (like selectedEntityForDates in SitiesForm)
-    const [professionalPendingRoleSelection, setProfessionalPendingRoleSelection] = useState(null); // { idProfesional, nombre }
-    const [selectedRoleForPendingProf, setSelectedRoleForPendingProf] = useState(''); // Role selected for the pending professional
+    const [professionalPendingRoleSelection, setProfessionalPendingRoleSelection] = useState(null);
+    const [selectedRoleForPendingProf, setSelectedRoleForPendingProf] = useState('');
 
-    const [errors, setErrors] = useState({}); // Keep track of validation errors
+    const [errors, setErrors] = useState({});
 
-    // Define days for scheduling
     const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
     // --- Fetch Master Lists ---
     useEffect(() => {
+        show();
         const fetchData = async () => {
             try {
                 const [coursesRes, professionalsRes, citiesRes, sedesRes, aulasRes, rolesDocentesRes, diaRes] = await Promise.all([
@@ -87,7 +80,6 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             } catch (error) {
                 console.error('Error fetching master lists:', error);
                 toast({ title: '¡Error!', description: 'No se pudieron cargar las listas de opciones.', variant: 'error' });
-                // Consider setting default empty arrays or error states if fetch fails
                 setCourses([]);
                 setProfessionals([]);
                 setCities([]);
@@ -96,11 +88,10 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             }
         };
         fetchData();
-    }, []); // Empty dependency array means this runs once on mount
+    }, []);
 
     // --- Derive ciudad and idSede from initialData or user selection ---
     useEffect(() => {
-        // If in edit mode and sedes/aulas are loaded, try to set ciudad and idSede from initialData.idAula
         if (isEditMode && aulas.length > 0 && sedes.length > 0 && formData.idAula && !formData.idSede) {
             const aula = aulas.find(a => String(a.idAula) === String(formData.idAula));
             if (aula) {
@@ -108,18 +99,16 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                 if (sede) {
                     setFormData(prev => ({
                         ...prev,
-                        idSede: String(aula.idSede), // Set sede from aula
-                        ciudad: String(sede.idCiudad) // Set ciudad from sede
+                        idSede: String(aula.idSede),
+                        ciudad: String(sede.idCiudad)
                     }));
                 } else {
-                    // If sede not found for the aula, something is wrong or data is incomplete
                     console.warn(`Sede with ID ${aula.idSede} not found for Aula ${formData.idAula}`);
                 }
             } else {
                 console.warn(`Aula with ID ${formData.idAula} not found.`);
             }
         }
-        // If idSede is available (either from initialData or derived from aula), set the city
         else if (formData.idSede && cities.length > 0 && sedes.length > 0) {
             const selSede = sedes.find(s => String(s.idSede) === String(formData.idSede));
             if (selSede && String(selSede.idCiudad) !== String(formData.ciudad)) {
@@ -127,17 +116,14 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             }
         }
 
-        // If only city is set initially (less likely for edit mode if Aula/Sede are present)
-        // No automatic sede/aula derivation from city on initial load, user selects them.
-
     }, [isEditMode, aulas, sedes, cities, formData.idAula, formData.idSede, formData.ciudad]);
 
 
     // --- Dependent lists ---
     const availableSedes = sedes.filter(s => String(s.idCiudad) === String(formData.ciudad));
     const availableAulas = aulas.filter(a => String(a.idSede) === String(formData.idSede));
+    hide();
 
-    // List of professionals *not yet* assigned to the class (excluding the one pending role selection)
     const availableProfessionalsForAssignment = professionals.filter(p =>
         !formData.selectedProfessionals.some(sp => String(sp.idProfesional) === String(p.idProfesional)) &&
         (!professionalPendingRoleSelection || String(professionalPendingRoleSelection.idProfesional) !== String(p.idProfesional))
@@ -148,23 +134,18 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
         const { name, value } = e.target;
         let update = { [name]: value };
 
-        // If city changes, reset sede and aula
         if (name === 'ciudad') {
             update = { ciudad: value, idSede: '', idAula: '' };
-            // Clear errors related to sede/aula as they are reset
             if (errors.idSede) setErrors(prev => ({ ...prev, idSede: null }));
             if (errors.idAula) setErrors(prev => ({ ...prev, idAula: null }));
         }
 
-        // If sede changes, reset aula
         if (name === 'idSede') {
             update.idAula = '';
-            // Clear errors related to aula
             if (errors.idAula) setErrors(prev => ({ ...prev, idAula: null }));
         }
 
         setFormData(prev => ({ ...prev, ...update }));
-        // Clear error for the field being changed
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: null }));
         }
@@ -172,44 +153,36 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
 
     // --- Professional Assignment Handlers ---
 
-    // Handler when a professional is selected from the dropdown to be added
     const handleSelectProfessionalToAdd = (e) => {
         const selectedId = parseInt(e.target.value, 10);
 
-        // If no ID or already pending, do nothing
         if (!selectedId || professionalPendingRoleSelection) {
-            e.target.value = ""; // Reset select visual state
+            e.target.value = "";
             return;
         }
 
-        // Find the professional object
         const professional = professionals.find(p => p.idProfesional === selectedId);
 
         if (professional) {
             setProfessionalPendingRoleSelection({ idProfesional: professional.idProfesional, nombreCompleto: professional.nombreCompleto });
-            setSelectedRoleForPendingProf(''); // Reset role selection
-            // Clear error related to professional list if showing
+            setSelectedRoleForPendingProf('');
             if (errors.selectedProfessionals) {
                 setErrors(prev => ({ ...prev, selectedProfessionals: null }));
             }
         }
-        e.target.value = ""; // Reset select visual state
+        e.target.value = "";
     };
 
-    // Handler for changing the role for the pending professional
     const handleRoleChangeForPendingProf = (e) => {
         setSelectedRoleForPendingProf(e.target.value);
     };
 
-    // Handler to confirm adding the professional with the selected role
     const handleAddProfessional = () => {
         if (!professionalPendingRoleSelection || !selectedRoleForPendingProf) {
-            // Basic validation: Professional and role must be selected
             toast({ title: '¡Advertencia!', description: 'Debe seleccionar un Profesional y un Rol.', variant: 'warning' });
             return;
         }
 
-        // Add the professional with their role to the formData professionals list
         setFormData(prev => ({
             ...prev,
             selectedProfessionals: [
@@ -221,28 +194,23 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             ]
         }));
 
-        // Reset pending state and role selection
         setProfessionalPendingRoleSelection(null);
         setSelectedRoleForPendingProf('');
-        // Clear validation error for the list if it was showing
-        if (errors.profesionales) { // Assuming backend validates 'profesionales' array
+        if (errors.profesionales) {
             setErrors(prev => ({ ...prev, profesionales: null }));
         }
     };
 
-    // Handler to cancel the professional role selection
     const handleCancelAddProfessional = () => {
         setProfessionalPendingRoleSelection(null);
         setSelectedRoleForPendingProf('');
     };
 
-    // Handler to remove a professional from the assigned list
     const handleRemoveProfessional = (idToRemove) => {
         setFormData(prev => ({
             ...prev,
             selectedProfessionals: prev.selectedProfessionals.filter(p => String(p.idProfesional) !== String(idToRemove))
         }));
-        // Clear error related to professional list if showing
         if (errors.profesionales) {
             setErrors(prev => ({ ...prev, profesionales: null }));
         }
@@ -250,21 +218,16 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
 
     // --- Schedule Slots Handlers ---
 
-    // Handler for toggling a day's checkbox
     const handleDayToggle = (idDia, isChecked) => {
         setFormData(prev => {
-            // Copiamos el array actual
             let slots = [...prev.selectedScheduleSlots];
 
             if (isChecked) {
-                // Si no está ya, lo agregamos con horas vacías
                 if (!slots.some(s => s.idDia === idDia)) {
                     slots.push({ idDia, hora_inicio: '', hora_fin: '' });
                 }
             } else {
-                // Filtramos para eliminar el slot de ese día
                 slots = slots.filter(s => s.idDia !== idDia);
-                // Limpiamos errores relacionados a ese idDia
                 setErrors(err => {
                     const cleaned = { ...err };
                     delete cleaned[`horarios.${idDia}.hora_inicio`];
@@ -276,11 +239,9 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             return { ...prev, selectedScheduleSlots: slots };
         });
 
-        // Limpiamos error general de horarios si existiera
         setErrors(err => ({ ...err, horarios: null }));
     };
 
-    // Handler for changing start/end time for a specific day
     const handleTimeChange = (idDia, field, value) => {
         setFormData(prev => {
             const slots = prev.selectedScheduleSlots.map(slot =>
@@ -290,12 +251,8 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             );
             return { ...prev, selectedScheduleSlots: slots };
         });
-
-        // Limpiamos el error específico de este campo si existiera
         const key = `horarios.${idDia}.${field}`;
         setErrors(err => ({ ...err, [key]: null }));
-
-        // También limpiamos error general de horarios
         setErrors(err => ({ ...err, horarios: null }));
     };
 
@@ -303,16 +260,14 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
     const handleSubmit = async e => {
         e.preventDefault();
         show();
-        setErrors({}); // Clear previous errors
+        setErrors({});
 
-        // Basic client-side validation (optional, backend should also validate)
         const currentErrors = {};
         if (!formData.idCurso) currentErrors.idCurso = ['Debe seleccionar un Curso.'];
         if (!formData.idAula) currentErrors.idAula = ['Debe seleccionar un Aula.'];
         if (formData.selectedProfessionals.length === 0) currentErrors.profesionales = ['Debe asignar al menos un Profesional.'];
         if (formData.selectedScheduleSlots.length === 0) currentErrors.horarios = ['Debe asignar al menos un Día y Horario.'];
 
-        // Validate time slots
         formData.selectedScheduleSlots.forEach(slot => {
             if (!slot.hora_inicio) currentErrors[`horarios.${slot.dia}.hora_inicio`] = [`La hora de inicio es obligatoria para ${slot.dia}.`];
             if (!slot.hora_fin) currentErrors[`horarios.${slot.dia}.hora_fin`] = [`La hora de fin es obligatoria para ${slot.dia}.`];
@@ -321,7 +276,6 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             }
         });
 
-        // Prevent submission if professional is pending role selection
         if (professionalPendingRoleSelection) {
             currentErrors.profesionales = [`Confirme o cancele la asignación de ${professionalPendingRoleSelection.nombreCompleto} antes de guardar.`];
         }
@@ -332,11 +286,10 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             hide();
             toast({ title: '¡Error!', description: 'Revisa los datos ingresados.', variant: 'error' });
             console.warn("Client-side validation errors:", currentErrors);
-            return; // Stop submission
+            return;
         }
 
 
-        // Prepare the payload with the new structure
         const payload = {
             idCurso: Number(formData.idCurso),
             idAula: Number(formData.idAula),
@@ -344,7 +297,6 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                 idProfesional: p.idProfesional,
                 idRolDocente: Number(p.role)
             })),
-            //dias: formData.selectedScheduleSlots.map(s => s.idDia),
             hora_inicio: formData.selectedScheduleSlots.length
                 ? formData.selectedScheduleSlots[0].hora_inicio + ':00'
                 : null,
@@ -362,16 +314,13 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
 
 
         try {
-            // Assuming a new conceptual endpoint like '/class' for managing the full class entity
             if (isEditMode) {
-                // Use the initialData ID for the PUT request
                 await api.put(`/Horario/${initialData.idHorario}`, payload);
             } else {
                 await api.post('/Horario', payload);
             }
             hide();
-            setErrors({}); // Clear errors on success
-            // Reset form data after creation (optional, depending on desired flow)
+            setErrors({});
             if (!isEditMode) {
                 setFormData({
                     idCurso: "",
@@ -390,6 +339,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
         } catch (err) {
             hide();
             console.error("Submission Error:", err);
+            console.log(err.response.data.message != "Teacher, has reached the maximum number of teaching and tutoring assignments.");
             if (err.response?.status === 422) {
                 // Handle validation errors from backend, potentially mapping to state keys
                 const backendErrors = err.response.data.errors || {};
@@ -401,10 +351,12 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                 toast({ title: '¡Error!', description: 'Revisa los datos ingresados.', variant: 'error' });
                 console.error("Backend validation errors:", backendErrors);
 
-            } else if (err.response?.status === 409) {
-                // Conflict, potentially schedule or professional conflict
+            } else if(err.response?.status == 409 && err.response.data.message == "Teacher, has reached the maximum number of teaching and tutoring assignments."){
+                toast({ title: '¡Error!', description: 'El docente, ha alcanzado el numero maximo de asignaciones como Mentor y tutor', variant: 'error' });
+            } else if(err.response?.status == 409 && err.response.data.message == "Teacher, busy at that time"){
+                toast({ title: '¡Error!', description: 'El docente esta ocupado en ese horario.', variant: 'error' });
+            } else if (err.response?.status == 409 && err.response.data.message != "Teacher, has reached the maximum number of teaching and tutoring assignments." && err.response.data.message != "Teacher, busy at that time") {
                 toast({ title: '¡Error!', description: 'Conflicto de horario o profesional.', variant: 'error' });
-                // You might want to parse the 409 response body for specific details if the API provides them
             } else {
                 console.error(err);
                 toast({ title: '¡Error!', description: 'Error inesperado al guardar.', variant: 'error' });
@@ -412,7 +364,6 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
         }
     };
 
-    // Helper to find professional name by ID for display
     const getProfessionalName = (id) => {
         const prof = professionals.find(p => String(p.idProfesional) === String(id));
         return prof ? prof.nombreCompleto : 'Profesional Desconocido';
@@ -487,12 +438,11 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                             {/* Select para elegir un profesional a añadir */}
                             <SelectInput
                                 id="addProfessional"
-                                value="" // Value is controlled internally, reset after selection
+                                value=""
                                 onChange={handleSelectProfessionalToAdd}
                                 options={[{ value: '', label: 'Seleccione Profesional para asignar.', disabled: true },
                                 ...availableProfessionalsForAssignment.map(p => ({ value: p.idProfesional, label: p.nombreCompleto }))]}
                                 disabled={!!professionalPendingRoleSelection || professionals.length === 0} // Disable if adding is in progress or no professionals loaded
-                            // No 'required' here, as this is an add-select
                             />
 
                             {/* Mostrar errores relacionados con la lista general de profesionales */}
@@ -513,12 +463,9 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                                                 onChange={handleRoleChangeForPendingProf}
                                                 options={[{ value: '', label: 'Seleccione Rol.', disabled: true },
                                                 ...rolesDocentes.map(role => ({ value: role.idRolDocente, label: role.nombre }))]}
-                                                required // Role is required once a professional is selected to be added
-                                            // isInvalid={...} // Add role-specific validation error handling if needed
+                                                required
                                             />
-                                            {/* Add error message specific to role if needed */}
                                         </div>
-                                        {/* Empty div for layout on md+ */}
                                         <div></div>
                                     </div>
 
@@ -555,14 +502,13 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                                     ))}
                                 </div>
                             )}
-                        </div> {/* End Asignar Profesionales Section */}
+                        </div>
 
 
                         {/* Sección para Horarios (ocupa dos columnas) */}
                         <div className="space-y-4 md:col-span-2">
                             <InputLabel value="Horarios de Clase" />
-                            {/* Show general schedule errors */}
-                            {errors.horarios && typeof errors.horarios === 'string' && ( // Assuming general horarios error is a string
+                            {errors.horarios && typeof errors.horarios === 'string' && (
                                 <p className="text-red-500 text-sm">{errors.horarios}</p>
                             )}
                             <div className="border border-gray-300 p-4 rounded grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -598,24 +544,20 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                                     );
                                 })}
                             </div>
-                            {/* Specific errors keyed by day and time field will appear under the inputs */}
-                        </div> {/* End Horarios Section */}
+                        </div>
+                    </div> 
 
-
-                    </div> {/* End grid grid-cols-1 md:grid-cols-2 */}
-
-                    {/* Botones de acción */}
                     <div className="flex justify-end space-x-2 pt-4">
                         <CancelButton onClick={onCancel} disabled={!!professionalPendingRoleSelection}>
                             Cancelar
                         </CancelButton>
-                        <ButtonGradient type="submit" disabled={!!professionalPendingRoleSelection}> {/* Disable submit while professional is pending role */}
+                        <ButtonGradient type="submit" disabled={!!professionalPendingRoleSelection}>
                             <Save className="h-4 w-4 mr-1" />
                             {isEditMode ? 'Guardar Cambios' : 'Crear Clase'}
                         </ButtonGradient>
                     </div>
-                </div> {/* End space-y-6 */}
+                </div> 
             </form>
-        </div> // End rounded-lg border
+        </div>
     );
 }

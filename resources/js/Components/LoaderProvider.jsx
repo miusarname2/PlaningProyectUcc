@@ -16,7 +16,7 @@ export function LoaderProvider({ children }) {
     <LoaderContext.Provider value={{ show, hide }}>
       {children}
       {loading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-stone-500/30 z-50">
           <Spinner />
         </div>
       )}

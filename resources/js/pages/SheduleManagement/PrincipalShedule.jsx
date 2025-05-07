@@ -136,7 +136,7 @@ export default function PrincipalShedule() {
     });
   };
 
-  const days = ["LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES"];
+  const days = ["LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SABADO"];
   const timeSlots = generateTimeSlots();
 
   const api = getApi();
@@ -311,22 +311,6 @@ export default function PrincipalShedule() {
 
       {/* Date Navigation */}
       <div className="p-2 md:px-4 md:pt-4 flex items-center justify-between bg-white">
-        <div className="flex items-center gap-1 md:gap-2">
-          <Button variant="ghost" size="icon" className="border rounded p-2" onClick={goToPrevWeek}>
-            <ChevronLeft className="h-4 w-4 md:h-5 md:w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            className="font-medium text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto border rounded"
-            onClick={goToToday}
-            disabled={isCurrentWeek}
-          >
-            Hoy
-          </Button>
-          <Button variant="ghost" size="icon" className="border rounded p-2" onClick={goToNextWeek}>
-            <ChevronRight className="h-4 w-4 md:h-5 md:w-5" />
-          </Button>
-        </div>
         <div className="text-xs md:text-sm font-medium">{currentDateRange}</div>
       </div>
 
