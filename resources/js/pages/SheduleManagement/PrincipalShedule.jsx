@@ -83,35 +83,39 @@ export default function PrincipalShedule() {
   }
 
   const transformScheduleData = (horarios) => {
-    return horarios.map((item) => {
-      console.log(item);
-      const startTime = convertirHora(item?.hora_inicio);
-      const endTime = convertirHora(item?.hora_fin);
-      const color = getColorForRoom(item.aula?.codigo || "Sin aula");
+    return horarios.flatMap((item) => {
+      // Para cada día que tenga el horario
+      return item.dias.map((diaObj) => {
+        const { hora_inicio, hora_fin } = diaObj.pivot;
+        const startTime = convertirHora(hora_inicio);
+        const endTime = convertirHora(hora_fin);
+        const color = getColorForRoom(item.aula?.codigo || "Sin aula");
 
-      // Calcular bloques de tiempo que ocupa la clase
-      const blocks = [];
-      if (item?.hora_inicio && item?.hora_fin) {
-        const [sh, sm] = item?.hora_inicio.split(":").map(Number);
-        const [eh, em] = item?.hora_fin.split(":").map(Number);
+        // Calcular bloques de tiempo que ocupa la clase
+        const blocks = [];
+        if (hora_inicio && hora_fin) {
+          const [sh, sm] = hora_inicio.split(":").map(Number);
+          const [eh, em] = hora_fin.split(":").map(Number);
 
-        for (let h = sh; h <= eh; h++) {
-          const period = h < 12 ? "a.m." : "p.m.";
-          const displayHour = h % 12 === 0 ? 12 : h % 12;
-          blocks.push(`${displayHour}:00 ${period}`);
+          // Suponemos que los bloques son de hora en hora
+          for (let h = sh; h <= eh; h++) {
+            const period = h < 12 ? "a.m." : "p.m.";
+            const displayHour = h % 12 === 0 ? 12 : h % 12;
+            blocks.push(`${displayHour}:00 ${period}`);
+          }
         }
-      }
 
-      return {
-        room: item.aula?.codigo || "Sin aula",
-        day: item.dia?.toUpperCase() || "SIN DÍA",
-        startTime,
-        endTime,
-        code: item.curso?.codigo || "Sin código",
-        name: item.curso?.nombre || "Sin nombre",
-        color: `${color.bg} ${color.text} ${color.border}`,
-        timeBlocks: blocks,
-      };
+        return {
+          room: item.aula?.codigo || "Sin aula",
+          day: diaObj.nombre?.toUpperCase() || "SIN DÍA",
+          startTime,
+          endTime,
+          code: item.curso?.codigo || "Sin código",
+          name: item.curso?.nombre || "Sin nombre",
+          color: `${color.bg} ${color.text} ${color.border}`,
+          timeBlocks: blocks,
+        };
+      });
     });
   };
 

@@ -132,19 +132,21 @@ class HorarioController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // 1) Cargar el registro existente o lanzar 404
+        // 1. Cargar el registro existente o lanzar 404
         $horario = Horario::findOrFail($id);
 
-        // 2) Validar datos ( ahora 'dias' es un array opcional )
+        // 2. Validación (idCurso/idAula opcionales; dias y docentes opcionales)
         try {
             $validated = $request->validate([
-                'idCurso'       => 'sometimes|integer|exists:curso,idCurso',
-                'idProfesional' => 'sometimes|integer|exists:profesional,idProfesional',
-                'idAula'        => 'sometimes|nullable|integer|exists:aula,idAula',
-                'dias'          => 'sometimes|array|min:1',
-                'dias.*'        => ['required', 'string', 'in:Lunes,Martes,Miércoles,Jueves,Viernes,Sábado,Domingo'],
-                'hora_inicio'   => 'sometimes|date_format:H:i:s',
-                'hora_fin'      => 'sometimes|date_format:H:i:s|after:hora_inicio',
+                'idCurso'                    => 'sometimes|integer|exists:curso,idCurso',
+                'idAula'                     => 'sometimes|nullable|integer|exists:aula,idAula',
+                'docentes'                   => 'sometimes|array|min:1',
+                'docentes.*.idProfesional'   => 'sometimes|integer|exists:profesional,idProfesional',
+                'docentes.*.idRolDocente'    => 'sometimes|integer|exists:rolDocente,idRolDocente',
+                'dias'                       => 'sometimes|array|min:1',
+                'dias.*'                     => 'required_with:dias|integer|exists:dia,idDia',
+                'hora_inicio'                => 'sometimes|date_format:H:i:s',
+                'hora_fin'                   => 'sometimes|date_format:H:i:s|after:hora_inicio',
             ]);
         } catch (ValidationException $ex) {
             return response()->json([
@@ -154,37 +156,26 @@ class HorarioController extends Controller
             ], 422);
         }
 
-        // 3) Determinar valores efectivos para chequear solapamientos
-        $idAula = $validated['idAula'] ?? $horario->idAula;
-
-        // Si vienen nuevos horarios/días:
-        $hora_inicio = $validated['hora_inicio']
+        // 3. Determinar valores para solapamiento: aula, dias y franjas
+        $idAula      = $validated['idAula'] ?? $horario->idAula;
+        $diasIds     = $validated['dias'] ?? $horario->dias->pluck('idDia')->toArray();
+        $horaInicio  = $validated['hora_inicio']
             ?? optional($horario->dias()->first()->pivot)->hora_inicio->format('H:i:s');
-        $hora_fin    = $validated['hora_fin']
+        $horaFin     = $validated['hora_fin']
             ?? optional($horario->dias()->first()->pivot)->hora_fin->format('H:i:s');
 
-        // 4) Resolver los IDs de día: o los que trae el request, o los ya asociados
-        if (isset($validated['dias'])) {
-            $nombres = $validated['dias'];
-        } else {
-            $nombres = $horario->dias->pluck('nombre')->toArray();
-        }
-        $diasMapa = \App\Models\Dia::whereIn('nombre', $nombres)
-            ->pluck('idDia', 'nombre')
-            ->toArray();
-
-        // 5) Chequear solapamientos por cada día
-        foreach ($diasMapa as $nombre => $idDia) {
+        // 4. Comprobar solapamientos por día
+        foreach ($diasIds as $idDia) {
             $conflict = Horario::where('idAula', $idAula)
                 ->where('idHorario', '!=', $horario->idHorario)
-                ->whereHas('dias', function ($q) use ($idDia, $hora_inicio, $hora_fin) {
+                ->whereHas('dias', function ($q) use ($idDia, $horaInicio, $horaFin) {
                     $q->where('dia.idDia', $idDia)
-                        ->wherePivot('hora_inicio', '<', $hora_fin)
-                        ->wherePivot('hora_fin',    '>', $hora_inicio);
-                })
-                ->exists();
+                        ->wherePivot('hora_inicio', '<', $horaFin)
+                        ->wherePivot('hora_fin',    '>', $horaInicio);
+                })->exists();
 
             if ($conflict) {
+                $nombre = Dia::find($idDia)->nombre;
                 return response()->json([
                     'success' => false,
                     'message' => "El horario actualizado se solapa con otro existente en el mismo aula el día {$nombre}.",
@@ -192,32 +183,38 @@ class HorarioController extends Controller
             }
         }
 
-        // 6) Actualizar campos en tabla `horario`
+        // 5. Actualizar campos de la tabla `horario`
         $horario->update(array_filter([
             'idCurso'       => $validated['idCurso']       ?? null,
-            'idProfesional' => $validated['idProfesional'] ?? null,
             'idAula'        => array_key_exists('idAula', $validated)
-                ? $validated['idAula']
-                : null,
-        ], function ($v) {
-            return !is_null($v);
-        }));
+                ? $validated['idAula'] : null,
+        ], fn($v) => !is_null($v)));
 
-        // 7) Sincronizar días + franjas en el pivote
-        //    Si no vienen nuevos 'dias', no hablamos el arreglo y dejamos como estaba.
+        // 6. Sincronizar días + franjas en el pivote
         if (isset($validated['dias'])) {
-            $attach = [];
-            foreach ($diasMapa as $idDia) {
-                $attach[$idDia] = [
-                    'hora_inicio' => $hora_inicio,
-                    'hora_fin'    => $hora_fin,
+            $attachDias = [];
+            foreach ($diasIds as $idDia) {
+                $attachDias[$idDia] = [
+                    'hora_inicio' => $horaInicio,
+                    'hora_fin'    => $horaFin,
                 ];
             }
-            $horario->dias()->sync($attach);
+            $horario->dias()->sync($attachDias);
         }
 
-        // 8) Devolver el recurso con sus relaciones
-        $horario->load(['curso', 'profesional', 'aula', 'dias']);
+        // 7. Sincronizar docentes + roles en el pivote
+        if (isset($validated['docentes'])) {
+            $attachDocs = [];
+            foreach ($validated['docentes'] as $doc) {
+                $attachDocs[$doc['idProfesional']] = [
+                    'idRolDocente' => $doc['idRolDocente'],
+                ];
+            }
+            $horario->profesionales()->sync($attachDocs);
+        }
+
+        // 8. Cargar relaciones para la respuesta
+        $horario->load(['curso', 'aula', 'dias', 'profesionales']);
 
         return response()->json([
             'success' => true,
