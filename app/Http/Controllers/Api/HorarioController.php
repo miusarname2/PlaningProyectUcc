@@ -43,79 +43,69 @@ class HorarioController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Validación
         try {
             $validated = $request->validate([
-                'idCurso'                    => 'required|integer|exists:curso,idCurso',
-                'idAula'                     => 'nullable|integer|exists:aula,idAula',
-                'docentes'                   => 'required|array|min:1',
-                'docentes.*.idProfesional'   => 'required|integer|exists:profesional,idProfesional',
-                'docentes.*.idRolDocente'    => 'required|integer|exists:rolDocente,idRolDocente',
-                'dias'                       => 'required|array|min:1',
-                'dias.*'                     => 'required|integer|exists:dia,idDia',
-                'hora_inicio'                => 'required|date_format:H:i:s',
-                'hora_fin'                   => 'required|date_format:H:i:s|after:hora_inicio',
+                'idCurso'                  => 'required|integer|exists:curso,idCurso',
+                'idAula'                   => 'nullable|integer|exists:aula,idAula',
+                'docentes'                 => 'required|array|min:1',
+                'docentes.*.idProfesional' => 'required|integer|exists:profesional,idProfesional',
+                'docentes.*.idRolDocente'  => 'required|integer|exists:rolDocente,idRolDocente',
+                'dias'                     => 'required|array|min:1',
+                'dias.*.idDia'             => 'required|integer|exists:dia,idDia',
+                'dias.*.hora_inicio'       => 'required|date_format:H:i:s',
+                'dias.*.hora_fin'          => 'required|date_format:H:i:s|after:dias.*.hora_inicio',
             ]);
         } catch (ValidationException $ex) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error en la validación de los datos.',
-                'errors'  => $ex->errors(),
+                'message' => 'Error en la validación',
+                'errors' => $ex->errors(),
             ], 422);
         }
 
-        // 2. Comprobar solapamientos por cada día seleccionado
-        foreach ($validated['dias'] as $idDia) {
+        // Chequear solapamientos
+        foreach ($validated['dias'] as $d) {
             $conflict = Horario::where('idAula', $validated['idAula'])
-                // horario_dia join implícito via whereHas
-                ->whereHas('dias', function ($q) use ($idDia, $validated) {
-                    $q->where('dia.idDia', $idDia)
-                        ->where('horario_dia.hora_inicio', '<', $validated['hora_fin'])
-                        ->where('horario_dia.hora_fin',    '>', $validated['hora_inicio']);
-                })
-                ->exists();
+                ->whereHas('dias', function ($q) use ($d) {
+                    $q->where('horario_dia.idDia', $d['idDia'])
+                        ->where('horario_dia.hora_inicio', '<', $d['hora_fin'])
+                        ->where('horario_dia.hora_fin', '>', $d['hora_inicio']);
+                })->exists();
 
             if ($conflict) {
-                $nombre = Dia::find($idDia)->nombre;
+                $nombre = Dia::find($d['idDia'])->nombre;
                 return response()->json([
                     'success' => false,
-                    'message' => "El horario solicitado se solapa con otro existente en el mismo aula el día {$nombre}.",
+                    'message' => "Conflicto de horario en aula {$validated['idAula']} el día {$nombre}.",
                 ], 409);
             }
         }
 
-        // 3. Crear el horario principal
+        // Crear
         $horario = Horario::create([
-            'idCurso'       => $validated['idCurso'],
-            'idAula'        => $validated['idAula'],
+            'idCurso' => $validated['idCurso'],
+            'idAula' => $validated['idAula'],
         ]);
 
-        // 4. Asociar días con franjas en horario_dia
+        // Adjuntar días
         $attachDias = [];
-        foreach ($validated['dias'] as $idDia) {
-            $attachDias[$idDia] = [
-                'hora_inicio' => $validated['hora_inicio'],
-                'hora_fin'    => $validated['hora_fin'],
+        foreach ($validated['dias'] as $d) {
+            $attachDias[$d['idDia']] = [
+                'hora_inicio' => $d['hora_inicio'],
+                'hora_fin' => $d['hora_fin'],
             ];
         }
         $horario->dias()->attach($attachDias);
 
-        // 5. Asociar docentes con roles en horario_profesional
+        // Adjuntar docentes
         $attachDocs = [];
         foreach ($validated['docentes'] as $doc) {
-            $attachDocs[$doc['idProfesional']] = [
-                'idRolDocente' => $doc['idRolDocente'],
-            ];
+            $attachDocs[$doc['idProfesional']] = ['idRolDocente' => $doc['idRolDocente']];
         }
         $horario->profesionales()->attach($attachDocs);
 
-        // 6. Cargar relaciones para la respuesta
         $horario->load(['curso', 'aula', 'dias', 'profesionales']);
-
-        return response()->json([
-            'success' => true,
-            'data'    => $horario,
-        ], 201);
+        return response()->json(['success' => true, 'data' => $horario], 201);
     }
 
     /**
@@ -132,21 +122,19 @@ class HorarioController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // 1. Cargar el registro existente o lanzar 404
         $horario = Horario::findOrFail($id);
 
-        // 2. Validación (idCurso/idAula opcionales; dias y docentes opcionales)
         try {
             $validated = $request->validate([
-                'idCurso'                    => 'sometimes|integer|exists:curso,idCurso',
-                'idAula'                     => 'sometimes|nullable|integer|exists:aula,idAula',
-                'docentes'                   => 'sometimes|array|min:1',
-                'docentes.*.idProfesional'   => 'sometimes|integer|exists:profesional,idProfesional',
-                'docentes.*.idRolDocente'    => 'sometimes|integer|exists:rolDocente,idRolDocente',
-                'dias'                       => 'sometimes|array|min:1',
-                'dias.*'                     => 'required_with:dias|integer|exists:dia,idDia',
-                'hora_inicio'                => 'sometimes|date_format:H:i:s',
-                'hora_fin'                   => 'sometimes|date_format:H:i:s|after:hora_inicio',
+                'idCurso'                   => 'sometimes|integer|exists:curso,idCurso',
+                'idAula'                    => 'sometimes|nullable|integer|exists:aula,idAula',
+                'docentes'                  => 'sometimes|array|min:1',
+                'docentes.*.idProfesional'  => 'sometimes|integer|exists:profesional,idProfesional',
+                'docentes.*.idRolDocente'   => 'sometimes|integer|exists:rolDocente,idRolDocente',
+                'dias'                      => 'sometimes|array|min:1',
+                'dias.*.idDia'              => 'required_with:dias|integer|exists:dia,idDia',
+                'dias.*.hora_inicio'        => 'required_with:dias|date_format:H:i:s',
+                'dias.*.hora_fin'           => 'required_with:dias|date_format:H:i:s|after:dias.*.hora_inicio',
             ]);
         } catch (ValidationException $ex) {
             return response()->json([
@@ -156,70 +144,58 @@ class HorarioController extends Controller
             ], 422);
         }
 
-        // 3. Determinar valores para solapamiento: aula, dias y franjas
-        $idAula      = $validated['idAula'] ?? $horario->idAula;
-        $diasIds     = $validated['dias'] ?? $horario->dias->pluck('idDia')->toArray();
-        $horaInicio  = $validated['hora_inicio']
-            ?? optional($horario->dias()->first()->pivot)->hora_inicio->format('H:i:s');
-        $horaFin     = $validated['hora_fin']
-            ?? optional($horario->dias()->first()->pivot)->hora_fin->format('H:i:s');
-
-        // 4. Comprobar solapamientos por día
-        foreach ($diasIds as $idDia) {
-            $conflict = Horario::where('idAula', $idAula)
-                ->where('idHorario', '!=', $horario->idHorario)
-                ->whereHas('dias', function ($q) use ($idDia, $horaInicio, $horaFin) {
-                    $q->where('dia.idDia', $idDia)
-                        ->wherePivot('hora_inicio', '<', $horaFin)
-                        ->wherePivot('hora_fin',    '>', $horaInicio);
-                })->exists();
-
-            if ($conflict) {
-                $nombre = Dia::find($idDia)->nombre;
-                return response()->json([
-                    'success' => false,
-                    'message' => "El horario actualizado se solapa con otro existente en el mismo aula el día {$nombre}.",
-                ], 409);
-            }
-        }
-
-        // 5. Actualizar campos de la tabla `horario`
+        // Datos base
         $horario->update(array_filter([
-            'idCurso'       => $validated['idCurso']       ?? null,
-            'idAula'        => array_key_exists('idAula', $validated)
-                ? $validated['idAula'] : null,
+            'idCurso' => $validated['idCurso'] ?? null,
+            'idAula'  => array_key_exists('idAula', $validated) ? $validated['idAula'] : null,
         ], fn($v) => !is_null($v)));
 
-        // 6. Sincronizar días + franjas en el pivote
-        if (isset($validated['dias'])) {
-            $attachDias = [];
-            foreach ($diasIds as $idDia) {
-                $attachDias[$idDia] = [
-                    'hora_inicio' => $horaInicio,
-                    'hora_fin'    => $horaFin,
-                ];
+        // 1) Validar solapamientos usando cada objeto de dias
+        if (!empty($validated['dias'])) {
+            foreach ($validated['dias'] as $d) {
+                $conflict = Horario::where('idAula', $horario->idAula)
+                    ->where('idHorario', '!=', $horario->idHorario)
+                    ->whereHas('dias', function ($q) use ($d) {
+                        $q->where('horario_dia.idDia', $d['idDia'])
+                            ->where('horario_dia.hora_inicio', '<', $d['hora_fin'])
+                            ->where('horario_dia.hora_fin', '>', $d['hora_inicio']);
+                    })->exists();
+
+                if ($conflict) {
+                    $nombre = Dia::find($d['idDia'])->nombre;
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Conflicto de horario en aula {$horario->idAula} para el día {$nombre}.",
+                    ], 409);
+                }
             }
-            $horario->dias()->sync($attachDias);
         }
 
-        // 7. Sincronizar docentes + roles en el pivote
+        // 2) Sincronizar días + franjas
+        if (isset($validated['dias'])) {
+            $attach = [];
+            foreach ($validated['dias'] as $d) {
+                $attach[$d['idDia']] = [
+                    'hora_inicio' => $d['hora_inicio'],
+                    'hora_fin'    => $d['hora_fin'],
+                ];
+            }
+            $horario->dias()->sync($attach);
+        }
+
+        // 3) Sincronizar docentes
         if (isset($validated['docentes'])) {
-            $attachDocs = [];
+            $attach = [];
             foreach ($validated['docentes'] as $doc) {
-                $attachDocs[$doc['idProfesional']] = [
+                $attach[$doc['idProfesional']] = [
                     'idRolDocente' => $doc['idRolDocente'],
                 ];
             }
-            $horario->profesionales()->sync($attachDocs);
+            $horario->profesionales()->sync($attach);
         }
 
-        // 8. Cargar relaciones para la respuesta
         $horario->load(['curso', 'aula', 'dias', 'profesionales']);
-
-        return response()->json([
-            'success' => true,
-            'data'    => $horario,
-        ], 200);
+        return response()->json(['success' => true, 'data' => $horario], 200);
     }
 
     /**
@@ -367,79 +343,103 @@ class HorarioController extends Controller
 
     public function exportXls()
     {
-        // 1) Carga de datos con relaciones
-        $horarios = Horario::with(['curso', 'profesional', 'aula.sede'])
-            ->orderBy('hora_inicio')
-            ->get();
+        // 1) Carga de datos con relaciones: incluimos pivot de dias
+        $horarios = Horario::with([
+            'curso',
+            'aula.sede',
+            'dias'  // trae pivot(hora_inicio, hora_fin)
+        ])
+            ->get()
+            // Ordenamos en PHP por hora_inicio del primer día (opcional)
+            ->sortBy(fn(Horario $h) => $h->dias->min(fn($d) => $d->pivot->hora_inicio))
+            ->values();
 
         // 2) Definir días de la semana
-        $dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+        $diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
-        // 3) Construir lista única de franjas (hora_inicio–hora_fin)
+        // 3) Construir lista única de franjas (ej. "07:00-08:00")
         $franjas = $horarios
-            ->map(fn($h) => sprintf(
-                '%s - %s',
-                $h->hora_inicio->format('H:i'),
-                $h->hora_fin->format('H:i')
-            ))
+            ->flatMap(fn($h) => $h->dias->map(function ($d) {
+                return sprintf(
+                    '%s - %s',
+                    \Carbon\Carbon::parse($d->pivot->hora_inicio)->format('H:i'),
+                    \Carbon\Carbon::parse($d->pivot->hora_fin)->format('H:i')
+                );
+            }))
             ->unique()
             ->sort()
             ->values()
             ->all();
 
-        // 4) Mapear [“HH:MM–HH:MM”][“Día”] => texto
+        // 4) Mapear: [franja][díaNombre] => texto a mostrar
         $map = [];
         foreach ($horarios as $h) {
-            $keyF = sprintf(
-                '%s - %s',
-                $h->hora_inicio->format('H:i'),
-                $h->hora_fin->format('H:i')
-            );
-            $map[$keyF][$h->dia] = sprintf(
-                '%s (Aula %s)%s%s',
-                $h->curso->codigo,
-                $h->aula->codigo,
-                PHP_EOL,
-                $h->aula->sede->nombre
-            );
+            foreach ($h->dias as $d) {
+                $franjaLabel = sprintf(
+                    '%s - %s',
+                    \Carbon\Carbon::parse($d->pivot->hora_inicio)->format('H:i'),
+                    \Carbon\Carbon::parse($d->pivot->hora_fin)->format('H:i')
+                );
+                $diaNombre = $diasSemana[$d->idDia - 1] ?? "Día {$d->idDia}";
+                $map[$franjaLabel][$diaNombre][] = sprintf(
+                    '%s (Aula %s)%s%s',
+                    $h->curso->codigo,
+                    $h->aula->codigo,
+                    PHP_EOL,
+                    $h->aula->sede->nombre
+                );
+            }
         }
 
         // 5) Crear y poblar spreadsheet
         $spreadsheet = new Spreadsheet();
         $sheet       = $spreadsheet->getActiveSheet();
 
-        // 5.1) Encabezados
+        // 5.1) Cabeceras
         $sheet->setCellValue('A1', 'HORAS');
-        foreach ($dias as $i => $dia) {
+        foreach ($diasSemana as $i => $dia) {
             $col = Coordinate::stringFromColumnIndex($i + 2);
             $sheet->setCellValue("{$col}1", $dia);
+            // Negrita
+            $sheet->getStyle("{$col}1")->getFont()->setBold(true);
         }
 
         // 5.2) Filas de franjas
         $row = 2;
         foreach ($franjas as $label) {
             $sheet->setCellValue("A{$row}", $label);
-            foreach ($dias as $i => $dia) {
+            $sheet->getStyle("A{$row}")->getFont()->setBold(true);
+
+            foreach ($diasSemana as $i => $dia) {
                 $col = Coordinate::stringFromColumnIndex($i + 2);
                 if (! empty($map[$label][$dia])) {
-                    $sheet->setCellValue("{$col}{$row}", $map[$label][$dia]);
-                    // fondo verde suave
+                    // Si hay varias clases en la misma franja/día, unimos por doble salto
+                    $text = implode(PHP_EOL . PHP_EOL, $map[$label][$dia]);
+                    $sheet->setCellValue("{$col}{$row}", $text);
+
+                    // Fondo verde suave
                     $sheet->getStyle("{$col}{$row}")
                         ->getFill()
                         ->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()
                         ->setRGB('C6EFCE');
+
+                    // Ajuste de texto y alineación
+                    $sheet->getStyle("{$col}{$row}")
+                        ->getAlignment()->setWrapText(true);
                 }
             }
+
             $row++;
         }
 
-        // 6) Auto-ajustar anchos
-        foreach (range('A', $sheet->getHighestColumn()) as $col) {
+        // 6) Auto-ajustar anchos de columna
+        foreach (range(1, count($diasSemana) + 1) as $colIndex) {
+            $col = Coordinate::stringFromColumnIndex($colIndex);
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // 7) Generar XLS y devolver Base64
+        // 7) Generar y enviar XLS en base64
         $writer = new Xls($spreadsheet);
         ob_start();
         $writer->save('php://output');

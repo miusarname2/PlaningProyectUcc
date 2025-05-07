@@ -25,23 +25,21 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
     const [sedes, setSedes] = useState([]);
     const [aulas, setAulas] = useState([]);
     const [dia, setDia] = useState([]);
+    const getRoleName = (roleId) => rolesDocentes.find(r => String(r.idRolDocente) === String(roleId))?.nombre || '—';
 
     // Form state - Adjusted for multiple professionals and multiple schedule slots
     const [formData, setFormData] = useState(() => {
         // Transform initialData if it exists to match the new structure
-        const initialProfessionals = initialData?.profesionales ?
-            initialData.profesionales.map(prof => ({
-                idProfesional: prof.idProfesional,
-                role: prof.pivot?.role || prof.role || '', // Adapt based on actual initialData structure
-            })) : [];
+        const initialProfessionals = initialData?.profesionales?.map(prof => ({
+            idProfesional: prof.idProfesional,
+            role: String(prof.pivot.idRolDocente), // Adapt based on actual initialData structure
+        })) || [];
 
-        const initialScheduleSlots = initialData?.horarios ?
-            initialData.horarios.map(slot => ({
-                idDia: slot.pivot.idDia,
-                hora_inicio: slot.hora_inicio?.slice(0, 5) || '',
-                hora_fin: slot.hora_fin?.slice(0, 5) || '',
-            }))
-            : [];
+        const initialScheduleSlots = initialData?.dias?.map(slot => ({
+            idDia: slot.pivot.idDia,
+            hora_inicio: slot.pivot.hora_inicio.slice(0, 5),
+            hora_fin: slot.pivot.hora_fin.slice(0, 5),
+        })) || [];
 
         return {
             idCurso: initialData?.idCurso || "",
@@ -344,13 +342,17 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             idAula: Number(formData.idAula),
             docentes: formData.selectedProfessionals.map(p => ({
                 idProfesional: p.idProfesional,
-                idRolDocente: p.role
+                idRolDocente: Number(p.role)
             })),
-            // Use the arrays from state
-            dias: formData.selectedScheduleSlots.map(s => s.idDia),
+            //dias: formData.selectedScheduleSlots.map(s => s.idDia),
             hora_inicio: formData.selectedScheduleSlots.length
                 ? formData.selectedScheduleSlots[0].hora_inicio + ':00'
                 : null,
+            dias: formData.selectedScheduleSlots.map(s => ({
+                idDia: Number(s.idDia),
+                hora_inicio: s.hora_inicio + ':00',
+                hora_fin: s.hora_fin + ':00',
+            })), 
             hora_fin: formData.selectedScheduleSlots.length
                 ? formData.selectedScheduleSlots[0].hora_fin + ':00'
                 : null
