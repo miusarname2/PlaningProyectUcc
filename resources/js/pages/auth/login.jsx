@@ -58,7 +58,7 @@ export default function Login({ status, canResetPassword }) {
                 email: data.email,
                 password: data.password,
             })
-            if(!response.ok) throw new Error("Not found");
+            if(response.status !== 200) throw new Error("Not found");
             const encryptedToken = await encrypOrDesencrypAES(response.data.token);
             localStorage.setItem("Token", encryptedToken);
             localStorage.setItem("Username", response.data.usuario.username);
