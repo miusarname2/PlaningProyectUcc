@@ -356,7 +356,7 @@ class HorarioController extends Controller
 
         // Filtros por relación: profesional
         if ($request->filled('profesional_codigo')) {
-            $query->whereHas('profesional', function ($q) use ($request) {
+            $query->whereHas('profesionales', function ($q) use ($request) {
                 $q->where('codigo', 'like', '%' . $request->input('profesional_codigo') . '%');
             });
         }
@@ -391,7 +391,7 @@ class HorarioController extends Controller
         }
 
         // Cargamos relaciones necesarias (ya no usamos FranjaHoraria)
-        $query->with(['curso', 'profesional', 'aula', 'aula.sede', 'aula.sede.propietario']);
+        $query->with(['curso', 'profesionales', 'aula', 'aula.sede', 'aula.sede.propietario','dias']);
 
         try {
             $horarios = $query->paginate(10);
