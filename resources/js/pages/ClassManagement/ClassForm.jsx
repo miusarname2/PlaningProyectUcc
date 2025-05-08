@@ -304,7 +304,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                 idDia: Number(s.idDia),
                 hora_inicio: s.hora_inicio + ':00',
                 hora_fin: s.hora_fin + ':00',
-            })), 
+            })),
             hora_fin: formData.selectedScheduleSlots.length
                 ? formData.selectedScheduleSlots[0].hora_fin + ':00'
                 : null
@@ -351,9 +351,9 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                 toast({ title: '¡Error!', description: 'Revisa los datos ingresados.', variant: 'error' });
                 console.error("Backend validation errors:", backendErrors);
 
-            } else if(err.response?.status == 409 && err.response.data.message == "Teacher, has reached the maximum number of teaching and tutoring assignments."){
+            } else if (err.response?.status == 409 && err.response.data.message == "Teacher, has reached the maximum number of teaching and tutoring assignments.") {
                 toast({ title: '¡Error!', description: 'El docente, ha alcanzado el numero maximo de asignaciones como Mentor y tutor', variant: 'error' });
-            } else if(err.response?.status == 409 && err.response.data.message == "Teacher, busy at that time"){
+            } else if (err.response?.status == 409 && err.response.data.message == "Teacher, busy at that time") {
                 toast({ title: '¡Error!', description: 'El docente esta ocupado en ese horario.', variant: 'error' });
             } else if (err.response?.status == 409 && err.response.data.message != "Teacher, has reached the maximum number of teaching and tutoring assignments." && err.response.data.message != "Teacher, busy at that time") {
                 toast({ title: '¡Error!', description: 'Conflicto de horario o profesional.', variant: 'error' });
@@ -385,7 +385,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                             <InputLabel htmlFor="idCurso" value="Curso" />
                             <SelectInput id="idCurso" name="idCurso" value={formData.idCurso} onChange={handleChange}
                                 options={[{ value: '', label: 'Seleccione Curso mediante su Codigo', disabled: true },
-                                ...courses.map(c => ({ value: c.idCurso, label: c.codigo }))]}
+                                ...courses.map(c => ({ value: c.idCurso, label: c.codigoGrupo }))]}
                                 required error={errors.idCurso}
                                 isInvalid={!!errors.idCurso} // Add isInvalid prop
                                 className={errors.idCurso ? 'border-red-500' : ''} // Tailwind class for error border
@@ -547,7 +547,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                                 })}
                             </div>
                         </div>
-                    </div> 
+                    </div>
 
                     <div className="flex justify-end space-x-2 pt-4">
                         <CancelButton onClick={onCancel} disabled={!!professionalPendingRoleSelection}>
@@ -558,7 +558,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                             {isEditMode ? 'Guardar Cambios' : 'Crear Clase'}
                         </ButtonGradient>
                     </div>
-                </div> 
+                </div>
             </form>
         </div>
     );
