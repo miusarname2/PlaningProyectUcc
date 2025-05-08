@@ -33,7 +33,7 @@ const columns = [
         title: "Rango horario", key: "dias", render: (row) =>
             Array.isArray(row) && row.length > 0 ? (
                 row.map((r, idx) => (
-                    <ContainerShowData key={idx} text={`${r.nombre} ( ${r.pivot.hora_inicio} - ${r.pivot.hora_fin} )`} bg={"bg-stone-100"} colortext={"text-stone-800"}/>
+                    <ContainerShowData key={idx} text={`${r.nombre} ( ${r.pivot.hora_inicio} - ${r.pivot.hora_fin} )`} bg={"bg-stone-100"} colortext={"text-stone-800"} />
                 ))
             ) : (
                 <span className="text-gray-400 text-xs italic">Sin prestamos</span>
@@ -69,24 +69,58 @@ export default function PrincipalClass() {
     async function fetchData() {
         try {
             const response = await api.get("/Horario");
-            console.log(response);
-            const transformed = response.data.map((horario) => {
-                console.log(horario.profesionales);
+            const transformed = response.data.map(horario => {
+                // Log de profesionales (o array vacío si no existe)
+                const profesionalesArray = horario?.profesionales ?? [];
+                console.log(profesionalesArray);
+
+                // Detectores rápidos
+                const hasAula = !!horario?.aula;
+                const hasCurso = !!horario?.curso;
+
+                // Desestructuraciones seguras
+                const sede = horario?.aula?.sede;
+                const ciudad = sede?.ciudad;
+                const aula = horario?.aula;
+
                 return {
+                    // Si necesitas conservar props originales, déjalo; si no, quítalo:
                     ...horario,
-                    id: horario.idHorario,
-                    nombreCiudad: horario?.aula?.sede?.ciudad?.nombre,
-                    nombreCurso: horario.curso.nombre,
-                    aulaNombreCodigo: `(${horario.aula.codigo}) ${horario.aula.nombre}`,
-                    idCurso: horario.curso.idCurso,
-                    idSede: horario?.aula?.sede?.idSede,
-                    idAula: horario.aula.idAula,
+
+                    // ID del horario
+                    id: horario?.idHorario ?? null,
+
+                    // Nombre de la ciudad o fallback
+                    nombreCiudad: hasAula
+                        ? (ciudad?.nombre ?? "Ciudad desconocida")
+                        : "Sin aula",
+
+                    // Nombre del curso o fallback
+                    nombreCurso: hasCurso
+                        ? (horario.curso?.nombre ?? "Curso sin nombre")
+                        : "Curso desconocido",
+
+                    // Código y nombre del aula combinados, o mensajes claros
+                    aulaNombreCodigo: hasAula
+                        ? (() => {
+                            const { codigo, nombre } = aula;
+                            if (codigo && nombre) return `(${codigo}) ${nombre}`;
+                            if (nombre) return nombre;
+                            if (codigo) return `(${codigo})`;
+                            return "Aula (datos incompletos)";
+                        })()
+                        : "Sin aula",
+
+                    // IDs relacionados (null si faltan)
+                    idCurso: hasCurso ? (horario.curso.idCurso ?? null) : null,
+                    idSede: hasAula ? (sede?.idSede ?? null) : null,
+                    idAula: hasAula ? (aula?.idAula ?? null) : null,
                 };
             });
 
             setData(transformed);
         } catch (error) {
-            console.error("Error fetching classses:", error);
+            console.error("Error fetching classes:", error);
         } finally {
             setLoading(false);
         }
