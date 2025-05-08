@@ -51,15 +51,45 @@ export default function PrincipalClassroom() {
     async function fetchData() {
         try {
             const response = await api.get("/aula");
-            console.log(response);
-            const transformed = response.data.map((aula) => ({
-                ...aula,
-                id: aula.idAula,
-                codigoAula: aula.codigo
-            }));
+            console.log(JSON.stringify(response));
+
+            const transformed = response.data.map(aula => {
+                // Detectores rápidos
+                const hasSede = !!aula?.sede;
+                const sede = aula?.sede;
+                const ciudad = sede?.ciudad;
+
+                return {
+                    // Conserva el objeto original si lo necesitas:
+                    ...aula,
+
+                    // Campos renombrados / normalizados
+                    id: aula?.idAula ?? null,
+                    codigoAula: aula?.codigo ?? "",
+
+                    // Nombre de la sede o fallback si no existe
+                    nombreSede: hasSede
+                        ? (sede?.nombre ?? "Sede (nombre desconocido)")
+                        : "Sin sede",
+
+                    // Nombre de la ciudad anidada, o mensaje claro
+                    nombreCiudad: hasSede
+                        ? (ciudad?.nombre ?? "Ciudad desconocida")
+                        : "Sin ciudad",
+
+                    // IDs relacionados o null
+                    idSede: hasSede ? (sede?.idSede ?? null) : null,
+                    idCiudad: hasSede ? (ciudad?.idCiudad ?? null) : null,
+
+                    // Si tienes más campos derivados de `sede` o `ciudad`, aquí los normalizas:
+                    // direcciónSede: hasSede ? (sede?.acceso ?? "Acceso no disponible") : "Sin sede",
+                    // tipoSede: hasSede ? (sede?.tipo ?? "Tipo no especificado") : "Sin sede",
+                };
+            });
+
             setData(transformed);
         } catch (error) {
-            console.error("Error obteniendo días:", error);
+            console.error("Error obteniendo aulas:", error);
         } finally {
             setLoading(false);
         }
