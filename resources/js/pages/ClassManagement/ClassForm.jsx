@@ -384,8 +384,8 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                         <div className="space-y-2">
                             <InputLabel htmlFor="idCurso" value="Curso" />
                             <SelectInput id="idCurso" name="idCurso" value={formData.idCurso} onChange={handleChange}
-                                options={[{ value: '', label: 'Seleccione Curso.', disabled: true },
-                                ...courses.map(c => ({ value: c.idCurso, label: c.nombre }))]}
+                                options={[{ value: '', label: 'Seleccione Curso mediante su Codigo', disabled: true },
+                                ...courses.map(c => ({ value: c.idCurso, label: c.codigo }))]}
                                 required error={errors.idCurso}
                                 isInvalid={!!errors.idCurso} // Add isInvalid prop
                                 className={errors.idCurso ? 'border-red-500' : ''} // Tailwind class for error border
@@ -528,11 +528,13 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
 
                                             {isSelected && (
                                                 <div className="flex space-x-2 mt-2">
+                                                    <span>Hora de Inicio:</span>
                                                     <input
                                                         type="time"
                                                         value={slot.hora_inicio}
                                                         onChange={e => handleTimeChange(d.idDia, 'hora_inicio', e.target.value)}
                                                     />
+                                                    <span>Hora de Fin:</span>
                                                     <input
                                                         type="time"
                                                         value={slot.hora_fin}
