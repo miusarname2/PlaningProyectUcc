@@ -25,7 +25,7 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
         estado: initialData?.estado || "",
         modalidad: initialData?.modalidad || "",
         cohorte: initialData?.cohorte || "",
-        codigoGrupo: initialData?.codigoGrupo || "",
+        codigoGrupo: initialData?.codigo || "",
         nivel: initialData?.nivel || "",
         codigo: initialData?.codigo || "",
         // Map initialData.programas to array of IDs
@@ -93,7 +93,7 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
             horas: Number(formData.horas),
             estado: formData.estado,
             modalidad: formData.modalidad,
-            codigoGrupo: formData.codigoGrupo,
+            codigoGrupo: formData.codigo,
             cohorte: formData.cohorte,
             nivel: formData.nivel,
             programas: formData.selectedPrograms
@@ -225,20 +225,6 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                                 options={[{ value: "", label: "Seleccione Modalidad" }, { value: "Presencial", label: "Presencial" }, { value: "Virtual", label: "Virtual" }]}
                                 required
                                 error={errors.modalidad}
-                            />
-                        </div>
-
-                        {/* Codigo grupo */}
-                        <div className="space-y-2">
-                            <InputLabel htmlFor="codigoGrupo" value="Codigo del Grupo" />
-                            <TextInput
-                                id="codigoGrupo"
-                                name="codigoGrupo"
-                                value={formData.codigoGrupo}
-                                onChange={handleChange}
-                                placeholder="Ingrese el codigo del Grupo"
-                                required
-                                error={errors.nombre}
                             />
                         </div>
 
