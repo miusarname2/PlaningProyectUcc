@@ -50,10 +50,10 @@ export default function PrincipalProgramme() {
 
     async function fetchData(query) {
         setLoading(true);
-    
+
         try {
             let programas = [];
-    
+
             if (!query || query.trim() === "") {
                 const response = await api.get("/programa");
                 programas = response.data; // <-- Aquí asumo que en esta ruta no es paginada
@@ -67,13 +67,13 @@ export default function PrincipalProgramme() {
                     : isEstado
                         ? { estado: trimmed }
                         : { nombre: trimmed };
-    
+
                 const response = await api.get("/programa/search", { params });
-    
+
                 console.log("Respuesta del backend:", response.data);
                 programas = response.data?.data?.data || []; // paginado
             }
-    
+
             const transformed = programas.map((program) => ({
                 ...program,
                 id: program.idPrograma ?? 0,
@@ -84,7 +84,7 @@ export default function PrincipalProgramme() {
                 duracion: program.duracion ?? 0,
                 codigo: program.codigo ?? "",
             }));
-    
+
             setData(transformed);
         } catch (error) {
             console.error("Error buscando programas:", error);
@@ -92,7 +92,7 @@ export default function PrincipalProgramme() {
             setLoading(false);
         }
     }
-    
+
 
     useEffect(() => {
         fetchData();
@@ -107,6 +107,8 @@ export default function PrincipalProgramme() {
                     buttonText="Añadir Nuevo Programa"
                     onClick={() => setShowForm(true)}
                     showButton={!showForm}
+                    verifyPermission={true}
+                    module="programs_management"
                 />
 
                 {!showForm ? (
@@ -126,6 +128,8 @@ export default function PrincipalProgramme() {
                                     <DataTable
                                         columns={columns}
                                         data={data}
+                                        permissionsValidate={true}
+                                        module="programs_management"
                                         rowActions={(row) => [
                                             {
                                                 icon: Pencil,

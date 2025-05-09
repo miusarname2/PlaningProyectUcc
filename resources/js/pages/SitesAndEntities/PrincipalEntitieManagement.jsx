@@ -74,15 +74,12 @@ export default function PrincipalEntitieManagement() {
                     buttonText="Añadir Nueva Entidad"
                     onClick={() => setShowForm(true)}
                     showButton={!showForm}
+                    verifyPermission={true}
+                    module="entities"
                 />
 
                 {!showForm ? (
                     <div className="space-y-4">
-                        <InputSearch
-                            onSearchChange={(val) =>
-                                console.log("Filtro buscador:", val)
-                            }
-                        />
 
                         {loading ? (
                             <p className="text-center text-gray-500">
@@ -94,6 +91,8 @@ export default function PrincipalEntitieManagement() {
                                     <DataTable
                                         columns={columns}
                                         data={data}
+                                        permissionsValidate={true}
+                                        module="entities"
                                         rowActions={(row) => [
                                             {
                                                 icon: Pencil,

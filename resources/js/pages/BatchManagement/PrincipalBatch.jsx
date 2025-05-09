@@ -122,6 +122,8 @@ export default function PrincipalBatch() {
                     buttonText="Añadir Nuevo Lote"
                     onClick={() => setShowForm(true)}
                     showButton={!showForm}
+                    verifyPermission={true}
+                    module="batches_management"
                 />
 
                 {!showForm ? (
@@ -141,6 +143,8 @@ export default function PrincipalBatch() {
                                     <DataTable
                                         columns={columns}
                                         data={data}
+                                        permissionsValidate={true}
+                                        module="batches_management"
                                         rowActions={(row) => [
                                             {
                                                 icon: Pencil,

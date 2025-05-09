@@ -71,11 +71,6 @@ export default function PrincipalCountry() {
                 />
                 {!showForm ? (
                     <div className="space-y-4">
-                        <InputSearch
-                            onSearchChange={(val) =>
-                                console.log("Filtro buscador:", val)
-                            }
-                        />
                         {loading ? (
                             <p className="text-center text-gray-500">
                                 Cargando paises...

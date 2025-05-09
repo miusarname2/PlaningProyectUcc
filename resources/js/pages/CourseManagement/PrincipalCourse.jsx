@@ -89,26 +89,24 @@ export default function PrincipalCourse() {
                     title="Gestión de Cursos"
                     description="Crear, editar y eliminar cursos"
                     buttonText="Añadir Nuevo Curso"
+                    verifyPermission={true}
+                    module="courses_management"
                     onClick={() => setShowForm(true)}
                     showButton={!showForm}
                 />
 
                 {!showForm ? (
                     <div className="space-y-4">
-                        <InputSearch
-                            onSearchChange={(val) =>
-                                console.log("Filtro buscador:", val)
-                            }
-                        />
-
                         {loading ? (
                             <p className="text-center text-gray-500">
-                                Cargando lotes...
+                                Cargando Cursos...
                             </p>
                         ) : (
                             <div className="rounded-lg border bg-card text-card-foreground shadow-sm border-gray-200">
                                 <div className="relative w-full overflow-auto">
                                     <DataTable
+                                        permissionsValidate={true}
+                                        module="courses_management"
                                         columns={columns}
                                         data={data}
                                         rowActions={(row) => [

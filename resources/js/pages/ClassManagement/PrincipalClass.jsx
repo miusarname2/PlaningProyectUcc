@@ -137,6 +137,8 @@ export default function PrincipalClass() {
                     title="Gestión Clases"
                     description="Añadir, editar o eliminar clases en las que se imparten cursos"
                     buttonText="Añadir Nueva Clase"
+                    verifyPermission={true}
+                    module="classes_management"
                     onClick={() => setShowForm(true)}
                     showButton={!showForm}
                 />
@@ -155,6 +157,8 @@ export default function PrincipalClass() {
                         ) : (
                             <DataTable
                                 columns={columns}
+                                permissionsValidate={true}
+                                module="classes_management"
                                 data={data}
                                 rowActions={(row) => [
                                     {

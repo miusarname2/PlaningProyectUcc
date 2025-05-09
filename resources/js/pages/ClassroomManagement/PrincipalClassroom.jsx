@@ -108,17 +108,12 @@ export default function PrincipalClassroom() {
                     buttonText="Añadir Nueva Aula"
                     onClick={() => setShowForm(true)}
                     showButton={!showForm}
+                    verifyPermission={true}
+                    module="classroom_management"
                 />
 
                 {!showForm ? (
                     <div className="space-y-4">
-                        <InputSearch
-                            onSearchChange={(val) =>
-                                console.log("Filtro buscador:", val)
-                            }
-                            placeHolderText="Buscando Aulas"
-                        />
-
                         {loading ? (
                             <p className="text-center text-gray-500">
                                 Cargando Aulas...
@@ -129,6 +124,8 @@ export default function PrincipalClassroom() {
                                     <DataTable
                                         columns={columns}
                                         data={data}
+                                        permissionsValidate={true}
+                                        module="classroom_management"
                                         rowActions={(row) => [
                                             {
                                                 icon: Pencil,

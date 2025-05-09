@@ -97,15 +97,12 @@ export default function PrincipalProfessonalsManagement() {
                     buttonText="Añadir Nuevo Profesional"
                     onClick={() => setShowForm(true)}
                     showButton={!showForm}
+                    verifyPermission={true}
+                    module="professionals_management"
                 />
 
                 {!showForm ? (
                     <div className="space-y-4">
-                        <InputSearch
-                            onSearchChange={(val) =>
-                                console.log("Filtro buscador:", val)
-                            }
-                        />
 
                         {loading ? (
                             <p className="text-center text-gray-500">
@@ -117,6 +114,8 @@ export default function PrincipalProfessonalsManagement() {
                                     <DataTable
                                         columns={columns}
                                         data={data}
+                                        permissionsValidate={true}
+                                        module="professionals_management"
                                         rowActions={(row) => [
                                             {
                                                 icon: Pencil,
