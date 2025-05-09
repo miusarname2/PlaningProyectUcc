@@ -68,7 +68,7 @@ class HorarioController extends Controller
         }
 
         // 2) IDs de roles con límite
-        $limitRoleIds = RolDocente::whereIn('nombre', ['Tutor', 'Mentor'])
+        $limitRoleIds = RolDocente::whereIn('nombre', ['Ejecutor'])
             ->pluck('idRolDocente')
             ->toArray();
 
