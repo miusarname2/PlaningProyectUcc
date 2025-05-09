@@ -66,7 +66,7 @@ function filterSectionsByPermissions(sections, permissionsJsonArray, keywordMap,
 }
 
 
-const permissionStrings = responsePermisos.data.permisos
+export const permissionStrings = responsePermisos.data.permisos
 
 const keywordMap = {
   '/usersRole': ['users', 'roles', 'profiles'],

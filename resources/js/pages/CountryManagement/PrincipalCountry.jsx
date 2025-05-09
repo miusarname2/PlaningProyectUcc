@@ -66,6 +66,8 @@ export default function PrincipalCountry() {
                     buttonText="Añadir Nuevo Pais"
                     onClick={() => setShowForm(true)}
                     showButton={!showForm}
+                    verifyPermission={true}
+                    module="country_management"
                 />
                 {!showForm ? (
                     <div className="space-y-4">
@@ -82,6 +84,8 @@ export default function PrincipalCountry() {
                             <DataTable
                                 columns={columns}
                                 data={data}
+                                permissionsValidate={true}
+                                module="country_management"
                                 rowActions={(row) => [
                                     {
                                         icon: Pencil,

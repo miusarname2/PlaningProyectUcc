@@ -100,7 +100,6 @@ export default function PrincipalUser() {
         try {
             const type = getSearchType(value);
             const response = await api.get(`/user/search?${type}=${encodeURIComponent(value)}`);
-            console.log(response);
 
             const transformed = response.data.data.data.map((user) => ({
                 ...user,
@@ -122,7 +121,6 @@ export default function PrincipalUser() {
                     buttonText="Añadir Nuevo Usuario"
                     onClick={() => setShowForm(true)}
                     showButton={!showForm}
-
                     verifyPermission={true}
                 />
                 {!showForm ? (
@@ -138,6 +136,7 @@ export default function PrincipalUser() {
                             <DataTable
                                 columns={columns}
                                 data={data}
+                                permissionsValidate={true}
                                 rowActions={(row) => {
                                     const actions = [
                                         {

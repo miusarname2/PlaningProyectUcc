@@ -85,6 +85,8 @@ export default function PrincipalProfile() {
                     buttonText="Crear Perfil"
                     onClick={() => setShowForm(true)}
                     showButton={!showForm}
+                    verifyPermission={true}
+                    module="profiles"
                 />
                 {!showForm ? (
                     <div className="space-y-4">
@@ -100,6 +102,8 @@ export default function PrincipalProfile() {
                             <DataTable
                                 columns={columns}
                                 data={data}
+                                permissionsValidate={true}
+                                module="profiles"
                                 rowActions={(row) => {
                                     const actions = [
                                         {

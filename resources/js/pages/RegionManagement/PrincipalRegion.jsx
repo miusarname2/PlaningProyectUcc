@@ -68,6 +68,8 @@ export default function PrincipalCity() {
                     buttonText="Añadir Nueva Region"
                     onClick={() => setShowForm(true)}
                     showButton={!showForm}
+                    verifyPermission={true}
+                    module="region_management"
                 />
                 {!showForm ? (
                     <div className="space-y-4">
@@ -84,6 +86,8 @@ export default function PrincipalCity() {
                             <DataTable
                                 columns={columns}
                                 data={data}
+                                permissionsValidate={true}
+                                module="region_management"
                                 rowActions={(row) => [
                                     {
                                         icon: Pencil,

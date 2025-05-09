@@ -84,6 +84,8 @@ export default function PrincipalCity() {
                     description="Añadir, editar o eliminar ciudades en las que se imparten cursos"
                     buttonText="Añadir Nueva Ciudad"
                     onClick={() => setShowForm(true)}
+                    verifyPermission={true}
+                    module="cities_management"
                     showButton={!showForm}
                 />
                 {!showForm ? (
@@ -102,6 +104,8 @@ export default function PrincipalCity() {
                             <DataTable
                                 columns={columns}
                                 data={data}
+                                permissionsValidate={true}
+                                module="cities_management"
                                 rowActions={(row) => [
                                     {
                                         icon: Pencil,
