@@ -17,6 +17,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xls;
+use Throwable;
 
 class HorarioController extends Controller
 {
@@ -44,31 +45,42 @@ class HorarioController extends Controller
      */
     public function store(Request $request)
     {
-        // 1) Validación básica
+        // 1) Validación básica con comparación hora_inicio < hora_fin
         try {
             $validated = $request->validate([
-                'idCurso'                  => 'required|integer|exists:curso,idCurso',
-                'idAula'                   => 'nullable|integer|exists:aula,idAula',
-                'docentes'                 => 'required|array|min:1',
-                'docentes.*.idProfesional' => 'required|integer|exists:profesional,idProfesional',
-                'docentes.*.idRolDocente'  => 'required|integer|exists:rolDocente,idRolDocente',
-                'dias'                     => 'required|array|min:1',
-                'dias.*.idDia'             => 'required|integer|exists:dia,idDia',
-                'dias.*.hora_inicio'       => 'required|date_format:H:i:s',
-                'dias.*.hora_fin'          => 'required|date_format:H:i:s|after:dias.*.hora_inicio',
+                'idCurso'                  => ['required', 'integer', 'exists:curso,idCurso'],
+                'idAula'                   => ['nullable', 'integer', 'exists:aula,idAula'],
+                'docentes'                 => ['required', 'array', 'min:1'],
+                'docentes.*.idProfesional' => ['required', 'integer', 'exists:profesional,idProfesional'],
+                'docentes.*.idRolDocente'  => ['required', 'integer', 'exists:rolDocente,idRolDocente'],
+                'dias'                     => ['required', 'array', 'min:1'],
+                'dias.*.idDia'             => ['required', 'integer', 'exists:dia,idDia'],
+                'dias.*.hora_inicio'       => ['required', 'date_format:H:i:s'],
+                'dias.*.hora_fin'          => ['required', 'date_format:H:i:s'],
+            ], [], [
+                'dias.*.hora_fin.after' => 'La hora de fin debe ser posterior a la hora de inicio.',
             ]);
+
+            // Validación manual de hora_inicio < hora_fin
+            foreach ($validated['dias'] as $idx => $d) {
+                if ($d['hora_fin'] <= $d['hora_inicio']) {
+                    throw ValidationException::withMessages([
+                        "dias.$idx.hora_fin" => ['La hora de fin debe ser posterior a la hora de inicio.'],
+                    ]);
+                }
+            }
         } catch (ValidationException $ex) {
-            Log::warning('Validación update Horario: ' . json_encode($ex->errors()));
+            Log::warning('Validación store Horario: ' . json_encode($ex->errors()));
             return response()->json([
                 'success' => false,
-                'status' => 422,
+                'status'  => 422,
                 'message' => 'Error en la validación',
                 'errors'  => $ex->errors(),
             ], 422);
         }
 
         // 2) IDs de roles con límite
-        $limitRoleIds = RolDocente::whereIn('nombre', ['Ejecutor'])
+        $limitRoleIds = RolDocente::where('nombre', 'Ejecutor')
             ->pluck('idRolDocente')
             ->toArray();
 
@@ -76,23 +88,23 @@ class HorarioController extends Controller
         foreach ($validated['docentes'] as $doc) {
             $teacherId = $doc['idProfesional'];
 
-            // 3a) Conflicto de horario
+            // 3a) Conflicto de horario GLOBAL (todas las aulas)
             foreach ($validated['dias'] as $d) {
-                $busy = Horario::where('idAula', $validated['idAula'])
-                    ->whereHas('profesionales', function ($q) use ($teacherId) {
-                        $q->where('horario_profesional.idProfesional', $teacherId);
-                    })
+                $busy = Horario::whereHas('profesionales', function ($q) use ($teacherId) {
+                    $q->where('horario_profesional.idProfesional', $teacherId);
+                })
                     ->whereHas('dias', function ($q) use ($d) {
                         $q->where('horario_dia.idDia', $d['idDia'])
                             ->where('horario_dia.hora_inicio', '<', $d['hora_fin'])
                             ->where('horario_dia.hora_fin', '>', $d['hora_inicio']);
-                    })->exists();
+                    })
+                    ->exists();
 
                 if ($busy) {
                     return response()->json([
                         'success' => false,
-                        'status' => 409,
-                        'message' => 'Teacher, busy at that time',
+                        'status'  => 409,
+                        'message' => 'Teacher, has reached the maximum number of teaching and tutoring assignments.',
                     ], 409);
                 }
             }
@@ -106,40 +118,57 @@ class HorarioController extends Controller
             if ($assignCount >= 4) {
                 return response()->json([
                     'success' => false,
-                    'status' => 409,
-                    'message' => 'Teacher, has reached the maximum number of teaching and tutoring assignments.',
+                    'status'  => 409,
+                    'message' => 'El docente ha alcanzado el máximo de 4 asignaciones como Tutor/Mentor.',
                 ], 409);
             }
         }
 
-        // 4) Creación del Horario
-        $horario = Horario::create([
-            'idCurso' => $validated['idCurso'],
-            'idAula'  => $validated['idAula'],
-        ]);
+        // 4) Creación en transacción
+        DB::beginTransaction();
+        try {
+            $horario = Horario::create([
+                'idCurso' => $validated['idCurso'],
+                'idAula'  => $validated['idAula'],
+            ]);
 
-        // 5) Sincronizar días
-        $attachDias = [];
-        foreach ($validated['dias'] as $d) {
-            $attachDias[$d['idDia']] = [
-                'hora_inicio' => $d['hora_inicio'],
-                'hora_fin'    => $d['hora_fin'],
-            ];
+            // 5) Sincronizar días
+            $diasSync = [];
+            foreach ($validated['dias'] as $d) {
+                $diasSync[$d['idDia']] = [
+                    'hora_inicio' => $d['hora_inicio'],
+                    'hora_fin'    => $d['hora_fin'],
+                ];
+            }
+            $horario->dias()->attach($diasSync);
+
+            // 6) Sincronizar docentes
+            $docsSync = [];
+            foreach ($validated['docentes'] as $doc) {
+                $docsSync[$doc['idProfesional']] = [
+                    'idRolDocente' => $doc['idRolDocente'],
+                ];
+            }
+            $horario->profesionales()->attach($docsSync);
+
+            DB::commit();
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al crear horario: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'status'  => 500,
+                'message' => 'Error interno al crear el horario.',
+            ], 500);
         }
-        $horario->dias()->attach($attachDias);
 
-        // 6) Sincronizar docentes
-        $attachDocs = [];
-        foreach ($validated['docentes'] as $doc) {
-            $attachDocs[$doc['idProfesional']] = [
-                'idRolDocente' => $doc['idRolDocente'],
-            ];
-        }
-        $horario->profesionales()->attach($attachDocs);
-
-        // 7) Respuesta
+        // 7) Respuesta final
         $horario->load(['curso', 'aula', 'dias', 'profesionales']);
-        return response()->json(['success' => true,'status' => 201, 'data' => $horario], 201);
+        return response()->json([
+            'success' => true,
+            'status'  => 201,
+            'data'    => $horario,
+        ], 201);
     }
 
     /**
@@ -158,112 +187,140 @@ class HorarioController extends Controller
     {
         $horario = Horario::findOrFail($id);
 
-        // 1) Validación básica
+        // 1) Validación básica con hora_inicio < hora_fin
         try {
             $validated = $request->validate([
-                'idCurso'                   => 'sometimes|integer|exists:curso,idCurso',
-                'idAula'                    => 'sometimes|nullable|integer|exists:aula,idAula',
-                'docentes'                  => 'sometimes|array|min:1',
-                'docentes.*.idProfesional'  => 'sometimes|integer|exists:profesional,idProfesional',
-                'docentes.*.idRolDocente'   => 'sometimes|integer|exists:rolDocente,idRolDocente',
-                'dias'                      => 'sometimes|array|min:1',
-                'dias.*.idDia'              => 'required_with:dias|integer|exists:dia,idDia',
-                'dias.*.hora_inicio'        => 'required_with:dias|date_format:H:i:s',
-                'dias.*.hora_fin'           => 'required_with:dias|date_format:H:i:s|after:dias.*.hora_inicio',
+                'idCurso'                  => ['sometimes', 'integer', 'exists:curso,idCurso'],
+                'idAula'                   => ['sometimes', 'nullable', 'integer', 'exists:aula,idAula'],
+                'docentes'                 => ['sometimes', 'array', 'min:1'],
+                'docentes.*.idProfesional' => ['required_with:docentes', 'integer', 'exists:profesional,idProfesional'],
+                'docentes.*.idRolDocente'  => ['required_with:docentes', 'integer', 'exists:rolDocente,idRolDocente'],
+                'dias'                     => ['sometimes', 'array', 'min:1'],
+                'dias.*.idDia'             => ['required_with:dias', 'integer', 'exists:dia,idDia'],
+                'dias.*.hora_inicio'       => ['required_with:dias', 'date_format:H:i:s'],
+                'dias.*.hora_fin'          => ['required_with:dias', 'date_format:H:i:s'],
+            ], [], [
+                'dias.*.hora_fin.after' => 'La hora de fin debe ser posterior a la hora de inicio.',
             ]);
+
+            // Validación manual de rango de horas
+            if (!empty($validated['dias'])) {
+                foreach ($validated['dias'] as $idx => $d) {
+                    if ($d['hora_fin'] <= $d['hora_inicio']) {
+                        throw ValidationException::withMessages([
+                            "dias.$idx.hora_fin" => ['La hora de fin debe ser posterior a la hora de inicio.'],
+                        ]);
+                    }
+                }
+            }
         } catch (ValidationException $ex) {
             Log::warning('Validación update Horario: ' . json_encode($ex->errors()));
             return response()->json([
                 'success' => false,
-                'status' => 422,
+                'status'  => 422,
                 'message' => 'Error en la validación de los datos.',
                 'errors'  => $ex->errors(),
             ], 422);
         }
 
         // 2) IDs de roles con límite
-        $limitRoleIds = RolDocente::whereIn('nombre', ['Ejecutor'])
+        $limitRoleIds = RolDocente::where('nombre', 'Ejecutor')
             ->pluck('idRolDocente')
             ->toArray();
 
-        // 3) Validaciones extra
+        // 3) Validaciones extra si vienen docentes y días
         if (!empty($validated['docentes']) && !empty($validated['dias'])) {
             foreach ($validated['docentes'] as $doc) {
                 $teacherId = $doc['idProfesional'];
 
-                // 3a) Conflicto de horario (excluye este Horario)
+                // 3a) Conflicto global de horario (excluyendo este Horario)
                 foreach ($validated['dias'] as $d) {
-                    $busy = Horario::where('idAula', $validated['idAula'] ?? $horario->idAula)
-                        ->where('idHorario', '!=', $horario->idHorario)
-                        ->whereHas(
-                            'profesionales',
-                            fn($q) =>
-                            $q->where('horario_profesional.idProfesional', $teacherId)
-                        )
+                    $busy = Horario::where('idHorario', '!=', $horario->idHorario)
+                        ->whereHas('profesionales', function ($q) use ($teacherId) {
+                            $q->where('horario_profesional.idProfesional', $teacherId);
+                        })
                         ->whereHas('dias', function ($q) use ($d) {
                             $q->where('horario_dia.idDia', $d['idDia'])
                                 ->where('horario_dia.hora_inicio', '<', $d['hora_fin'])
                                 ->where('horario_dia.hora_fin', '>', $d['hora_inicio']);
-                        })->exists();
+                        })
+                        ->exists();
 
                     if ($busy) {
                         return response()->json([
                             'success' => false,
-                            'status' => 409,
-                            'message' => 'Teacher, busy at that time',
+                            'status'  => 409,
+                            'message' => 'El docente ya tiene un horario solapado en esa franja.',
                         ], 409);
                     }
                 }
 
-                // 3b) Límite de 4 asignaciones (excluye este Horario)
+                // 3b) Límite de 4 asignaciones (excluyendo este Horario)
                 $assignCount = DB::table('horario_profesional')
                     ->where('idProfesional', $teacherId)
                     ->whereIn('idRolDocente', $limitRoleIds)
                     ->where('idHorario', '!=', $horario->idHorario)
                     ->count();
 
-                if ($assignCount > 4) {
+                if ($assignCount >= 4) {
                     return response()->json([
                         'success' => false,
-                        'status' => 409,
-                        'message' => 'Teacher, has reached the maximum number of teaching and tutoring assignments.',
+                        'status'  => 409,
+                        'message' => 'El docente ha alcanzado el máximo de 4 asignaciones como Tutor/Mentor.',
                     ], 409);
                 }
             }
         }
 
-        // 4) Actualizar campos básicos
-        $horario->update(array_filter([
-            'idCurso' => $validated['idCurso'] ?? null,
-            'idAula'  => array_key_exists('idAula', $validated) ? $validated['idAula'] : null,
-        ], fn($v) => !is_null($v)));
+        // 4) Actualización en transacción
+        DB::beginTransaction();
+        try {
+            // Campos básicos
+            $horario->update(array_filter([
+                'idCurso' => $validated['idCurso'] ?? null,
+                'idAula'  => array_key_exists('idAula', $validated) ? $validated['idAula'] : null,
+            ], fn($v) => !is_null($v)));
 
-        // 5) Sincronizar días
-        if (isset($validated['dias'])) {
-            $attach = [];
-            foreach ($validated['dias'] as $d) {
-                $attach[$d['idDia']] = [
-                    'hora_inicio' => $d['hora_inicio'],
-                    'hora_fin'    => $d['hora_fin'],
-                ];
+            // Sincronizar días
+            if (isset($validated['dias'])) {
+                $diasSync = [];
+                foreach ($validated['dias'] as $d) {
+                    $diasSync[$d['idDia']] = [
+                        'hora_inicio' => $d['hora_inicio'],
+                        'hora_fin'    => $d['hora_fin'],
+                    ];
+                }
+                $horario->dias()->sync($diasSync);
             }
-            $horario->dias()->sync($attach);
+
+            // Sincronizar docentes
+            if (isset($validated['docentes'])) {
+                $docsSync = [];
+                foreach ($validated['docentes'] as $doc) {
+                    $docsSync[$doc['idProfesional']] = [
+                        'idRolDocente' => $doc['idRolDocente'],
+                    ];
+                }
+                $horario->profesionales()->sync($docsSync);
+            }
+
+            DB::commit();
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al actualizar horario: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'status'  => 500,
+                'message' => 'Error interno al actualizar el horario.',
+            ], 500);
         }
 
-        // 6) Sincronizar docentes
-        if (isset($validated['docentes'])) {
-            $attach = [];
-            foreach ($validated['docentes'] as $doc) {
-                $attach[$doc['idProfesional']] = [
-                    'idRolDocente' => $doc['idRolDocente'],
-                ];
-            }
-            $horario->profesionales()->sync($attach);
-        }
-
-        // 7) Respuesta
+        // 5) Respuesta final
         $horario->load(['curso', 'aula', 'dias', 'profesionales']);
-        return response()->json(['success' => true, 'data' => $horario], 200);
+        return response()->json([
+            'success' => true,
+            'data'    => $horario,
+        ], 200);
     }
 
     /**
@@ -275,7 +332,7 @@ class HorarioController extends Controller
 
         $horario->delete();
 
-        return response()->json(["message" => "Horario Deleted",'status' => 200]);
+        return response()->json(["message" => "Horario Deleted", 'status' => 200]);
     }
 
     public function search(Request $request)
@@ -391,7 +448,7 @@ class HorarioController extends Controller
         }
 
         // Cargamos relaciones necesarias (ya no usamos FranjaHoraria)
-        $query->with(['curso', 'profesionales', 'aula', 'aula.sede', 'aula.sede.propietario','dias']);
+        $query->with(['curso', 'profesionales', 'aula', 'aula.sede', 'aula.sede.propietario', 'dias']);
 
         try {
             $horarios = $query->paginate(10);
@@ -423,7 +480,7 @@ class HorarioController extends Controller
             ->values();
 
         // 2) Definir días de la semana
-        $diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes','Sabado'];
+        $diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sabado'];
 
         // 3) Construir lista única de franjas (ej. "07:00-08:00")
         $franjas = $horarios
