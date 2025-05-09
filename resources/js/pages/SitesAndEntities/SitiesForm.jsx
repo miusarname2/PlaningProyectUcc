@@ -35,18 +35,18 @@ function DatePickerSection({ entity, onConfirm, onCancel }) {
             fechaInicio: startDate,
             fechaFin: endDate,
         });
-         // Reset state after confirming (optional depending on desired flow)
-         setStartDate("");
-         setEndDate("");
-         setErrors({});
+        // Reset state after confirming (optional depending on desired flow)
+        setStartDate("");
+        setEndDate("");
+        setErrors({});
     };
 
-     const handleCancel = () => {
-         setStartDate("");
-         setEndDate("");
-         setErrors({});
-         onCancel(); // Call the parent's cancel handler
-     }
+    const handleCancel = () => {
+        setStartDate("");
+        setEndDate("");
+        setErrors({});
+        onCancel(); // Call the parent's cancel handler
+    }
 
     return (
         <div className="mt-4 p-4 border border-gray-300 rounded bg-gray-50">
@@ -58,7 +58,7 @@ function DatePickerSection({ entity, onConfirm, onCancel }) {
                         id={`startDate-${entity.idEntidad}`}
                         type="date"
                         value={startDate}
-                        onChange={(e) => { setStartDate(e.target.value); setErrors(prev => ({...prev, startDate: null, endDate: null})); }} // Clear relevant errors on change
+                        onChange={(e) => { setStartDate(e.target.value); setErrors(prev => ({ ...prev, startDate: null, endDate: null })); }} // Clear relevant errors on change
                         required
                         isInvalid={!!errors.startDate}
                     />
@@ -67,14 +67,14 @@ function DatePickerSection({ entity, onConfirm, onCancel }) {
                 <div>
                     <InputLabel htmlFor={`endDate-${entity.idEntidad}`} value="Fecha de Fin" />
                     <TextInput
-                         id={`endDate-${entity.idEntidad}`}
+                        id={`endDate-${entity.idEntidad}`}
                         type="date"
                         value={endDate}
-                        onChange={(e) => { setEndDate(e.target.value); setErrors(prev => ({...prev, startDate: null, endDate: null})); }} // Clear relevant errors on change
+                        onChange={(e) => { setEndDate(e.target.value); setErrors(prev => ({ ...prev, startDate: null, endDate: null })); }} // Clear relevant errors on change
                         required
-                         isInvalid={!!errors.endDate}
+                        isInvalid={!!errors.endDate}
                     />
-                     {errors.endDate && <div className="text-red-500 text-sm">{errors.endDate}</div>}
+                    {errors.endDate && <div className="text-red-500 text-sm">{errors.endDate}</div>}
                 </div>
             </div>
             <div className="flex justify-end space-x-2 mt-4">
@@ -131,30 +131,30 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
     const [errors, setErrors] = useState({});
 
     // ... (fetchCities y fetchEntities - no cambian) ...
-     async function fetchCities() {
+    async function fetchCities() {
         try {
             const response = await api.get("/ciudad");
-             // Add a default option at the beginning if cities are successfully fetched
+            // Add a default option at the beginning if cities are successfully fetched
             const citiesData = response.data || []; // Ensure it's an array even if data is null/undefined
             setCities([{ idCiudad: "", nombre: "Seleccionar Ciudad." }, ...citiesData]);
         } catch (error) {
             console.error("Error fetching cities:", error);
-             // Set cities to just the default option if fetch fails
+            // Set cities to just the default option if fetch fails
             setCities([{ idCiudad: "", nombre: "Error al cargar ciudades." }]);
         }
     }
 
-     // Obtiene las entidades desde '/entidad'
-     async function fetchEntities() {
+    // Obtiene las entidades desde '/entidad'
+    async function fetchEntities() {
         try {
             const response = await api.get("/entidad");
             // Store all fetched entities
-             const entitiesData = response.data || [];
+            const entitiesData = response.data || [];
             setEntities(entitiesData);
 
         } catch (error) {
             console.error("Error fetching entities:", error);
-             // Optionally clear entities or set an error state if fetching fails
+            // Optionally clear entities or set an error state if fetching fails
             setEntities([]);
         }
     }
@@ -170,36 +170,36 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
         setFormData((prev) => ({ ...prev, [name]: value }));
         // Clear error for the field being changed
         if (errors[name]) {
-             setErrors((prev) => ({ ...prev, [name]: null }));
+            setErrors((prev) => ({ ...prev, [name]: null }));
         }
     };
 
-     // Handler para seleccionar una prestataria del select (para agregar al tag list)
-     const handleSelectBorrowerToAdd = (e) => {
+    // Handler para seleccionar una prestataria del select (para agregar al tag list)
+    const handleSelectBorrowerToAdd = (e) => {
         const selectedId = parseInt(e.target.value, 10); // Ensure it's a number
 
         // Si el usuario seleccionó la opción por defecto, ya está en la lista,
         // o ya hay una entidad esperando la selección de fechas, no hacer nada.
         if (
-             !selectedId ||
-             formData.selectedPrestatarias.some(p => p.idEntidad === selectedId) || // Check if ID exists in the objects array
-             selectedEntityForDates
+            !selectedId ||
+            formData.selectedPrestatarias.some(p => p.idEntidad === selectedId) || // Check if ID exists in the objects array
+            selectedEntityForDates
         ) {
-             // Reset select value is not strictly needed if not adding/opening modal
-             // e.target.value = ""; // Esto podría dar error, mejor dejar que el estado lo maneje si tuviéramos uno para el select
-             return;
+            // Reset select value is not strictly needed if not adding/opening modal
+            // e.target.value = ""; // Esto podría dar error, mejor dejar que el estado lo maneje si tuviéramos uno para el select
+            return;
         }
 
         // Encontrar la entidad completa para mostrar su nombre en la sección de fechas
         const entityToAdd = entities.find(entity => entity.idEntidad === selectedId);
 
         if (entityToAdd) {
-             setSelectedEntityForDates(entityToAdd); // Set the entity waiting for dates
-             // Do NOT add to formData yet
+            setSelectedEntityForDates(entityToAdd); // Set the entity waiting for dates
+            // Do NOT add to formData yet
         }
 
-         // Resetear el valor del select después de la selección
-         e.target.value = ""; // Force the select value back to the default/empty option visually
+        // Resetear el valor del select después de la selección
+        e.target.value = ""; // Force the select value back to the default/empty option visually
     };
 
     // Handler llamado cuando se confirman las fechas en la sección DatePickerSection
@@ -210,16 +210,16 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
         }));
         setSelectedEntityForDates(null); // Clear the entity waiting for dates
         // Clear validation error for the list if it was showing
-         if (errors.selectedPrestatarias) {
-              setErrors(prev => ({ ...prev, selectedPrestatarias: null }));
-         }
+        if (errors.selectedPrestatarias) {
+            setErrors(prev => ({ ...prev, selectedPrestatarias: null }));
+        }
     };
 
     // Handler llamado cuando se cancela la selección de fechas
-     const handleCancelAddBorrowerWithDates = () => {
-         setSelectedEntityForDates(null); // Clear the entity waiting for dates
-          // You might want to reset the select value here as well, depending on UI needs
-     };
+    const handleCancelAddBorrowerWithDates = () => {
+        setSelectedEntityForDates(null); // Clear the entity waiting for dates
+        // You might want to reset the select value here as well, depending on UI needs
+    };
 
 
     // Handler para remover una prestataria de la lista de tags (ahora recibe el ID)
@@ -246,7 +246,7 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
 
         // Validación: No permitir enviar si hay una entidad esperando fechas
         if (selectedEntityForDates) {
-             currentErrors.selectedPrestatarias = `Debe confirmar o cancelar las fechas para ${selectedEntityForDates.nombre} antes de guardar.`;
+            currentErrors.selectedPrestatarias = `Debe confirmar o cancelar las fechas para ${selectedEntityForDates.nombre} antes de guardar.`;
         }
 
         // Validación: Cada prestataria seleccionada debe tener fechas? (Opcional)
@@ -255,14 +255,14 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
         // Pero podrías validar aquí si la lista debe tener un mínimo, etc.
 
         if (Object.keys(currentErrors).length > 0) {
-             setErrors(currentErrors);
-             console.warn("Form validation errors:", currentErrors);
-             return; // Stop submission if there are client-side errors
+            setErrors(currentErrors);
+            console.warn("Form validation errors:", currentErrors);
+            return; // Stop submission if there are client-side errors
         }
 
 
         try {
-             // Prepare the payload, including the new fields
+            // Prepare the payload, including the new fields
             const payload = {
                 nombre: formData.nombre,
                 descripcion: formData.descripcion,
@@ -273,7 +273,7 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
                 // Send the array of selected prestataria OBJECTS {idEntidad, fechaInicio, fechaFin}
                 // formData.selectedPrestatarias already has the correct format now
                 entidades_prestatarias: formData.selectedPrestatarias,
-                 // Only include id for PUT, not for POST
+                // Only include id for PUT, not for POST
                 ...(isEditMode && { id: initialData?.id }) // Assuming the API expects 'id' for PUT
             };
 
@@ -282,20 +282,38 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
                 // THIS CODE GENERATION IS NOT SAFE IN A MULTI-USER ENVIRONMENT.
                 // SERVER-SIDE CODE GENERATION IS HIGHLY RECOMMENDED.
                 try {
-                    const response = await api.get("/sede"); // Gets ALL sedes
-                    const lengthRes = response.data.length; // Count them
-                    const nextCodeNumber = lengthRes + 1;
-                    const formattedNumber = String(nextCodeNumber).padStart(3, '0');
-                    payload.codigo = `S${formattedNumber}`; // Add generated code to payload
+                    // 1. Obtener todas las sedes
+                    const response = await api.get("/sede");
+                    const sedes = response.data; // Array de objetos con { codigo: "S001", ... }
+
+                    // 2. Extraer los números existentes
+                    const numerosExistentes = sedes
+                        .map(sede => {
+                            const match = sede.codigo.match(/^S(\d{3})$/);
+                            return match ? parseInt(match[1], 10) : null;
+                        })
+                        .filter(n => n !== null); // Eliminamos posibles null
+
+                    // 3. Encontrar el siguiente número libre
+                    let siguiente = 1;
+                    const numerosSet = new Set(numerosExistentes);
+                    while (numerosSet.has(siguiente)) {
+                        siguiente++;
+                    }
+
+                    // 4. Formatear a tres dígitos
+                    const formattedNumber = String(siguiente).padStart(3, "0");
+                    payload.codigo = `S${formattedNumber}`;
+
                 } catch (codeError) {
                     console.error("Error fetching sedes for code generation:", codeError);
                     // Decide how to handle this error - prevent submission or use a placeholder
                     setErrors({ general: "Error al generar el código de la sede. Intente de nuevo." });
-                     return; // Stop submission
+                    return; // Stop submission
                 }
             } else {
-                 // If editing, keep the original code from initialData
-                 payload.codigo = initialData?.codigoSede || initialData?.codigo || '';
+                // If editing, keep the original code from initialData
+                payload.codigo = initialData?.codigoSede || initialData?.codigo || '';
             }
 
 
@@ -303,21 +321,21 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
             if (isEditMode) {
                 await api.put(`/sede/${initialData?.id}`, payload);
             } else {
-                 await api.post("/sede", payload);
+                await api.post("/sede", payload);
             }
 
             // Clear form and errors on success (unless editing)
             if (!isEditMode) {
-                 setFormData({
-                     codigo: "",
-                     nombre: "",
-                     descripcion: "",
-                     tipo: "Fisica",
-                     acceso: "",
-                     idCiudad: "",
-                     idEntidadPropietaria: "",
-                     selectedPrestatarias: [], // Reset array of objects
-                 });
+                setFormData({
+                    codigo: "",
+                    nombre: "",
+                    descripcion: "",
+                    tipo: "Fisica",
+                    acceso: "",
+                    idCiudad: "",
+                    idEntidadPropietaria: "",
+                    selectedPrestatarias: [], // Reset array of objects
+                });
             }
 
             setErrors({}); // Clear all errors
@@ -330,7 +348,7 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
             if (error.response?.status === 422) {
                 // Handle validation errors from backend
                 const backendErrors = error.response.data.errors || {};
-                 setErrors(backendErrors);
+                setErrors(backendErrors);
                 console.error("Backend validation errors:", backendErrors);
                 // Map specific backend error names if they differ (e.g., 'entidades_prestatarias.0.fecha_inicio')
                 // This can get complex for array items. Generic 'general' error might be better for arrays.
@@ -338,8 +356,8 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
             } else {
                 // Handle other types of errors (network, server error, etc.)
                 // Display a generic error message to the user
-                 setErrors({ general: `Error al guardar el registro: ${error.response?.data?.message || error.message}. Intente de nuevo.` });
-                 console.error("API error details:", error.response?.data || error.message);
+                setErrors({ general: `Error al guardar el registro: ${error.response?.data?.message || error.message}. Intente de nuevo.` });
+                console.error("API error details:", error.response?.data || error.message);
             }
         }
     };
@@ -352,15 +370,15 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
 
     // Filter entities for the prestataria select - exclude selected *objects* by id, exclude owner, exclude default option
     const availableBorrowerEntities = entities.filter(entity =>
-         // Entity is not already selected as a prestataria tag (check ID in selected objects)
+        // Entity is not already selected as a prestataria tag (check ID in selected objects)
         !formData.selectedPrestatarias.some(item => item.idEntidad === entity.idEntidad) &&
         // Entity is not the selected owner (if one is selected)
         (!formData.idEntidadPropietaria || entity.idEntidad !== parseInt(formData.idEntidadPropietaria, 10)) &&
-         // Entity is not the one currently waiting for date input
-         (!selectedEntityForDates || entity.idEntidad !== selectedEntityForDates.idEntidad)
+        // Entity is not the one currently waiting for date input
+        (!selectedEntityForDates || entity.idEntidad !== selectedEntityForDates.idEntidad)
     );
 
-     const borrowerEntityOptions = [{ value: "", label: "Agregar Entidad Prestataria." }, ...availableBorrowerEntities.map(entity => ({
+    const borrowerEntityOptions = [{ value: "", label: "Agregar Entidad Prestataria." }, ...availableBorrowerEntities.map(entity => ({
         value: entity.idEntidad,
         label: entity.nombre,
     }))];
@@ -368,20 +386,20 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
     // Find the entity objects for displaying names in the selected prestatarias list
     // Now we map from the stored selectedPrestatarias (which already has ID and dates)
     const selectedPrestatariaDisplayData = formData.selectedPrestatarias
-         .map(item => { // item is { idEntidad, fechaInicio, fechaFin }
-             const entity = entities.find(e => e.idEntidad === item.idEntidad);
-              // Return a combined object for display
-             return entity ? { ...item, nombre: entity.nombre } : null;
-         })
-         .filter(item => item != null); // Remove nulls if an entity is not found
+        .map(item => { // item is { idEntidad, fechaInicio, fechaFin }
+            const entity = entities.find(e => e.idEntidad === item.idEntidad);
+            // Return a combined object for display
+            return entity ? { ...item, nombre: entity.nombre } : null;
+        })
+        .filter(item => item != null); // Remove nulls if an entity is not found
 
 
     return (
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 border-gray-200">
-             {/* Display general error message if any */}
-             {errors.general && (
-                 <div className="text-red-500 text-sm mb-4">{errors.general}</div>
-             )}
+            {/* Display general error message if any */}
+            {errors.general && (
+                <div className="text-red-500 text-sm mb-4">{errors.general}</div>
+            )}
             <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -402,7 +420,7 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
                         </div>
 
                         {/* Campo para seleccionar la entidad propietaria */}
-                         <div className="space-y-2">
+                        <div className="space-y-2">
                             <InputLabel htmlFor="idEntidadPropietaria" value="Entidad Propietaria" />
                             <SelectInput
                                 id="idEntidadPropietaria"
@@ -413,7 +431,7 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
                                 required
                                 isInvalid={!!errors.idEntidadPropietaria}
                             />
-                             {errors.idEntidadPropietaria && <div className="text-red-500 text-sm">{errors.idEntidadPropietaria}</div>}
+                            {errors.idEntidadPropietaria && <div className="text-red-500 text-sm">{errors.idEntidadPropietaria}</div>}
                         </div>
 
                         {/* Campo para la descripción (ocupa dos columnas) */}
@@ -429,10 +447,10 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
                                 required
                                 isInvalid={!!errors.descripcion}
                             />
-                             {errors.descripcion && <div className="text-red-500 text-sm">{errors.descripcion}</div>}
+                            {errors.descripcion && <div className="text-red-500 text-sm">{errors.descripcion}</div>}
                         </div>
 
-                         {/* Campo para seleccionar el tipo */}
+                        {/* Campo para seleccionar el tipo */}
                         <div className="space-y-2">
                             <InputLabel htmlFor="tipo" value="Tipo" />
                             <SelectInput
@@ -447,7 +465,7 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
                                 required
                                 isInvalid={!!errors.tipo}
                             />
-                             {errors.tipo && <div className="text-red-500 text-sm">{errors.tipo}</div>}
+                            {errors.tipo && <div className="text-red-500 text-sm">{errors.tipo}</div>}
                         </div>
 
                         {/* Ciudad */}
@@ -462,7 +480,7 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
                                 required
                                 isInvalid={!!errors.idCiudad} // Add validation prop
                             />
-                             {errors.idCiudad && <div className="text-red-500 text-sm">{errors.idCiudad}</div>} {/* Add error message */}
+                            {errors.idCiudad && <div className="text-red-500 text-sm">{errors.idCiudad}</div>} {/* Add error message */}
                         </div>
 
                         {/* Campo para Dirección/URL según el tipo (ocupa dos columnas)*/}
@@ -478,11 +496,11 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
                                 required
                                 isInvalid={!!errors.acceso}
                             />
-                             {errors.acceso && <div className="text-red-500 text-sm">{errors.acceso}</div>}
+                            {errors.acceso && <div className="text-red-500 text-sm">{errors.acceso}</div>}
                         </div>
 
                         {/* Campo para seleccionar Entidades Prestatarias (ocupa dos columnas)*/}
-                         <div className="space-y-2 md:col-span-2">
+                        <div className="space-y-2 md:col-span-2">
                             <InputLabel htmlFor="addPrestataria" value="Entidades Prestatarias" />
                             <SelectInput
                                 id="addPrestataria"
@@ -500,40 +518,40 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
 
                             {/* Renderizar la sección de selección de fechas si hay una entidad seleccionada */}
                             {selectedEntityForDates && (
-                                 <DatePickerSection
-                                     entity={selectedEntityForDates}
-                                     onConfirm={handleConfirmAddBorrowerWithDates}
-                                     onCancel={handleCancelAddBorrowerWithDates}
-                                 />
+                                <DatePickerSection
+                                    entity={selectedEntityForDates}
+                                    onConfirm={handleConfirmAddBorrowerWithDates}
+                                    onCancel={handleCancelAddBorrowerWithDates}
+                                />
                             )}
 
                             {/* Area para mostrar las entidades prestatarias seleccionadas como tags */}
                             {/* Esto se muestra solo si no hay una sección de fechas activa */}
                             {!selectedEntityForDates && (
-                                 <div className="mt-2 flex flex-wrap items-center gap-2 border border-gray-300 p-2 rounded min-h-[40px]">
-                                     {selectedPrestatariaDisplayData.length === 0 && (
-                                         <span className="text-gray-500 text-sm">Ninguna entidad prestataria seleccionada.</span>
-                                     )}
-                                     {selectedPrestatariaDisplayData.map(item => ( // Map over items {idEntidad, nombre, fechaInicio, fechaFin}
-                                         <div key={item.idEntidad} className="inline-flex items-center border border-blue-200 rounded-md pl-2 py-1 pr-1 bg-blue-50">
-                                             {/* Show Entity Name */}
-                                             <span className="text-blue-700 text-sm font-medium">{item.nombre}</span>
-                                             {/* Show Dates */}
-                                             <span className="text-blue-600 text-xs ml-2">
-                                                 {/* Format dates if needed, raw YYYY-MM-DD is okay too */}
-                                                 ({item.fechaInicio} - {item.fechaFin})
-                                             </span>
-                                             {/* Remove button */}
-                                             <button
+                                <div className="mt-2 flex flex-wrap items-center gap-2 border border-gray-300 p-2 rounded min-h-[40px]">
+                                    {selectedPrestatariaDisplayData.length === 0 && (
+                                        <span className="text-gray-500 text-sm">Ninguna entidad prestataria seleccionada.</span>
+                                    )}
+                                    {selectedPrestatariaDisplayData.map(item => ( // Map over items {idEntidad, nombre, fechaInicio, fechaFin}
+                                        <div key={item.idEntidad} className="inline-flex items-center border border-blue-200 rounded-md pl-2 py-1 pr-1 bg-blue-50">
+                                            {/* Show Entity Name */}
+                                            <span className="text-blue-700 text-sm font-medium">{item.nombre}</span>
+                                            {/* Show Dates */}
+                                            <span className="text-blue-600 text-xs ml-2">
+                                                {/* Format dates if needed, raw YYYY-MM-DD is okay too */}
+                                                ({item.fechaInicio} - {item.fechaFin})
+                                            </span>
+                                            {/* Remove button */}
+                                            <button
                                                 type="button"
-                                                 onClick={() => handleRemoveBorrower(item.idEntidad)} // Pass the entity ID to remove
+                                                onClick={() => handleRemoveBorrower(item.idEntidad)} // Pass the entity ID to remove
                                                 className="ml-1 p-0.5 text-blue-600 hover:text-blue-800 focus:outline-none rounded-sm"
-                                             >
-                                                 <XCircle size={14} /> {/* Lucide icon for close */}
-                                             </button>
-                                         </div>
-                                     ))}
-                                 </div>
+                                            >
+                                                <XCircle size={14} /> {/* Lucide icon for close */}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             )}
                         </div> {/* End Entidades Prestatarias Field */}
 
@@ -542,10 +560,10 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
                     {/* Botones de acción */}
                     <div className="flex justify-end space-x-2 pt-4">
                         <CancelButton onClick={onCancel} disabled={!!selectedEntityForDates}>
-                             Cancelar
+                            Cancelar
                         </CancelButton>
                         <ButtonGradient type="submit" disabled={!!selectedEntityForDates}> {/* Disable submit while dates are being picked */}
-                             <Save className="h-4 w-4 mr-1" />
+                            <Save className="h-4 w-4 mr-1" />
                             {isEditMode ? "Guardar Cambios" : "Crear Registro"}
                         </ButtonGradient>
                     </div>

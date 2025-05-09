@@ -34,11 +34,29 @@ export default function EntitieForm({ onCancel, initialData = null, onSubmitSucc
             if (isEditMode) {
                 await api.put(`/entidad/${initialData.id}`, payload);
             } else {
+                // 1. Obtener todas las sedes
                 const response = await api.get("/entidad");
-                const lengthRes = response.data.length;
-                const nextCodeNumber = lengthRes + 1;
-                const formattedNumber = String(nextCodeNumber).padStart(3, '0');
+                const sedes = response.data; // Array de objetos con { codigo: "S001", ... }
+
+                // 2. Extraer los números existentes
+                const numerosExistentes = sedes
+                    .map(sede => {
+                        const match = sede.codigo.match(/^S(\d{3})$/);
+                        return match ? parseInt(match[1], 10) : null;
+                    })
+                    .filter(n => n !== null); // Eliminamos posibles null
+
+                // 3. Encontrar el siguiente número libre
+                let siguiente = 1;
+                const numerosSet = new Set(numerosExistentes);
+                while (numerosSet.has(siguiente)) {
+                    siguiente++;
+                }
+
+                // 4. Formatear a tres dígitos
+                const formattedNumber = String(siguiente).padStart(3, "0");
                 payload.codigo = `ENT${formattedNumber}`;
+
                 await api.post("/entidad", payload);
             }
 
