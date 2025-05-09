@@ -46,7 +46,6 @@ export default function PrincipalProgramme() {
             alert("No se pudo eliminar el programa. Intenta más tarde.");
         }
     }
-    console.log(data);
 
     async function fetchData(query) {
         setLoading(true);
@@ -70,7 +69,6 @@ export default function PrincipalProgramme() {
 
                 const response = await api.get("/programa/search", { params });
 
-                console.log("Respuesta del backend:", response.data);
                 programas = response.data?.data?.data || []; // paginado
             }
 

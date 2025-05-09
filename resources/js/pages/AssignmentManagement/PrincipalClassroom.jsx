@@ -50,7 +50,6 @@ export default function PrincipalClassroom() {
     async function fetchData() {
         try {
             const response = await api.get("/aula");
-            console.log(response);
             const transformed = response.data.map((aula) => ({
                 ...aula,
                 id: aula.idAula,

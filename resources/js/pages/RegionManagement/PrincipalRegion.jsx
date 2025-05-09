@@ -27,7 +27,6 @@ export default function PrincipalCity() {
     }
 
     async function handleDelete(row) {
-        console.log(row);
         if (!confirm(`¿Estás seguro de eliminar la siguiente region: "${row.nombre}"?`)) return;
 
         try {

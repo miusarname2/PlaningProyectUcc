@@ -15,7 +15,6 @@ const columns = [
         title: "Intervalo de fechas",
         key: "rangoFechas",
         render: (val, row) => {
-            console.log(row);
             const inicio = row.rangoFechas?.inicio;
             const fin = row.rangoFechas?.fin;
             return `${inicio} - ${fin}`;
@@ -77,12 +76,10 @@ export default function PrincipalRol() {
                 : { nombre: trimmed };
 
             const response = await api.get("/lote/search", { params });
-            console.log("Respuesta del backend:", response.data);
             franjasHorarias = response.data?.data?.data || []; // <-- Acceso a datos paginados
             }
 
             const transformed = franjasHorarias.map((franjaHoraria) => {
-                console.log(franjaHoraria);
                 return ({
                     ...franjaHoraria,
                     id: franjaHoraria.idFranjaHoraria,

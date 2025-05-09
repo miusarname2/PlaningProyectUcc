@@ -70,7 +70,6 @@ export default function PrincipalProfessonalsManagement() {
     async function fetchData() {
         try {
             const response = await api.get("/profesional");
-            console.log(response);
             const transformed = response.data.map((profesional) => ({
                 ...profesional,
                 id: profesional.idProfesional,

@@ -49,10 +49,8 @@ export default function DeparmentForm({ onCancel, initialData = null, onSubmitSu
             };
 
             if (isEditMode) {
-                console.log(initialData);
                 await api.put(`/estado/${initialData?.id}`, payload);
             } else {
-                console.log(payload);
                 await api.post("/estado", payload);
             }
 

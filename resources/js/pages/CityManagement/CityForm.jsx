@@ -10,7 +10,6 @@ import { getApi } from "@/utils/generalFunctions";
 export default function CityForm({ onCancel, initialData = null, onSubmitSuccess }) {
     const api = getApi();
 
-    console.log(initialData);
     const [formData, setFormData] = useState({
         codigoCiudad: initialData?.codigoCiudad || "",
         idCiudad: initialData?.id || "",
@@ -55,8 +54,6 @@ export default function CityForm({ onCancel, initialData = null, onSubmitSuccess
       const regionId  = initialData.idRegion.toString();
       const estadoId  = initialData.idEstado.toString();
       setFormData((prev) => ({ ...prev, pais: countryId }));
-      console.log(countryId)
-      console.log(regionId);
       setTimeout(() => {
         setFormData((prev) => ({ ...prev, region: regionId }));
         setTimeout(() => {

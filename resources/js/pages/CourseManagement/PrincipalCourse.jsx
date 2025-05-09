@@ -62,7 +62,6 @@ export default function PrincipalCourse() {
     async function fetchData() {
         try {
             const response = await api.get("/curso");
-            console.log(response)
             const transformed = (response.data).map((curso) => ({
                 ...curso,
                 id: curso.idCurso,

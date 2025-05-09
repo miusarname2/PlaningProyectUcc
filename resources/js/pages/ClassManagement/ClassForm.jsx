@@ -310,9 +310,6 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                 : null
         };
 
-        console.log("Submitting payload:", JSON.stringify(payload));
-
-
         try {
             if (isEditMode) {
                 await api.put(`/Horario/${initialData.idHorario}`, payload);
@@ -339,7 +336,6 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
         } catch (err) {
             hide();
             console.error("Submission Error:", err);
-            console.log(err.response.data.message != "Teacher, has reached the maximum number of teaching and tutoring assignments.");
             if (err.response?.status === 422) {
                 // Handle validation errors from backend, potentially mapping to state keys
                 const backendErrors = err.response.data.errors || {};

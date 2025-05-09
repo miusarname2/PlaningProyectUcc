@@ -93,10 +93,8 @@ export default function RoleForm({ onCancel, onSubmit, role }) {
             let response;
             if (role && role.idRol) {
                 response = await api.put(`/rol/${role.idRol}`, payload);
-                console.log('Rol actualizado:', response.data);
             } else {
                 response = await api.post('/rol', payload);
-                console.log('Rol creado:', response.data);
             }
             onSubmit?.(form);
             setForm({ name: '', description: '', permissions: {} });

@@ -51,8 +51,6 @@ export default function PrincipalClassroom() {
     async function fetchData() {
         try {
             const response = await api.get("/aula");
-            console.log(JSON.stringify(response));
-
             const transformed = response.data.map(aula => {
                 // Detectores rápidos
                 const hasSede = !!aula?.sede;

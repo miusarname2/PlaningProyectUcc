@@ -40,7 +40,6 @@ export default function PrincipalCountry() {
     async function fetchData() {
         try {
             const response = await api.get("/pais");
-            console.log(response.data);
             const transformed = response.data.map((pais) => ({
                 ...pais,
                 id: pais.idPais,

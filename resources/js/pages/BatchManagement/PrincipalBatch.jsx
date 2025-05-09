@@ -68,8 +68,6 @@ export default function PrincipalBatch() {
             if (!query || query.trim() === "") {
                 const response = await api.get("/lote");
                 lotes = response.data;
-                console.log(response.data);
-
             } else {
                 const trimmed = query.trim();
                 const isCodigo = /^[A-Za-z]{2,}\d+$/.test(trimmed);
@@ -82,7 +80,6 @@ export default function PrincipalBatch() {
                         : { nombre: trimmed };
 
                 const response = await api.get("/lote/search", { params });
-                console.log("Respuesta del backend:", response.data);
                 lotes = response.data?.data?.data || [];
             }
 

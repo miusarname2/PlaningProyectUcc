@@ -49,7 +49,6 @@ export default function RegionForm({ onCancel, initialData = null, onSubmitSucce
             };
 
             if (isEditMode) {
-                console.log(initialData);
                 await api.put(`/region/${initialData?.id}`, payload);
             } else {
                 await api.post("/region", payload);

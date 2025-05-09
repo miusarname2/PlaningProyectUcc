@@ -301,7 +301,6 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
 
 
             if (isEditMode) {
-                console.log(JSON.stringify(payload));
                 await api.put(`/sede/${initialData?.id}`, payload);
             } else {
                  await api.post("/sede", payload);

@@ -61,7 +61,6 @@ export default function PrincipalUser() {
     }
 
     const api = getApi();
-    console.log(data);
 
     async function fetchData() {
         try {
@@ -71,8 +70,6 @@ export default function PrincipalUser() {
                 id: user.idUsuario,
                 rol: user.roles?.length > 0 ? user.roles[0].nombre : "Sin rol",
             }));
-            console.log(response.data, "------separados----");
-
             setData(transformed);
         } catch (error) {
             console.error("Error fetching users:", error);

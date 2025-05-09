@@ -11,9 +11,7 @@ const columns = [
     { title: "Curso", key: "nombreCurso" },
     {
         title: "Profesional/docente", key: "profesionales", render: (row) => {
-            console.log(row[0].rolDocente.nombre == "Ejecutor");
             const ejecutor = row.filter((profesional) => profesional.rolDocente.nombre == "Ejecutor");
-            console.log(ejecutor)
             if (ejecutor.length > 0) {
                 return ejecutor[0].nombreCompleto + " (Ejecutor)"
             }
@@ -72,7 +70,6 @@ export default function PrincipalClass() {
             const transformed = response.data.map(horario => {
                 // Log de profesionales (o array vacío si no existe)
                 const profesionalesArray = horario?.profesionales ?? [];
-                console.log(profesionalesArray);
 
                 // Detectores rápidos
                 const hasAula = !!horario?.aula;
@@ -144,12 +141,6 @@ export default function PrincipalClass() {
                 />
                 {!showForm ? (
                     <div className="space-y-4">
-                        <InputSearch
-                            onSearchChange={(val) =>
-                                console.log("Filtro buscador:", val)
-                            }
-                            placeHolderText="Buscando clase"
-                        />
                         {loading ? (
                             <p className="text-center text-gray-500">
                                 Cargando clases...

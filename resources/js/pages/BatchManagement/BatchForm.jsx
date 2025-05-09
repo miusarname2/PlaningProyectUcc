@@ -74,8 +74,6 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
         e.preventDefault();
         try {
             const payload = { ...formData };
-            console.log(payload);
-
             if (isEditMode) {
                 await api.put(`/lote/${formData.idLote}`, payload);
             } else {

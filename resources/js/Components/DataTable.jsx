@@ -38,10 +38,7 @@ export default function DataTable({
 
         return Array.from(actionsSet);
     };
-
     const allowedActions = getAllowedActions();
-    console.log("Allowed actions:", allowedActions);
-
     return (
         <div className="border rounded-md">
             <div className="relative w-full overflow-x-auto max-h-[384px] overflow-y-auto">

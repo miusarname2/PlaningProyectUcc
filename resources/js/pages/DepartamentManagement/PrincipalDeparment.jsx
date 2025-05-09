@@ -26,7 +26,6 @@ export default function PrincipalDeparment() {
     }
 
     async function handleDelete(row) {
-        console.log(row);
         if (!confirm(`¿Estás seguro de eliminar la siguiente departamento: "${row.nombre}"?`)) return;
 
         try {
