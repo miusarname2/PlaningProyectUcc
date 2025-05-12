@@ -28,6 +28,8 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
         codigoGrupo: initialData?.codigo || "",
         nivel: initialData?.nivel || "",
         codigo: initialData?.codigo || "",
+        fecha_inicio: initialData?.fecha_inicio || "",
+        fecha_fin: initialData?.fecha_fin || "",
         // Map initialData.programas to array of IDs
         selectedPrograms: initialData?.programas
             ? initialData.programas.map(p => p.idPrograma)
@@ -96,7 +98,10 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
             codigoGrupo: formData.codigo,
             cohorte: formData.cohorte,
             nivel: formData.nivel,
+            fecha_inicio: formData.fecha_inicio,
+            fecha_fin: formData.fecha_fin,
             programas: formData.selectedPrograms
+
         };
 
         try {
@@ -254,6 +259,33 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                                 options={[{ value: "", label: "Seleccione el Nivel" }, { value: "Avanzado", label: "Avanzado" }, { value: "Intermedio", label: "Intermedio" }, { value: "Basico", label: "Basico" }]}
                                 required
                                 error={errors.nivel}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="fecha_inicio" value="Fecha de Inicio" />
+                            <TextInput
+                                id="fecha_inicio"
+                                name="fecha_inicio"
+                                type="date"
+                                value={formData.fecha_inicio}
+                                onChange={handleChange}
+                                required={false}
+                                error={errors.fecha_inicio}
+                            />
+                        </div>
+
+                        {/* Fecha de fin */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="fecha_fin" value="Fecha de Fin" />
+                            <TextInput
+                                id="fecha_fin"
+                                name="fecha_fin"
+                                type="date"
+                                value={formData.fecha_fin}
+                                onChange={handleChange}
+                                required={false}
+                                error={errors.fecha_fin}
                             />
                         </div>
                     </div>

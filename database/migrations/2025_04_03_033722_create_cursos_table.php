@@ -23,6 +23,8 @@ return new class extends Migration
             $table->integer('creditos')->unsigned();
             $table->integer('horas')->unsigned();
             $table->enum('estado', ['Activo', 'Inactivo']);
+            $table->date('fecha_inicio')->nullable();
+            $table->date('fecha_fin')->nullable();
             $table->timestamps();
         });
     }
