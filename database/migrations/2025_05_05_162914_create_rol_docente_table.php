@@ -23,7 +23,7 @@ return new class extends Migration
         DB::table('rolDocente')->insert([
             ['codigo' => 'RD001', 'nombre' => 'Ejecutor', 'descripcion' => 'Responsable de ejecutar las tareas.', 'created_at' => now(), 'updated_at' => now()],
             ['codigo' => 'RD002', 'nombre' => 'Mentor',   'descripcion' => 'Guía y acompaña a otros profesionales.', 'created_at' => now(), 'updated_at' => now()],
-            ['codigo' => 'RD003', 'nombre' => 'Tutor',    'descripcion' => 'Apoya y supervisa procesos de formación.', 'created_at' => now(), 'updated_at' => now()],
+            ['codigo' => 'RD003', 'nombre' => 'Monitor',    'descripcion' => 'Apoya y supervisa procesos de formación.', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 
