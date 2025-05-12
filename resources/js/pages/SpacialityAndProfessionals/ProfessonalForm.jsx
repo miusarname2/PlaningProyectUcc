@@ -111,7 +111,7 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
 
                         {/* Campo Identificacion */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="identificacion" value="identificacion" />
+                            <InputLabel htmlFor="identificacion" value="Identificacion" />
                             <TextInput
                                 id="identificacion"
                                 name="identificacion"

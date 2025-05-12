@@ -126,7 +126,7 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Codigo */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="codigo" value="codigo" />
+                            <InputLabel htmlFor="codigo" value="Codigo" />
                             <TextInput
                                 id="codigo"
                                 name="codigo"
@@ -216,7 +216,7 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
 
                         {/* Modalidad */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="modalidad" value="modalidad" />
+                            <InputLabel htmlFor="modalidad" value="Modalidad" />
                             <SelectInput
                                 id="modalidad"
                                 name="modalidad"
