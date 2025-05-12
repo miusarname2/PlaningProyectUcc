@@ -23,7 +23,9 @@ class Curso extends Model
         'creditos',
         'modalidad',
         'horas',
-        'estado'
+        'estado',
+        'fecha_inicio',
+        'fecha_fin'
     ];
 
     protected $casts = [

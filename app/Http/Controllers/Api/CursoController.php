@@ -40,6 +40,8 @@ class CursoController extends Controller
                 'horas' => "required|numeric",
                 'modalidad' => 'required|in:Presencial,Virtual',
                 'estado' => 'required|in:Activo,Inactivo',
+                'fecha_inicio'  => 'nullable|date',
+                'fecha_fin'     => 'nullable|date|after_or_equal:fecha_inicio',
                 'programas'       => 'sometimes|array',
                 'programas.*'     => 'integer|exists:programa,idPrograma',
             ]);
@@ -115,6 +117,8 @@ class CursoController extends Controller
             'modalidad' => 'sometimes|in:Presencial,Virtual',
             'horas' => "sometimes|required|numeric",
             'estado' => 'sometimes|required|in:Activo,Inactivo',
+            'fecha_inicio'  => 'sometimes|date',
+            'fecha_fin'     => 'sometimes|date|after_or_equal:fecha_inicio',
             'programas'       => 'sometimes|array',
             'programas.*'     => 'integer|exists:programa,idPrograma'
         ]);
