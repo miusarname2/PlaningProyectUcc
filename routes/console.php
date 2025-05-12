@@ -9,5 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('app:send-daily-dashboard-emails')
-        ->dailyAt('16:05')
+        ->dailyAt('21:15')
         ->withoutOverlapping();
