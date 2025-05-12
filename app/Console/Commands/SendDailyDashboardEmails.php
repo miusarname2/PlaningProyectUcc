@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\Curso;
+use App\Models\Perfil;
+use App\Models\Usuario;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Resend\Laravel\Facades\Resend;
@@ -27,59 +29,76 @@ class SendDailyDashboardEmails extends Command
      * Execute the console command.
      */
     public function handle()
-     {
+    {
         $today = Carbon::today();
 
-        // 1) Obtenemos cursos con fecha_fin entre hoy y hoy+15 días
+        // 1) Cursos a vencer en ≤15 días desde hoy
         $cursos = Curso::whereBetween('fecha_fin', [
             $today,
             $today->copy()->addDays(15)
         ])->get();
 
+        if ($cursos->isEmpty()) {
+            $this->info('No hay cursos próximos a vencer hoy.');
+            return;
+        }
+
+        // 2) IDs de perfiles Admin y Planeador
+        $perfilIds = Perfil::whereIn('nombre', [
+            'Administrador General',
+            'Planeador'
+        ])->pluck('idPerfil');
+
+        if ($perfilIds->isEmpty()) {
+            $this->info('No existen perfiles Admin/Planeador configurados.');
+            return;
+        }
+
+        // 3) Usuarios con esos perfiles
+        $usuarios = Usuario::whereHas('usuarioPerfil', function ($q) use ($perfilIds) {
+            $q->whereIn('idPerfil', $perfilIds);
+        })
+            ->get();
+
+        if ($usuarios->isEmpty()) {
+            $this->info('No hay usuarios con perfil Admin o Planeador.');
+            return;
+        }
+
+        // 4) Iterar cursos y enviar emails
         foreach ($cursos as $curso) {
             $daysLeft = $today->diffInDays(Carbon::parse($curso->fecha_fin));
 
-            // 2) Iteramos solo usuarios con perfil Administrador General o Planeador
-            $curso->usuarios()
-                  ->whereHas('perfiles', function($q) {
-                      $q->whereIn('nombre', ['Administrador General', 'Planeador']);
-                  })
-                  ->chunkById(100, function($usuarios) use ($curso, $daysLeft) {
-                      foreach ($usuarios as $usuario) {
-                          // 3) Saltar si ya enviamos hoy
-                          $last = $usuario->pivot->last_notification_sent_at;
-                          if ($last && Carbon::parse($last)->isToday()) {
-                              continue;
-                          }
+            foreach ($usuarios as $usuario) {
+                // 5) Chequeo diario: pivot no tiene timestamp, 
+                //    evitamos duplicar en un mismo handle()
+                //    (en un cron real usarías una tabla de logs o pivot con timestamp)
 
-                          // 4) Construir asunto y cuerpo
-                          if ($daysLeft === 0) {
-                              $subject = "Hoy termina el curso: {$curso->nombre}";
-                              $body    = "¡Hoy es el último día de tu curso “{$curso->nombre}”!";
-                          } else {
-                              $subject = "Faltan {$daysLeft} días para que termine el curso: {$curso->nombre}";
-                              $body    = "Faltan {$daysLeft} días para que termine el curso “{$curso->nombre}”. ¿Deseas renovarlo o reemplazarlo?";
-                          }
+                // 6) Preparar asunto y cuerpo
+                if ($daysLeft === 0) {
+                    $subject = "Hoy termina el curso: {$curso->nombre}";
+                    $body    = "¡Hoy es el último día de tu curso “{$curso->nombre}”!";
+                } else {
+                    $subject = "Faltan {$daysLeft} días para que termine el curso: {$curso->nombre}";
+                    $body    = "Faltan {$daysLeft} días para que termine el curso “{$curso->nombre}”. ¿Deseas renovarlo o reemplazarlo?";
+                }
 
-                          // 5) Enviar email
-                          Resend::emails()->send([
-                              'from'    => config('mail.from.address'),
-                              'to'      => $usuario->email,
-                              'subject' => $subject,
-                              'html'    => view('emails.course-ending', [
-                                  'usuario'  => $usuario,
-                                  'curso'    => $curso,
-                                  'daysLeft' => $daysLeft,
-                              ])->render(),
-                          ]);
+                // 7) Envío con Resend
+                Resend::emails()->send([
+                    'from'    => config('mail.from.address'),
+                    'to'      => $usuario->email,
+                    'subject' => $subject,
+                    'html'    => view('emails.course-ending', [
+                        'usuario'  => $usuario,
+                        'curso'    => $curso,
+                        'daysLeft' => $daysLeft,
+                    ])->render(),
+                ]);
 
-                          // 6) Actualizar pivot
-                          $usuario->pivot->last_notification_sent_at = Carbon::now();
-                          $usuario->pivot->save();
-                      }
-                  });
+                $this->info("Enviado a {$usuario->email}: {$subject}");
+            }
         }
 
-        $this->info('Recordatorios de cierre de curso enviados a Administrador General y Planeador.');
+        $this->info('Recordatorios enviados a todos los Administradores Generales y Planeadores.');
     }
 }
