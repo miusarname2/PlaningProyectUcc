@@ -7,7 +7,7 @@ use App\Models\Perfil;
 use App\Models\Usuario;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Resend\Laravel\Facades\Resend;
+use Resend;
 
 class SendDailyDashboardEmails extends Command
 {
@@ -83,9 +83,10 @@ class SendDailyDashboardEmails extends Command
                     $body    = "Faltan {$daysLeft} días para que termine el curso “{$curso->nombre}”. ¿Deseas renovarlo o reemplazarlo?";
                 }
 
-                // 7) Envío con Resend
-                Resend::emails()->send([
-                    'from'    => config('mail.from.address'),
+                $resend = Resend::client('re_evHz5XXk_AJCQkAxt9eSxHkzaKUs92j3U');
+
+                $resend->emails->send([
+                    'from' => 'Planing Proyect <noreply@planingproyect.com>',
                     'to'      => $usuario->email,
                     'subject' => $subject,
                     'html'    => view('emails.course-ending', [
@@ -94,6 +95,8 @@ class SendDailyDashboardEmails extends Command
                         'daysLeft' => $daysLeft,
                     ])->render(),
                 ]);
+
+                 // 7) Envío con Resend
 
                 $this->info("Enviado a {$usuario->email}: {$subject}");
             }
