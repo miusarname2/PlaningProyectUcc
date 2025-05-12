@@ -86,7 +86,7 @@ class SendDailyDashboardEmails extends Command
                 $resend = Resend::client('re_evHz5XXk_AJCQkAxt9eSxHkzaKUs92j3U');
 
                 $resend->emails->send([
-                    'from' => 'Planing Proyect <noreply@planingproyect.com>',
+                    'from' => 'onboarding@resend.dev',
                     'to'      => $usuario->email,
                     'subject' => $subject,
                     'html'    => view('emails.course-ending', [
