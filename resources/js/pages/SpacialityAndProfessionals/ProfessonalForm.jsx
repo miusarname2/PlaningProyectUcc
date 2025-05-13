@@ -69,12 +69,28 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
             if (isEditMode) {
                 await api.put(`/profesional/${initialData.id}`, payload);
             } else {
+                // 1. Traer todos los profesionales
                 const response = await api.get("/profesional");
-                const lengthRes = response.data.length;
-                const nextCodeNumber = lengthRes + 1;
-                const formattedNumber = String(nextCodeNumber).padStart(3, '0');
+                const profesionales = response.data;
+
+                // 2. Extraer los números existentes
+                const numerosExistentes = profesionales
+                    .map(prof => {
+                        const match = prof.codigo.match(/^PROF(\d{3})$/);
+                        return match ? parseInt(match[1], 10) : null;
+                    })
+                    .filter(n => n !== null);
+
+                let siguiente = 1;
+                const numerosSet = new Set(numerosExistentes);
+                while (numerosSet.has(siguiente)) {
+                    siguiente++;
+                }
+
+                const formattedNumber = String(siguiente).padStart(3, "0");
                 payload.codigo = `PROF${formattedNumber}`;
-                payload.perfil = payload.perfil;
+                payload.perfil = payload.perfil; 
+
                 await api.post("/profesional", payload);
             }
 

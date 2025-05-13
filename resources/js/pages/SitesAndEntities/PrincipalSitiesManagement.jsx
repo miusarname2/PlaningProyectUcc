@@ -46,18 +46,6 @@ const columns = [
             />
     },
     {
-        title: "Entidades que pueden acceder",
-        key: "prestatarias",
-        render: (prestatarias) =>
-            Array.isArray(prestatarias) && prestatarias.length > 0 ? (
-                prestatarias.map((r, idx) => (
-                    <ContainerShowData key={idx} text={r.nombre} bg={"bg-stone-100"} colortext={"text-stone-800"}/>
-                ))
-            ) : (
-                <span className="text-gray-400 text-xs italic">Sin prestamos</span>
-            ),
-    },
-    {
         title: "Acceso",
         key: "acceso",
         render: (value) => (verifyUrl(value) ? <LinkConIcono url={value.startsWith('http') || value.startsWith('https') ? value : `http://${value}`} icon={ExternalLink}>Entrar al Sitio</LinkConIcono> : <StatusBadge status={value} />),

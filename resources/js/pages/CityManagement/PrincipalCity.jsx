@@ -11,7 +11,7 @@ const columns = [
     { title: "ID", key: "codigoCiudad" },
     { title: "Nombre de la ciudad", key: "nombre" },
     { title: "Región", key: "region" },
-    { title: "Departamento", key: "departamento"},
+    { title: "Departamento", key: "departamento" },
     { title: "Código postal", key: "codigoPostal" },
     { title: "Sedes", key: "sedes" },
 ];
@@ -47,7 +47,7 @@ export default function PrincipalCity() {
             const response = await api.get("/ciudad");
             const transformed = response.data.map((city) => {
                 const estado = city.region?.estados?.find(
-                    (estado) => estado?.idRegion == city.region?.idRegion
+                    (estado) => estado?.idEstado == city.idEstado
                 );
 
                 return {

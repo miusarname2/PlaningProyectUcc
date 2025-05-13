@@ -499,62 +499,6 @@ export default function SitiesForm({ onCancel, initialData = null, onSubmitSucce
                             {errors.acceso && <div className="text-red-500 text-sm">{errors.acceso}</div>}
                         </div>
 
-                        {/* Campo para seleccionar Entidades Prestatarias (ocupa dos columnas)*/}
-                        <div className="space-y-2 md:col-span-2">
-                            <InputLabel htmlFor="addPrestataria" value="Entidades Prestatarias" />
-                            <SelectInput
-                                id="addPrestataria"
-                                // name="addPrestataria" // Name is not needed if value is controlled by state we don't use directly for formData
-                                value="" // Keep the select value controlled/reset
-                                onChange={handleSelectBorrowerToAdd} // Use dedicated handler
-                                options={borrowerEntityOptions}
-                                disabled={!!selectedEntityForDates} // Disable while a date picker is active
-                                // required={false} // This select is for adding
-                                // isInvalid={!!errors.selectedPrestatarias} // Show error if validation applies to the list
-                                placeholder="Agregar Entidad Prestataria." // Using a placeholder might be better than default option if desired
-                            />
-                            {/* Mostrar error si hay uno relacionado con la lista o con la espera de fechas */}
-                            {errors.selectedPrestatarias && <div className="text-red-500 text-sm">{errors.selectedPrestatarias}</div>}
-
-                            {/* Renderizar la sección de selección de fechas si hay una entidad seleccionada */}
-                            {selectedEntityForDates && (
-                                <DatePickerSection
-                                    entity={selectedEntityForDates}
-                                    onConfirm={handleConfirmAddBorrowerWithDates}
-                                    onCancel={handleCancelAddBorrowerWithDates}
-                                />
-                            )}
-
-                            {/* Area para mostrar las entidades prestatarias seleccionadas como tags */}
-                            {/* Esto se muestra solo si no hay una sección de fechas activa */}
-                            {!selectedEntityForDates && (
-                                <div className="mt-2 flex flex-wrap items-center gap-2 border border-gray-300 p-2 rounded min-h-[40px]">
-                                    {selectedPrestatariaDisplayData.length === 0 && (
-                                        <span className="text-gray-500 text-sm">Ninguna entidad prestataria seleccionada.</span>
-                                    )}
-                                    {selectedPrestatariaDisplayData.map(item => ( // Map over items {idEntidad, nombre, fechaInicio, fechaFin}
-                                        <div key={item.idEntidad} className="inline-flex items-center border border-blue-200 rounded-md pl-2 py-1 pr-1 bg-blue-50">
-                                            {/* Show Entity Name */}
-                                            <span className="text-blue-700 text-sm font-medium">{item.nombre}</span>
-                                            {/* Show Dates */}
-                                            <span className="text-blue-600 text-xs ml-2">
-                                                {/* Format dates if needed, raw YYYY-MM-DD is okay too */}
-                                                ({item.fechaInicio} - {item.fechaFin})
-                                            </span>
-                                            {/* Remove button */}
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRemoveBorrower(item.idEntidad)} // Pass the entity ID to remove
-                                                className="ml-1 p-0.5 text-blue-600 hover:text-blue-800 focus:outline-none rounded-sm"
-                                            >
-                                                <XCircle size={14} /> {/* Lucide icon for close */}
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div> {/* End Entidades Prestatarias Field */}
-
                     </div> {/* End grid */}
 
                     {/* Botones de acción */}
