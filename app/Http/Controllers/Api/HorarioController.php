@@ -7,6 +7,7 @@ use App\Models\Dia;
 use App\Models\FranjaHoraria;
 use App\Models\Horario;
 use App\Models\RolDocente;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -543,45 +544,47 @@ class HorarioController extends Controller
 
     public function exportXls()
     {
-        // 1) Carga de datos con relaciones: incluimos pivot de dias
+        // 1) Carga de datos con relaciones: incluimos pivot de dias y profesionales
         $horarios = Horario::with([
-            'curso',
-            'aula.sede',
-            'dias'  // trae pivot(hora_inicio, hora_fin)
+            'curso.programas',
+            'aula.sede.ciudad',
+            'aula.sede.propietario',
+            'dias',
+            'profesionales' => fn($q) => $q->withPivot('idRolDocente')
         ])
             ->get()
-            // Ordenamos en PHP por hora_inicio del primer día (opcional)
+            // Ordenamos por hora_inicio del primer día
             ->sortBy(fn(Horario $h) => $h->dias->min(fn($d) => $d->pivot->hora_inicio))
             ->values();
 
-        // 2) Definir días de la semana
-        $diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sabado'];
+        // 2) Definir días de la semana para la hoja 1
+        $diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
-        // 3) Construir lista única de franjas (ej. "07:00-08:00")
+        // 3) Primera hoja: Horario de franjas
+        $spreadsheet = new Spreadsheet();
+        $sheet1 = $spreadsheet->getActiveSheet();
+        $sheet1->setTitle('Horario');
+
+        // 3.1) Construir lista única de franjas
         $franjas = $horarios
-            ->flatMap(fn($h) => $h->dias->map(function ($d) {
-                return sprintf(
-                    '%s - %s',
-                    \Carbon\Carbon::parse($d->pivot->hora_inicio)->format('H:i'),
-                    \Carbon\Carbon::parse($d->pivot->hora_fin)->format('H:i')
-                );
-            }))
-            ->unique()
-            ->sort()
-            ->values()
-            ->all();
+            ->flatMap(fn($h) => $h->dias->map(fn($d) => sprintf(
+                '%s - %s',
+                Carbon::parse($d->pivot->hora_inicio)->format('H:i'),
+                Carbon::parse($d->pivot->hora_fin)->format('H:i')
+            )))
+            ->unique()->sort()->values()->all();
 
-        // 4) Mapear: [franja][díaNombre] => texto a mostrar
+        // 3.2) Mapear contenidos
         $map = [];
         foreach ($horarios as $h) {
             foreach ($h->dias as $d) {
-                $franjaLabel = sprintf(
+                $label = sprintf(
                     '%s - %s',
-                    \Carbon\Carbon::parse($d->pivot->hora_inicio)->format('H:i'),
-                    \Carbon\Carbon::parse($d->pivot->hora_fin)->format('H:i')
+                    Carbon::parse($d->pivot->hora_inicio)->format('H:i'),
+                    Carbon::parse($d->pivot->hora_fin)->format('H:i')
                 );
                 $diaNombre = $diasSemana[$d->idDia - 1] ?? "Día {$d->idDia}";
-                $map[$franjaLabel][$diaNombre][] = sprintf(
+                $map[$label][$diaNombre][] = sprintf(
                     '%s (Aula %s)%s%s',
                     $h->curso->codigo,
                     $h->aula->codigo,
@@ -591,55 +594,125 @@ class HorarioController extends Controller
             }
         }
 
-        // 5) Crear y poblar spreadsheet
-        $spreadsheet = new Spreadsheet();
-        $sheet       = $spreadsheet->getActiveSheet();
-
-        // 5.1) Cabeceras
-        $sheet->setCellValue('A1', 'HORAS');
+        // 3.3) Escribir cabecera hoja 1
+        $sheet1->setCellValue('A1', 'HORAS');
         foreach ($diasSemana as $i => $dia) {
             $col = Coordinate::stringFromColumnIndex($i + 2);
-            $sheet->setCellValue("{$col}1", $dia);
-            // Negrita
-            $sheet->getStyle("{$col}1")->getFont()->setBold(true);
+            $sheet1->setCellValue("{$col}1", $dia);
+            $sheet1->getStyle("{$col}1")->getFont()->setBold(true);
         }
 
-        // 5.2) Filas de franjas
+        // 3.4) Filas de franjas
         $row = 2;
         foreach ($franjas as $label) {
-            $sheet->setCellValue("A{$row}", $label);
-            $sheet->getStyle("A{$row}")->getFont()->setBold(true);
-
+            $sheet1->setCellValue("A{$row}", $label);
+            $sheet1->getStyle("A{$row}")->getFont()->setBold(true);
             foreach ($diasSemana as $i => $dia) {
                 $col = Coordinate::stringFromColumnIndex($i + 2);
-                if (! empty($map[$label][$dia])) {
-                    // Si hay varias clases en la misma franja/día, unimos por doble salto
+                if (!empty($map[$label][$dia])) {
                     $text = implode(PHP_EOL . PHP_EOL, $map[$label][$dia]);
-                    $sheet->setCellValue("{$col}{$row}", $text);
-
-                    // Fondo verde suave
-                    $sheet->getStyle("{$col}{$row}")
-                        ->getFill()
-                        ->setFillType(Fill::FILL_SOLID)
-                        ->getStartColor()
-                        ->setRGB('C6EFCE');
-
-                    // Ajuste de texto y alineación
-                    $sheet->getStyle("{$col}{$row}")
-                        ->getAlignment()->setWrapText(true);
+                    $sheet1->setCellValue("{$col}{$row}", $text);
+                    $sheet1->getStyle("{$col}{$row}")
+                        ->getFill()->setFillType(Fill::FILL_SOLID)
+                        ->getStartColor()->setRGB('C6EFCE');
+                    $sheet1->getStyle("{$col}{$row}")->getAlignment()->setWrapText(true);
                 }
             }
-
             $row++;
         }
 
-        // 6) Auto-ajustar anchos de columna
+        // Auto-ajustar anchos hoja 1
         foreach (range(1, count($diasSemana) + 1) as $colIndex) {
             $col = Coordinate::stringFromColumnIndex($colIndex);
-            $sheet->getColumnDimension($col)->setAutoSize(true);
+            $sheet1->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // 7) Generar y enviar XLS en base64
+        // 4) Segunda hoja: Tabla detallada de horarios
+        $sheet2 = $spreadsheet->createSheet();
+        $sheet2->setTitle('Detalle Horarios');
+        $headers = [
+            'Código de curso',
+            'Nombre del curso',
+            'Fecha inicio',
+            'Fecha fin',
+            'Programa',
+            'Nivel',
+            'Tipo formación',
+            'Lote',
+            'Ciudad',
+            'Entidad',
+            'Sede',
+            'Aula',
+            'Hora inicio',
+            'Hora fin',
+            'Ejecutor',
+            'Monitor',
+            'Mentor'
+        ];
+        foreach ($headers as $idx => $title) {
+            $col = Coordinate::stringFromColumnIndex($idx + 1);
+            $sheet2->setCellValue("{$col}1", $title);
+            $sheet2->getStyle("{$col}1")->getFont()->setBold(true);
+        }
+
+        $row = 2;
+        foreach ($horarios as $h) {
+            // Datos básicos
+            $curso   = $h->curso;
+            $programas = $curso->programas->pluck('nombre')->join(', ');
+            // Lote asumido de 'codigoGrupo'
+            $tipoFormacion = $curso->modalidad;
+            $lote = $curso->codigoGrupo;
+            $ciudad = optional($h->aula->sede->ciudad)->nombre;
+            $entidad = optional($h->aula->sede->propietario)->nombre;
+            $sede = optional($h->aula->sede)->nombre;
+            $aula = $h->aula->codigo;
+            // Roles
+            $ej = [];
+            $mo = [];
+            $me = [];
+            foreach ($h->profesionales as $p) {
+                $rolDoc = RolDocente::find($p->pivot->idRolDocente);
+                $rol    = $rolDoc?->nombre;
+                if ($rol === 'Ejecutor') $ej[] = $p->nombreCompleto;
+                if ($rol === 'Monitor')  $mo[] = $p->nombreCompleto;
+                if ($rol === 'Mentor')   $me[] = $p->nombreCompleto;
+            }
+            foreach ($h->dias as $d) {
+                $data = [
+                    $curso->codigo,
+                    $curso->nombre,
+                    $h->fecha_inicio,
+                    $h->fecha_fin,
+                    $programas,
+                    $curso->nivel,
+                    $tipoFormacion,
+                    $lote,
+                    $ciudad,
+                    $entidad,
+                    $sede,
+                    $aula,
+                    $d->pivot->hora_inicio,
+                    $d->pivot->hora_fin,
+                    implode(', ', $ej),
+                    implode(', ', $mo),
+                    implode(', ', $me),
+                ];
+                foreach ($data as $i => $val) {
+                    $col = Coordinate::stringFromColumnIndex($i + 1);
+                    $sheet2->setCellValue("{$col}{$row}", $val);
+                    $sheet2->getStyle("{$col}{$row}")->getAlignment()->setWrapText(true);
+                }
+                $row++;
+            }
+        }
+
+        // Auto-ajustar anchos hoja 2
+        foreach (range(1, count($headers)) as $i) {
+            $sheet2->getColumnDimension(Coordinate::stringFromColumnIndex($i))->setAutoSize(true);
+        }
+
+        // 5) Generar y enviar XLS
         $writer = new Xls($spreadsheet);
         ob_start();
         $writer->save('php://output');
