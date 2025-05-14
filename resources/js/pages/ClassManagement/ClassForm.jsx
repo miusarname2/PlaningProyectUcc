@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { DesktopTimePicker } from '@mui/x-date-pickers/DesktopTimePicker';
 import { TextField } from '@mui/material';
+import TextInput from "@/Components/TextInput";
 import InputLabel from "@/Components/InputLabel";
 import SelectInput from "@/Components/SelectInput";
 import { useToast } from '@/lib/toast-context'
@@ -45,6 +46,9 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             ciudad: "",
             idSede: initialData?.idSede || "",
             idAula: initialData?.idAula || "",
+
+            fecha_inicio: initialData?.fecha_inicio || "",
+            fecha_fin: initialData?.fecha_fin || "",
 
             selectedProfessionals: initialProfessionals,
             selectedScheduleSlots: initialScheduleSlots,
@@ -296,6 +300,8 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
         const payload = {
             idCurso: Number(formData.idCurso),
             idAula: Number(formData.idAula),
+            fecha_inicio: formData.fecha_inicio,
+            fecha_fin: formData.fecha_fin,
             docentes: formData.selectedProfessionals.map(p => ({
                 idProfesional: p.idProfesional,
                 idRolDocente: Number(p.role)
@@ -426,6 +432,40 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                             />
                             {errors.idAula && <p className="text-red-500 text-sm">{errors.idAula[0]}</p>}
                         </div>
+                        {/* Fecha de Inicio */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="fecha_inicio" value="Fecha de Inicio" />
+                            <TextInput
+                                id="fecha_inicio"
+                                name="fecha_inicio"
+                                type="date"
+                                value={formData.fecha_inicio}
+                                onChange={handleChange}
+                                error={errors.fecha_inicio}
+                                className={errors.fecha_inicio ? 'border-red-500' : ''}
+                            />
+                            {errors.fecha_inicio && (
+                                <p className="text-red-500 text-sm">{errors.fecha_inicio[0]}</p>
+                            )}
+                        </div>
+
+                        {/* Fecha de Fin */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="fecha_fin" value="Fecha de Fin" />
+                            <TextInput
+                                id="fecha_fin"
+                                name="fecha_fin"
+                                type="date"
+                                value={formData.fecha_fin}
+                                onChange={handleChange}
+                                error={errors.fecha_fin}
+                                className={errors.fecha_fin ? 'border-red-500' : ''}
+                            />
+                            {errors.fecha_fin && (
+                                <p className="text-red-500 text-sm">{errors.fecha_fin[0]}</p>
+                            )}
+                        </div>
+
 
                         {/* Sección para Asignar Profesionales (ocupa dos columnas) */}
                         <div className="space-y-2 md:col-span-2">

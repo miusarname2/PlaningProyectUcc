@@ -15,6 +15,8 @@ return new class extends Migration
             $table->increments('idHorario');
             $table->unsignedInteger('idCurso');
             $table->unsignedInteger('idAula')->nullable();
+            $table->date('fecha_inicio')->nullable();
+            $table->date('fecha_fin')->nullable();
             $table->timestamps();
         
             // FK a curso

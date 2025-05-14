@@ -45,11 +45,13 @@ class HorarioController extends Controller
      */
     public function store(Request $request)
     {
-        // 1) Validación básica con comparación hora_inicio < hora_fin
+        // 1) Validación básica, incluyendo fechas
         try {
             $validated = $request->validate([
                 'idCurso'                  => ['required', 'integer', 'exists:curso,idCurso'],
                 'idAula'                   => ['nullable', 'integer', 'exists:aula,idAula'],
+                'fecha_inicio'             => ['required', 'date', 'date_format:Y-m-d'],
+                'fecha_fin'                => ['required', 'date', 'date_format:Y-m-d', 'after_or_equal:fecha_inicio'],
                 'docentes'                 => ['required', 'array', 'min:1'],
                 'docentes.*.idProfesional' => ['required', 'integer', 'exists:profesional,idProfesional'],
                 'docentes.*.idRolDocente'  => ['required', 'integer', 'exists:rolDocente,idRolDocente'],
@@ -58,7 +60,8 @@ class HorarioController extends Controller
                 'dias.*.hora_inicio'       => ['required', 'date_format:H:i:s'],
                 'dias.*.hora_fin'          => ['required', 'date_format:H:i:s'],
             ], [], [
-                'dias.*.hora_fin.after' => 'La hora de fin debe ser posterior a la hora de inicio.',
+                'fecha_fin.after_or_equal' => 'La fecha de fin debe ser igual o posterior a la fecha de inicio.',
+                'dias.*.hora_fin.after'    => 'La hora de fin debe ser posterior a la hora de inicio.',
             ]);
 
             // Validación manual de hora_inicio < hora_fin
@@ -79,48 +82,80 @@ class HorarioController extends Controller
             ], 422);
         }
 
-        // 2) IDs de roles con límite
-        $limitRoleIds = RolDocente::where('nombre', 'Ejecutor')
-            ->pluck('idRolDocente')
-            ->toArray();
+        // 2) Obtener IDs de roles especiales
+        $ejecutorRoleId = RolDocente::where('nombre', 'Ejecutor')->value('idRolDocente');
+        $mentorRoleId   = RolDocente::where('nombre', 'Mentor')->value('idRolDocente');
+        $monitorRoleId  = RolDocente::where('nombre', 'Monitor')->value('idRolDocente');
 
-        // 3) Validaciones extra por cada docente
+        // 3) Validaciones extra por cada docente y aula
         foreach ($validated['docentes'] as $doc) {
             $teacherId = $doc['idProfesional'];
+            $roleId    = $doc['idRolDocente'];
 
-            // 3a) Conflicto de horario GLOBAL (todas las aulas)
             foreach ($validated['dias'] as $d) {
-                $busy = Horario::whereHas('profesionales', function ($q) use ($teacherId) {
-                    $q->where('horario_profesional.idProfesional', $teacherId);
-                })
-                    ->whereHas('dias', function ($q) use ($d) {
-                        $q->where('horario_dia.idDia', $d['idDia'])
-                            ->where('horario_dia.hora_inicio', '<', $d['hora_fin'])
-                            ->where('horario_dia.hora_fin', '>', $d['hora_inicio']);
+                $day       = $d['idDia'];
+                $startTime = $d['hora_inicio'];
+                $endTime   = $d['hora_fin'];
+
+                // 3a) Restricción para Ejecutor: solo 1 asignación en misma franja
+                if ($roleId == $ejecutorRoleId) {
+                    $exists = Horario::whereHas('profesionales', function ($q) use ($teacherId) {
+                        $q->where('horario_profesional.idProfesional', $teacherId);
                     })
-                    ->exists();
+                        ->whereHas('dias', function ($q) use ($day, $startTime, $endTime) {
+                            $q->where('horario_dia.idDia', $day)
+                                ->where('horario_dia.hora_inicio', '<', $endTime)
+                                ->where('horario_dia.hora_fin',   '>', $startTime);
+                        })
+                        ->exists();
 
-                if ($busy) {
-                    return response()->json([
-                        'success' => false,
-                        'status'  => 409,
-                        'message' => 'Teacher, has reached the maximum number of teaching and tutoring assignments.',
-                    ], 409);
+                    if ($exists) {
+                        return response()->json([
+                            'success' => false,
+                            'status'  => 409,
+                            'message' => 'El ejecutor ya tiene una asignación en esa franja horaria.',
+                        ], 409);
+                    }
                 }
-            }
 
-            // 3b) Límite de 4 asignaciones como Tutor/Mentor
-            $assignCount = DB::table('horario_profesional')
-                ->where('idProfesional', $teacherId)
-                ->whereIn('idRolDocente', $limitRoleIds)
-                ->count();
+                // 3b) Límite de 4 para Mentor y Monitor en misma franja
+                if (in_array($roleId, [$mentorRoleId, $monitorRoleId])) {
+                    $count = DB::table('horario_profesional')
+                        ->join('horario_dia', 'horario_profesional.idHorario', '=', 'horario_dia.idHorario')
+                        ->where('horario_profesional.idProfesional', $teacherId)
+                        ->where('horario_profesional.idRolDocente', $roleId)
+                        ->where('horario_dia.idDia', $day)
+                        ->where('horario_dia.hora_inicio', '<', $endTime)
+                        ->where('horario_dia.hora_fin',   '>', $startTime)
+                        ->count();
 
-            if ($assignCount >= 4) {
-                return response()->json([
-                    'success' => false,
-                    'status'  => 409,
-                    'message' => 'El docente ha alcanzado el máximo de 4 asignaciones como Tutor/Mentor.',
-                ], 409);
+                    if ($count >= 4) {
+                        return response()->json([
+                            'success' => false,
+                            'status'  => 409,
+                            'message' => 'El docente ha alcanzado el máximo de 4 asignaciones en esa franja.',
+                        ], 409);
+                    }
+                }
+
+                // 3c) Disponibilidad de aula: un solo curso por aula en misma franja
+                if (! is_null($validated['idAula'])) {
+                    $aulaBusy = Horario::where('idAula', $validated['idAula'])
+                        ->whereHas('dias', function ($q) use ($day, $startTime, $endTime) {
+                            $q->where('horario_dia.idDia', $day)
+                                ->where('horario_dia.hora_inicio', '<', $endTime)
+                                ->where('horario_dia.hora_fin',   '>', $startTime);
+                        })
+                        ->exists();
+
+                    if ($aulaBusy) {
+                        return response()->json([
+                            'success' => false,
+                            'status'  => 409,
+                            'message' => 'El aula ya está ocupada en esa franja horaria.',
+                        ], 409);
+                    }
+                }
             }
         }
 
@@ -128,8 +163,10 @@ class HorarioController extends Controller
         DB::beginTransaction();
         try {
             $horario = Horario::create([
-                'idCurso' => $validated['idCurso'],
-                'idAula'  => $validated['idAula'],
+                'idCurso'      => $validated['idCurso'],
+                'idAula'       => $validated['idAula'],
+                'fecha_inicio' => $validated['fecha_inicio'],
+                'fecha_fin'    => $validated['fecha_fin'],
             ]);
 
             // 5) Sincronizar días
@@ -187,11 +224,13 @@ class HorarioController extends Controller
     {
         $horario = Horario::findOrFail($id);
 
-        // 1) Validación básica con hora_inicio < hora_fin
+        // 1) Validación básica, incluyendo fechas y arrays condicionales
         try {
             $validated = $request->validate([
                 'idCurso'                  => ['sometimes', 'integer', 'exists:curso,idCurso'],
                 'idAula'                   => ['sometimes', 'nullable', 'integer', 'exists:aula,idAula'],
+                'fecha_inicio'             => ['sometimes', 'date', 'date_format:Y-m-d'],
+                'fecha_fin'                => ['sometimes', 'date', 'date_format:Y-m-d', 'after_or_equal:fecha_inicio'],
                 'docentes'                 => ['sometimes', 'array', 'min:1'],
                 'docentes.*.idProfesional' => ['required_with:docentes', 'integer', 'exists:profesional,idProfesional'],
                 'docentes.*.idRolDocente'  => ['required_with:docentes', 'integer', 'exists:rolDocente,idRolDocente'],
@@ -200,7 +239,8 @@ class HorarioController extends Controller
                 'dias.*.hora_inicio'       => ['required_with:dias', 'date_format:H:i:s'],
                 'dias.*.hora_fin'          => ['required_with:dias', 'date_format:H:i:s'],
             ], [], [
-                'dias.*.hora_fin.after' => 'La hora de fin debe ser posterior a la hora de inicio.',
+                'fecha_fin.after_or_equal' => 'La fecha de fin debe ser igual o posterior a la fecha de inicio.',
+                'dias.*.hora_fin.after'    => 'La hora de fin debe ser posterior a la hora de inicio.',
             ]);
 
             // Validación manual de rango de horas
@@ -223,51 +263,84 @@ class HorarioController extends Controller
             ], 422);
         }
 
-        // 2) IDs de roles con límite
-        $limitRoleIds = RolDocente::where('nombre', 'Ejecutor')
-            ->pluck('idRolDocente')
-            ->toArray();
+        // 2) Obtener IDs de roles especiales
+        $ejecutorRoleId = RolDocente::where('nombre', 'Ejecutor')->value('idRolDocente');
+        $mentorRoleId   = RolDocente::where('nombre', 'Mentor')->value('idRolDocente');
+        $monitorRoleId  = RolDocente::where('nombre', 'Monitor')->value('idRolDocente');
 
-        // 3) Validaciones extra si vienen docentes y días
+        // 3) Validaciones extra si se modifican docentes y días
         if (!empty($validated['docentes']) && !empty($validated['dias'])) {
             foreach ($validated['docentes'] as $doc) {
                 $teacherId = $doc['idProfesional'];
+                $roleId    = $doc['idRolDocente'];
 
-                // 3a) Conflicto global de horario (excluyendo este Horario)
                 foreach ($validated['dias'] as $d) {
-                    $busy = Horario::where('idHorario', '!=', $horario->idHorario)
-                        ->whereHas('profesionales', function ($q) use ($teacherId) {
-                            $q->where('horario_profesional.idProfesional', $teacherId);
-                        })
-                        ->whereHas('dias', function ($q) use ($d) {
-                            $q->where('horario_dia.idDia', $d['idDia'])
-                                ->where('horario_dia.hora_inicio', '<', $d['hora_fin'])
-                                ->where('horario_dia.hora_fin', '>', $d['hora_inicio']);
-                        })
-                        ->exists();
+                    $day       = $d['idDia'];
+                    $startTime = $d['hora_inicio'];
+                    $endTime   = $d['hora_fin'];
 
-                    if ($busy) {
-                        return response()->json([
-                            'success' => false,
-                            'status'  => 409,
-                            'message' => 'El docente ya tiene un horario solapado en esa franja.',
-                        ], 409);
+                    // 3a) Restricción para Ejecutor: una sola asignación en misma franja (excluyendo este)
+                    if ($roleId === $ejecutorRoleId) {
+                        $exists = Horario::where('idHorario', '!=', $horario->idHorario)
+                            ->whereHas('profesionales', function ($q) use ($teacherId) {
+                                $q->where('horario_profesional.idProfesional', $teacherId);
+                            })
+                            ->whereHas('dias', function ($q) use ($day, $startTime, $endTime) {
+                                $q->where('horario_dia.idDia', $day)
+                                    ->where('horario_dia.hora_inicio', '<', $endTime)
+                                    ->where('horario_dia.hora_fin',   '>', $startTime);
+                            })
+                            ->exists();
+
+                        if ($exists) {
+                            return response()->json([
+                                'success' => false,
+                                'status'  => 409,
+                                'message' => 'El ejecutor ya tiene una asignación en esa franja horaria.',
+                            ], 409);
+                        }
                     }
-                }
 
-                // 3b) Límite de 4 asignaciones (excluyendo este Horario)
-                $assignCount = DB::table('horario_profesional')
-                    ->where('idProfesional', $teacherId)
-                    ->whereIn('idRolDocente', $limitRoleIds)
-                    ->where('idHorario', '!=', $horario->idHorario)
-                    ->count();
+                    // 3b) Límite de 4 para Mentor y Monitor en misma franja (excluyendo este)
+                    if (in_array($roleId, [$mentorRoleId, $monitorRoleId])) {
+                        $count = DB::table('horario_profesional')
+                            ->join('horario_dia', 'horario_profesional.idHorario', '=', 'horario_dia.idHorario')
+                            ->where('horario_profesional.idProfesional', $teacherId)
+                            ->where('horario_profesional.idRolDocente', $roleId)
+                            ->where('horario_profesional.idHorario', '!=', $horario->idHorario)
+                            ->where('horario_dia.idDia', $day)
+                            ->where('horario_dia.hora_inicio', '<', $endTime)
+                            ->where('horario_dia.hora_fin',   '>', $startTime)
+                            ->count();
 
-                if ($assignCount >= 4) {
-                    return response()->json([
-                        'success' => false,
-                        'status'  => 409,
-                        'message' => 'El docente ha alcanzado el máximo de 4 asignaciones como Tutor/Mentor.',
-                    ], 409);
+                        if ($count >= 4) {
+                            return response()->json([
+                                'success' => false,
+                                'status'  => 409,
+                                'message' => 'El docente ha alcanzado el máximo de 4 asignaciones en esa franja.',
+                            ], 409);
+                        }
+                    }
+
+                    // 3c) Disponibilidad de aula: un solo curso por aula en misma franja (excluyendo este)
+                    if (array_key_exists('idAula', $validated) && !is_null($validated['idAula'])) {
+                        $aulaBusy = Horario::where('idHorario', '!=', $horario->idHorario)
+                            ->where('idAula', $validated['idAula'])
+                            ->whereHas('dias', function ($q) use ($day, $startTime, $endTime) {
+                                $q->where('horario_dia.idDia', $day)
+                                    ->where('horario_dia.hora_inicio', '<', $endTime)
+                                    ->where('horario_dia.hora_fin',   '>', $startTime);
+                            })
+                            ->exists();
+
+                        if ($aulaBusy) {
+                            return response()->json([
+                                'success' => false,
+                                'status'  => 409,
+                                'message' => 'El aula ya está ocupada en esa franja horaria.',
+                            ], 409);
+                        }
+                    }
                 }
             }
         }
@@ -275,10 +348,12 @@ class HorarioController extends Controller
         // 4) Actualización en transacción
         DB::beginTransaction();
         try {
-            // Campos básicos
+            // Actualizar campos básicos
             $horario->update(array_filter([
-                'idCurso' => $validated['idCurso'] ?? null,
-                'idAula'  => array_key_exists('idAula', $validated) ? $validated['idAula'] : null,
+                'idCurso'      => $validated['idCurso'] ?? null,
+                'idAula'       => array_key_exists('idAula', $validated) ? $validated['idAula'] : null,
+                'fecha_inicio' => $validated['fecha_inicio'] ?? null,
+                'fecha_fin'    => $validated['fecha_fin'] ?? null,
             ], fn($v) => !is_null($v)));
 
             // Sincronizar días
