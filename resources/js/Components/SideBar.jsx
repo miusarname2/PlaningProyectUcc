@@ -79,7 +79,6 @@ const keywordMap = {
   '/specialtyProfessional/area': ['area', 'specialty'],
   '/batchManagement': ['batches'],
   '/programmeManagement': ['program'],   // ahora busca "programs" o "program"
-  '/slotManagement': ['slots', 'slot'],
   '/processManagement': ['processes', 'process'],
   '/classroomManagement': ['classroom'],
   '/course': ['course', 'courses'],
@@ -116,6 +115,8 @@ let sections = [
 ];
 
 export const filtered = filterSectionsByPermissions(sections, permissionStrings, keywordMap, ['read', 'edit', 'create', 'delete', 'manage']);
+
+console.log(filtered);
 
 sections = filtered;
 export default function SideBar({ isOpen, onClose }) {

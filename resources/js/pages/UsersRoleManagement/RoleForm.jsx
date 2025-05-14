@@ -23,8 +23,8 @@ export default function RoleForm({ onCancel, onSubmit, role }) {
         { key: 'classroom_management', label: 'Gestion de Aulas' },
         { key: 'courses_management', label: 'Gestion de Cursos' },
         { key: 'classes_management', label: 'Gestion de Clases' },
-        { key: 'area_management', label: 'Gestion de Area' },
-        { key: 'location_management', label: 'Gestion de Ubicacion' }
+        { key: 'location_management', label: 'Gestion de Ubicacion' },
+        { key: 'schedule_management', label: 'Gestion de Horario' }
     ];
 
     // Permission levels
