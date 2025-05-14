@@ -2,6 +2,8 @@ import './bootstrap';
 import '../css/app.css';
 
 import { createRoot } from 'react-dom/client';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { createInertiaApp } from '@inertiajs/react';
 import { Toaster } from './Components/Toaster';
 import { ToastProvider } from '@radix-ui/react-toast'
@@ -17,12 +19,14 @@ createInertiaApp({
         const root = createRoot(el);
 
         root.render(
-            <ToastProvider swipeDirection="right">
-                <LoaderProvider>
-                    <App {...props} />
-                    <Toaster />
-                </LoaderProvider>
-            </ToastProvider>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <ToastProvider swipeDirection="right">
+                    <LoaderProvider>
+                        <App {...props} />
+                        <Toaster />
+                    </LoaderProvider>
+                </ToastProvider>
+            </LocalizationProvider>
         );
     },
     progress: {

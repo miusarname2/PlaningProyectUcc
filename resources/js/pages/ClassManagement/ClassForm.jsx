@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import TextInput from "@/Components/TextInput";
+import { DesktopTimePicker } from '@mui/x-date-pickers/DesktopTimePicker';
+import { TextField } from '@mui/material';
 import InputLabel from "@/Components/InputLabel";
 import SelectInput from "@/Components/SelectInput";
 import { useToast } from '@/lib/toast-context'
 import ButtonGradient from "@/Components/ButtonGradient";
 import CancelButton from "@/Components/CancelButton";
+import dayjs from 'dayjs';
 import { Save, XCircle } from "lucide-react";
 import { getApi } from "@/utils/generalFunctions";
 import { useLoader } from "@/Components/LoaderProvider";
@@ -34,8 +36,8 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
 
         const initialScheduleSlots = initialData?.dias?.map(slot => ({
             idDia: slot.pivot.idDia,
-            hora_inicio: slot.pivot.hora_inicio.slice(0, 5),
-            hora_fin: slot.pivot.hora_fin.slice(0, 5),
+            hora_inicio: dayjs(slot.pivot.hora_inicio, 'HH:mm'),
+            hora_fin: dayjs(slot.pivot.hora_fin, 'HH:mm'),
         })) || [];
 
         return {
@@ -88,10 +90,12 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             }
         };
         fetchData();
+        hide();
     }, []);
 
     // --- Derive ciudad and idSede from initialData or user selection ---
     useEffect(() => {
+        show();
         if (isEditMode && aulas.length > 0 && sedes.length > 0 && formData.idAula && !formData.idSede) {
             const aula = aulas.find(a => String(a.idAula) === String(formData.idAula));
             if (aula) {
@@ -115,14 +119,13 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                 setFormData(prev => ({ ...prev, ciudad: String(selSede.idCiudad) }));
             }
         }
-
+        hide();
     }, [isEditMode, aulas, sedes, cities, formData.idAula, formData.idSede, formData.ciudad]);
 
 
     // --- Dependent lists ---
     const availableSedes = sedes.filter(s => String(s.idCiudad) === String(formData.ciudad));
     const availableAulas = aulas.filter(a => String(a.idSede) === String(formData.idSede));
-    hide();
 
     const availableProfessionalsForAssignment = professionals.filter(p =>
         !formData.selectedProfessionals.some(sp => String(sp.idProfesional) === String(p.idProfesional)) &&
@@ -223,9 +226,11 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             let slots = [...prev.selectedScheduleSlots];
 
             if (isChecked) {
-                if (!slots.some(s => s.idDia === idDia)) {
-                    slots.push({ idDia, hora_inicio: '', hora_fin: '' });
-                }
+                slots.push({
+                    idDia,
+                    hora_inicio: dayjs(),  // o null
+                    hora_fin: dayjs(),  // o null
+                });
             } else {
                 slots = slots.filter(s => s.idDia !== idDia);
                 setErrors(err => {
@@ -242,15 +247,13 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
         setErrors(err => ({ ...err, horarios: null }));
     };
 
-    const handleTimeChange = (idDia, field, value) => {
-        setFormData(prev => {
-            const slots = prev.selectedScheduleSlots.map(slot =>
-                slot.idDia === idDia
-                    ? { ...slot, [field]: value }
-                    : slot
-            );
-            return { ...prev, selectedScheduleSlots: slots };
-        });
+    const handleTimeChange = (idDia, field, newValue) => {
+        setFormData(prev => ({
+            ...prev,
+            selectedScheduleSlots: prev.selectedScheduleSlots.map(s =>
+                s.idDia === idDia ? { ...s, [field]: newValue } : s
+            )
+        }));
         const key = `horarios.${idDia}.${field}`;
         setErrors(err => ({ ...err, [key]: null }));
         setErrors(err => ({ ...err, horarios: null }));
@@ -297,17 +300,13 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                 idProfesional: p.idProfesional,
                 idRolDocente: Number(p.role)
             })),
-            hora_inicio: formData.selectedScheduleSlots.length
-                ? formData.selectedScheduleSlots[0].hora_inicio + ':00'
-                : null,
+            hora_inicio: formData.selectedScheduleSlots[0]?.hora_inicio.format('HH:mm') + ':00',
             dias: formData.selectedScheduleSlots.map(s => ({
                 idDia: Number(s.idDia),
-                hora_inicio: s.hora_inicio + ':00',
-                hora_fin: s.hora_fin + ':00',
+                hora_inicio: s.hora_inicio.format('HH:mm') + ':00',
+                hora_fin: s.hora_fin.format('HH:mm') + ':00',
             })),
-            hora_fin: formData.selectedScheduleSlots.length
-                ? formData.selectedScheduleSlots[0].hora_fin + ':00'
-                : null
+            hora_fin: formData.selectedScheduleSlots[0]?.hora_fin.format('HH:mm') + ':00',
         };
 
         try {
@@ -524,17 +523,22 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
 
                                             {isSelected && (
                                                 <div className="flex space-x-2 mt-2">
-                                                    <span>Hora de Inicio:</span>
-                                                    <input
-                                                        type="time"
+                                                    <DesktopTimePicker
+                                                        enableAccessibleFieldDOMStructure={false}
+                                                        label="Inicio"
                                                         value={slot.hora_inicio}
-                                                        onChange={e => handleTimeChange(d.idDia, 'hora_inicio', e.target.value)}
+                                                        onChange={newValue => handleTimeChange(d.idDia, 'hora_inicio', newValue)}
+                                                        slots={{ textField: TextField }}
+                                                        slotProps={{ textField: { size: 'small', error: !!errors[`horarios.${d.idDia}.hora_inicio`] } }}
                                                     />
-                                                    <span>Hora de Fin:</span>
-                                                    <input
-                                                        type="time"
+                                                    {/* Hora de Fin */}
+                                                    <DesktopTimePicker
+                                                        enableAccessibleFieldDOMStructure={false}
+                                                        label="Fin"
                                                         value={slot.hora_fin}
-                                                        onChange={e => handleTimeChange(d.idDia, 'hora_fin', e.target.value)}
+                                                        onChange={newValue => handleTimeChange(d.idDia, 'hora_fin', newValue)}
+                                                        slots={{ textField: TextField }}
+                                                        slotProps={{ textField: { size: 'small', error: !!errors[`horarios.${d.idDia}.hora_fin`] } }}
                                                     />
                                                 </div>
                                             )}
