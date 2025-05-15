@@ -14,6 +14,7 @@ import { useLoader } from "@/Components/LoaderProvider";
 
 export default function ClassForm({ onCancel, initialData = null, onSubmitSuccess }) {
     const { show, hide } = useLoader();
+    console.log(JSON.stringify(initialData));
     const api = getApi();
     const { toast } = useToast();
 
@@ -85,9 +86,9 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                 );
 
                 // 3) Filtrar la lista de cursos para quedarse solo con los no asignados
-                const availableCourses = (coursesRes.data || []).filter(
+                const availableCourses = !isEditMode ? (coursesRes.data || []).filter(
                     c => !assignedCourseIds.has(Number(c.idCurso))
-                );
+                ) : coursesRes.data;
 
                 setCourses(availableCourses);
                 setProfessionals(professionalsRes.data || []);
