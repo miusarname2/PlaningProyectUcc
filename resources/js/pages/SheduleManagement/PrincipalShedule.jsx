@@ -263,47 +263,6 @@ export default function PrincipalShedule() {
     <div className="flex flex-col min-h-screen">
       {/* Filters */}
       <div className="p-2 md:p-4 flex items-center justify-between border-b bg-white flex-wrap gap-2">
-        <div className="flex items-center gap-2 md:gap-4 flex-wrap">
-          <Calendar className="h-3 w-3 md:h-4 md:w-4 mx-3" />
-          {/* <div className="flex items-center border rounded-md">
-            <Button variant="ghost" className="flex items-center gap-1 border-r rounded-none text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto">
-              <span>Vista diaria</span>
-              <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
-            </Button>
-          </div> */}
-          <div className="relative w-full sm:w-72 mx-1">
-            <InputSearch
-              valueInput={formData.searchValue}
-              placeHolderText="Buscar por aula o curso..."
-              onSearchChange={(value) => {
-                const trimmedValue = value.trim();
-                setFormData((prev) => ({ ...prev, searchValue: value, ciudad: "", sede: "" }));
-                if (trimmedValue === "") {
-                  fetchData();
-                } else if (formData.filtro) {
-                  fetchData(formData.filtro, trimmedValue);
-                }
-              }}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <SelectInput
-              id="filtro"
-              name="filtro"
-              value={formData.filtro}
-              onChange={handleChange}
-              options={[
-                { value: "", label: "Filtrar por ..." },
-                ...filtrosDisponibles.map((filter) => ({
-                  value: filter.value,
-                  label: filter.label,
-                })),
-              ]}
-              required
-            />
-          </div>
-        </div>
         {/* <Button variant="ghost" size="icon" className="flex items-center gap-1 border rounded text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto">
           <Filter className="h-4 w-4 md:h-5 md:w-5" />
         </Button> */}
@@ -412,6 +371,39 @@ export default function PrincipalShedule() {
                 options={[
                   { value: "", label: "Todas las Entidades" },
                   ...entidades.map((ent) => ({ value: ent.idEntidad, label: ent.nombre })),
+                ]}
+                required
+              />
+            </div>
+
+            <div className="relative w-full sm:w-72 mx-1">
+              <InputSearch
+                valueInput={formData.searchValue}
+                placeHolderText="Buscar por aula o curso..."
+                onSearchChange={(value) => {
+                  const trimmedValue = value.trim();
+                  setFormData((prev) => ({ ...prev, searchValue: value, ciudad: "", sede: "" }));
+                  if (trimmedValue === "") {
+                    fetchData();
+                  } else if (formData.filtro) {
+                    fetchData(formData.filtro, trimmedValue);
+                  }
+                }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <SelectInput
+                id="filtro"
+                name="filtro"
+                value={formData.filtro}
+                onChange={handleChange}
+                options={[
+                  { value: "", label: "Filtrar por ..." },
+                  ...filtrosDisponibles.map((filter) => ({
+                    value: filter.value,
+                    label: filter.label,
+                  })),
                 ]}
                 required
               />
