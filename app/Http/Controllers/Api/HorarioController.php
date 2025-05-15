@@ -90,19 +90,29 @@ class HorarioController extends Controller
 
         // 3) Validaciones extra por cada docente y aula
         foreach ($validated['docentes'] as $doc) {
-            $teacherId = $doc['idProfesional'];
-            $roleId    = $doc['idRolDocente'];
+            $teacherId   = $doc['idProfesional'];
+            $roleId      = $doc['idRolDocente'];
+            $newStart    = $validated['fecha_inicio'];
+            $newEnd      = $validated['fecha_fin'];
 
             foreach ($validated['dias'] as $d) {
-                $day       = $d['idDia'];
-                $startTime = $d['hora_inicio'];
-                $endTime   = $d['hora_fin'];
+                $day        = $d['idDia'];
+                $startTime  = $d['hora_inicio'];
+                $endTime    = $d['hora_fin'];
+
+                // 0) Añadimos siempre la restricción de fecha completa del horario
+                //    para ignorar horarios que ya han terminado antes de la nueva fecha_inicio.
+                $fechaOverlapQuery = Horario::where(function ($q) use ($newStart, $newEnd) {
+                    $q->where('fecha_fin', '>=', $newStart)
+                        ->where('fecha_inicio', '<=', $newEnd);
+                });
 
                 // 3a) Restricción para Ejecutor: solo 1 asignación en misma franja
                 if ($roleId == $ejecutorRoleId) {
-                    $exists = Horario::whereHas('profesionales', function ($q) use ($teacherId) {
-                        $q->where('horario_profesional.idProfesional', $teacherId);
-                    })
+                    $exists = (clone $fechaOverlapQuery)
+                        ->whereHas('profesionales', function ($q) use ($teacherId) {
+                            $q->where('horario_profesional.idProfesional', $teacherId);
+                        })
                         ->whereHas('dias', function ($q) use ($day, $startTime, $endTime) {
                             $q->where('horario_dia.idDia', $day)
                                 ->where('horario_dia.hora_inicio', '<', $endTime)
@@ -121,13 +131,14 @@ class HorarioController extends Controller
 
                 // 3b) Límite de 4 para Mentor y Monitor en misma franja
                 if (in_array($roleId, [$mentorRoleId, $monitorRoleId])) {
-                    $count = DB::table('horario_profesional')
-                        ->join('horario_dia', 'horario_profesional.idHorario', '=', 'horario_dia.idHorario')
+                    $count = (clone $fechaOverlapQuery)
+                        ->join('horario_profesional', 'horario.idHorario', '=', 'horario_profesional.idHorario')
+                        ->join('horario_dia',          'horario.idHorario', '=', 'horario_dia.idHorario')
                         ->where('horario_profesional.idProfesional', $teacherId)
-                        ->where('horario_profesional.idRolDocente', $roleId)
-                        ->where('horario_dia.idDia', $day)
-                        ->where('horario_dia.hora_inicio', '<', $endTime)
-                        ->where('horario_dia.hora_fin',   '>', $startTime)
+                        ->where('horario_profesional.idRolDocente',  $roleId)
+                        ->where('horario_dia.idDia',                 $day)
+                        ->where('horario_dia.hora_inicio', '<',      $endTime)
+                        ->where('horario_dia.hora_fin',   '>',      $startTime)
                         ->count();
 
                     if ($count >= 4) {
@@ -141,7 +152,8 @@ class HorarioController extends Controller
 
                 // 3c) Disponibilidad de aula: un solo curso por aula en misma franja
                 if (! is_null($validated['idAula'])) {
-                    $aulaBusy = Horario::where('idAula', $validated['idAula'])
+                    $aulaBusy = (clone $fechaOverlapQuery)
+                        ->where('idAula', $validated['idAula'])
                         ->whereHas('dias', function ($q) use ($day, $startTime, $endTime) {
                             $q->where('horario_dia.idDia', $day)
                                 ->where('horario_dia.hora_inicio', '<', $endTime)
@@ -270,7 +282,12 @@ class HorarioController extends Controller
         $monitorRoleId  = RolDocente::where('nombre', 'Monitor')->value('idRolDocente');
 
         // 3) Validaciones extra si se modifican docentes y días
+        // 3) Validaciones extra si se modifican docentes y días
         if (!empty($validated['docentes']) && !empty($validated['dias'])) {
+            // Fechas del nuevo rango
+            $newStart = $validated['fecha_inicio'] ?? $horario->fecha_inicio;
+            $newEnd   = $validated['fecha_fin']    ?? $horario->fecha_fin;
+
             foreach ($validated['docentes'] as $doc) {
                 $teacherId = $doc['idProfesional'];
                 $roleId    = $doc['idRolDocente'];
@@ -280,17 +297,20 @@ class HorarioController extends Controller
                     $startTime = $d['hora_inicio'];
                     $endTime   = $d['hora_fin'];
 
-                    // 3a) Restricción para Ejecutor: una sola asignación en misma franja (excluyendo este)
+                    // --- Query base de solapamiento de fechas, excluyendo el mismo registro ---
+                    $baseQ = Horario::where('idHorario', '!=', $horario->idHorario)
+                        ->where('fecha_fin', '>=', $newStart)
+                        ->where('fecha_inicio', '<=', $newEnd);
+
+                    // 3a) Ejecutor: sólo 1 asignación en la misma franja
                     if ($roleId === $ejecutorRoleId) {
-                        $exists = Horario::where('idHorario', '!=', $horario->idHorario)
-                            ->whereHas('profesionales', function ($q) use ($teacherId) {
-                                $q->where('horario_profesional.idProfesional', $teacherId);
-                            })
-                            ->whereHas('dias', function ($q) use ($day, $startTime, $endTime) {
-                                $q->where('horario_dia.idDia', $day)
-                                    ->where('horario_dia.hora_inicio', '<', $endTime)
-                                    ->where('horario_dia.hora_fin',   '>', $startTime);
-                            })
+                        $exists = (clone $baseQ)
+                            ->whereHas('profesionales', fn($q) => $q
+                                ->where('horario_profesional.idProfesional', $teacherId))
+                            ->whereHas('dias', fn($q) => $q
+                                ->where('horario_dia.idDia', $day)
+                                ->where('horario_dia.hora_inicio', '<', $endTime)
+                                ->where('horario_dia.hora_fin',   '>', $startTime))
                             ->exists();
 
                         if ($exists) {
@@ -302,16 +322,16 @@ class HorarioController extends Controller
                         }
                     }
 
-                    // 3b) Límite de 4 para Mentor y Monitor en misma franja (excluyendo este)
+                    // 3b) Mentor/Monitor: máximo 4 asignaciones en la misma franja
                     if (in_array($roleId, [$mentorRoleId, $monitorRoleId])) {
-                        $count = DB::table('horario_profesional')
-                            ->join('horario_dia', 'horario_profesional.idHorario', '=', 'horario_dia.idHorario')
+                        $count = (clone $baseQ)
+                            ->join('horario_profesional', 'horario.idHorario', '=', 'horario_profesional.idHorario')
+                            ->join('horario_dia',          'horario.idHorario', '=', 'horario_dia.idHorario')
                             ->where('horario_profesional.idProfesional', $teacherId)
-                            ->where('horario_profesional.idRolDocente', $roleId)
-                            ->where('horario_profesional.idHorario', '!=', $horario->idHorario)
-                            ->where('horario_dia.idDia', $day)
-                            ->where('horario_dia.hora_inicio', '<', $endTime)
-                            ->where('horario_dia.hora_fin',   '>', $startTime)
+                            ->where('horario_profesional.idRolDocente',  $roleId)
+                            ->where('horario_dia.idDia',                 $day)
+                            ->where('horario_dia.hora_inicio', '<',      $endTime)
+                            ->where('horario_dia.hora_fin',   '>',      $startTime)
                             ->count();
 
                         if ($count >= 4) {
@@ -323,15 +343,14 @@ class HorarioController extends Controller
                         }
                     }
 
-                    // 3c) Disponibilidad de aula: un solo curso por aula en misma franja (excluyendo este)
+                    // 3c) Disponibilidad de aula: un solo curso por aula en la misma franja
                     if (array_key_exists('idAula', $validated) && !is_null($validated['idAula'])) {
-                        $aulaBusy = Horario::where('idHorario', '!=', $horario->idHorario)
+                        $aulaBusy = (clone $baseQ)
                             ->where('idAula', $validated['idAula'])
-                            ->whereHas('dias', function ($q) use ($day, $startTime, $endTime) {
-                                $q->where('horario_dia.idDia', $day)
-                                    ->where('horario_dia.hora_inicio', '<', $endTime)
-                                    ->where('horario_dia.hora_fin',   '>', $startTime);
-                            })
+                            ->whereHas('dias', fn($q) => $q
+                                ->where('horario_dia.idDia', $day)
+                                ->where('horario_dia.hora_inicio', '<', $endTime)
+                                ->where('horario_dia.hora_fin',   '>', $startTime))
                             ->exists();
 
                         if ($aulaBusy) {
@@ -345,6 +364,7 @@ class HorarioController extends Controller
                 }
             }
         }
+
 
         // 4) Actualización en transacción
         DB::beginTransaction();
@@ -637,12 +657,14 @@ class HorarioController extends Controller
             'Fecha fin',
             'Programa',
             'Nivel',
+            'Número de horas',   // Nueva columna después de Nivel
             'Tipo formación',
             'Lote',
             'Ciudad',
             'Entidad',
             'Sede',
             'Aula',
+            'Día',              // Nueva columna antes de Hora inicio
             'Hora inicio',
             'Hora fin',
             'Ejecutor',
@@ -657,16 +679,15 @@ class HorarioController extends Controller
 
         $row = 2;
         foreach ($horarios as $h) {
-            // Datos básicos
-            $curso   = $h->curso;
-            $programas = $curso->programas->pluck('nombre')->join(', ');
-            // Lote asumido de 'codigoGrupo'
+            $curso       = $h->curso;
+            $programas   = $curso->programas->pluck('nombre')->join(', ');
             $tipoFormacion = $curso->modalidad;
-            $lote = $curso->codigoGrupo;
-            $ciudad = optional($h->aula->sede->ciudad)->nombre;
-            $entidad = optional($h->aula->sede->propietario)->nombre;
-            $sede = optional($h->aula->sede)->nombre;
-            $aula = $h->aula->codigo;
+            $lote        = $curso->codigoGrupo;
+            $ciudad      = optional($h->aula->sede->ciudad)->nombre;
+            $entidad     = optional($h->aula->sede->propietario)->nombre;
+            $sede        = optional($h->aula->sede)->nombre;
+            $aula        = $h->aula->codigo;
+
             // Roles
             $ej = [];
             $mo = [];
@@ -678,7 +699,14 @@ class HorarioController extends Controller
                 if ($rol === 'Monitor')  $mo[] = $p->nombreCompleto;
                 if ($rol === 'Mentor')   $me[] = $p->nombreCompleto;
             }
+
             foreach ($h->dias as $d) {
+                // Cálculo de día y número de horas
+                $diaNombre = $diasSemana[$d->idDia - 1] ?? "Día {$d->idDia}";
+                $horaInicio = Carbon::parse($d->pivot->hora_inicio);
+                $horaFin    = Carbon::parse($d->pivot->hora_fin);
+                $numHoras   = round($horaFin->diffInMinutes($horaInicio) / 60, 2);
+
                 $data = [
                     $curso->codigo,
                     $curso->nombre,
@@ -686,18 +714,21 @@ class HorarioController extends Controller
                     $h->fecha_fin,
                     $programas,
                     $curso->nivel,
+                    $numHoras,         // Valor calculado
                     $tipoFormacion,
                     $lote,
                     $ciudad,
                     $entidad,
                     $sede,
                     $aula,
+                    $diaNombre,        // Día antes de hora inicio
                     $d->pivot->hora_inicio,
                     $d->pivot->hora_fin,
                     implode(', ', $ej),
                     implode(', ', $mo),
                     implode(', ', $me),
                 ];
+
                 foreach ($data as $i => $val) {
                     $col = Coordinate::stringFromColumnIndex($i + 1);
                     $sheet2->setCellValue("{$col}{$row}", $val);
