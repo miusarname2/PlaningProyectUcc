@@ -67,8 +67,10 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
         show();
         const fetchData = async () => {
             try {
-                const [coursesRes, professionalsRes, citiesRes, sedesRes, aulasRes, rolesDocentesRes, diaRes] = await Promise.all([
+                // 1) Petición paralela a /curso y /Horario
+                const [coursesRes, horariosRes, professionalsRes, citiesRes, sedesRes, aulasRes, rolesDocentesRes, diaRes] = await Promise.all([
                     api.get('/curso'),
+                    api.get('/Horario'),
                     api.get('/profesional'),
                     api.get('/ciudad'),
                     api.get('/sede'),
@@ -76,7 +78,18 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                     api.get('/rolDocente'),
                     api.get('/dia'),
                 ]);
-                setCourses(coursesRes.data || []);
+
+                // 2) Extraer sólo los idCurso ya en uso
+                const assignedCourseIds = new Set(
+                    (horariosRes.data || []).map(h => Number(h.idCurso))
+                );
+
+                // 3) Filtrar la lista de cursos para quedarse solo con los no asignados
+                const availableCourses = (coursesRes.data || []).filter(
+                    c => !assignedCourseIds.has(Number(c.idCurso))
+                );
+
+                setCourses(availableCourses);
                 setProfessionals(professionalsRes.data || []);
                 setCities(citiesRes.data || []);
                 setSedes(sedesRes.data || []);
@@ -91,10 +104,11 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                 setCities([]);
                 setSedes([]);
                 setAulas([]);
+            } finally {
+                hide();
             }
         };
         fetchData();
-        hide();
     }, []);
 
     // --- Derive ciudad and idSede from initialData or user selection ---
