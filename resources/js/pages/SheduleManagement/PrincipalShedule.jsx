@@ -4,7 +4,7 @@ import { Button } from "@/Components/Button"
 import InputSearch from "@/Components/InputSearch"
 import InputLabel from "@/Components/InputLabel";
 import SelectInput from "@/Components/SelectInput";
-import { format, startOfWeek, addWeeks, subWeeks, isSameWeek,addDays } from "date-fns"
+import { format, startOfWeek, addWeeks, subWeeks, isSameWeek, addDays } from "date-fns"
 import { es } from "date-fns/locale"
 import { getApi } from "@/utils/generalFunctions";
 
@@ -15,13 +15,18 @@ export default function PrincipalSchedule() {
   const [sedes, setSedes] = useState([]);
   const [entidades, setEntidades] = useState([]);
   const [ciudades, setCiudades] = useState([]);
-  const [formData, setFormData] = useState({ sede: "", ciudad: "", entidad: "", filtro: "", searchValue: "" });
+  // New: Add courses state
+  const [courses, setCourses] = useState([]);
 
-  const filtrosDisponibles = [
-    { value: "curso_codigo", label: "Codigo del curso" },
-    { value: "curso_nombre", label: "Nombre del curso" },
-    { value: "profesional_codigo", label: "Codigo del profesional" }
-  ];
+  // Updated: Remove 'filtro' and 'searchValue', add 'idCurso'
+  const [formData, setFormData] = useState({ ciudad: "", sede: "", entidad: "", idCurso: "" });
+
+  // No longer needed as we are using a specific Course filter select
+  // const filtrosDisponibles = [
+  //   { value: "curso_codigo", label: "Codigo del curso" },
+  //   { value: "curso_nombre", label: "Nombre del curso" },
+  //   { value: "profesional_codigo", label: "Codigo del profesional" }
+  // ];
 
   const [currentWeekStart, setCurrentWeekStart] = useState(
     startOfWeek(new Date(), { weekStartsOn: 1 }) // weekStartsOn: 1 = Lunes
@@ -36,13 +41,22 @@ export default function PrincipalSchedule() {
     addDays(currentWeekStart, 6), 'd MMM, yyyy', { locale: es }
   )}`;
 
+  // isSameWeek check remains valid for enabling/disabling "Hoy" button
   const isCurrentWeek = isSameWeek(currentWeekStart, new Date(), { weekStartsOn: 1 });
 
   const convertirHora = hora24 => {
     if (!hora24) return 'Sin hora';
     try {
-      const [hh, mm] = hora24.split(':').map(Number);
-      if (isNaN(hh) || isNaN(mm)) return 'Formato inválido'; // Validación básica
+      // Handle potential seconds or milliseconds in string
+      const parts = hora24.split(':');
+      const hh = Number(parts[0]);
+      const mm = Number(parts[1]);
+
+      if (isNaN(hh) || isNaN(mm) || hh < 0 || hh > 23 || mm < 0 || mm > 59) {
+        console.warn("Invalid time format or value:", hora24);
+        return 'Formato inválido';
+      }
+
       const date = new Date(); // Usar una fecha dummy para construir el objeto Date
       date.setHours(hh, mm, 0, 0);
       return format(date, 'h:mm a', { locale: es }).replace('. m.', '.m.'); // Formato 12 horas con a.m./p.m.
@@ -83,22 +97,22 @@ export default function PrincipalSchedule() {
     const weekEnd = addDays(weekStart, 6); // Domingo de la semana actual
 
     const filtered = rawData.filter(item => {
-        // Convertir fechas a objetos Date. Si son null, asumimos que siempre están activos.
-        const startDate = item.fecha_inicio ? new Date(item.fecha_inicio) : null;
-        const endDate = item.fecha_fin ? new Date(item.fecha_fin) : null;
+      // Convertir fechas a objetos Date. Si son null, asumimos que siempre están activos.
+      // Adjusting date parsing for potential timezone issues if needed, but sticking to current logic
+      const startDate = item.fecha_inicio ? new Date(item.fecha_inicio + 'T00:00:00') : null; // Assume YYYY-MM-DD format
+      const endDate = item.fecha_fin ? new Date(item.fecha_fin + 'T00:00:00') : null; // Assume YYYY-MM-DD format
 
-        // Ajustar endDate al final del día para que incluya ese día completo
-        const endDateEndOfDay = endDate ? new Date(endDate.setHours(23, 59, 59, 999)) : null;
+      // Adjust endDate to end of day local time
+      const endDateEndOfDay = endDate ? new Date(endDate) : null;
+      if (endDateEndOfDay) endDateEndOfDay.setHours(23, 59, 59, 999);
 
-        // El horario es relevante para esta semana si:
-        // 1. No tiene fecha de fin O su fecha de fin es >= al Lunes de esta semana.
-        // AND
-        // 2. No tiene fecha de inicio O su fecha de inicio es <= al Domingo de esta semana.
-        const isActiveDuringWeek =
-            (!endDateEndOfDay || endDateEndOfDay >= weekStart) &&
-            (!startDate || startDate <= weekEnd);
 
-        return isActiveDuringWeek;
+      // Check if the item's date range overlaps with the current week
+      // Item starts before or during the week AND Item ends after or during the week
+      const startsOnOrBeforeWeekEnd = !startDate || startDate <= weekEnd;
+      const endsOnOrAfterWeekStart = !endDateEndOfDay || endDateEndOfDay >= weekStart;
+
+      return startsOnOrBeforeWeekEnd && endsOnOrAfterWeekStart;
     });
 
     // Reset color map when rawData or week changes to re-assign colors
@@ -108,54 +122,124 @@ export default function PrincipalSchedule() {
     const transformed = filtered.flatMap(item => {
       // Asegurarse de que item.dias es un array antes de intentar map
       if (!Array.isArray(item.dias)) {
-          console.warn("Item missing dias array:", item);
-          return []; // Saltar este item si no tiene dias válidos
+        console.warn("Item missing dias array:", item);
+        return []; // Saltar este item si no tiene dias válidos
       }
 
       return item.dias.map(diaObj => {
-        // Asegurarse de que diaObj y diaObj.pivot existen
-        if (!diaObj || !diaObj.pivot) {
-            console.warn("Dia object or pivot missing:", diaObj);
-            return null; // Omitir este día
+        // Asegurarse de que diaObj y diaObj.pivot existen y que item.curso y item.aula existen
+        if (!diaObj || !diaObj.pivot || !item.curso || !item.aula) {
+          // console.warn("Missing dia object, pivot, curso, or aula data for item:", item);
+          return null; // Omitir este día si falta data crítica
         }
 
         const { hora_inicio, hora_fin } = diaObj.pivot;
-        const startTime = convertirHora(hora_inicio);
-        const endTime = convertirHora(hora_fin);
+        // Ensure times are in HH:mm format if they come differently (e.g., HH:mm:ss)
+        const startTimeFormatted = hora_inicio ? hora_inicio.substring(0, 5) : null;
+        const endTimeFormatted = hora_fin ? hora_fin.substring(0, 5) : null;
+
+
+        const startTime = convertirHora(startTimeFormatted);
+        const endTime = convertirHora(endTimeFormatted);
         const color = getColorForRoom(item.aula?.codigo || 'Sin aula');
 
         // Build time blocks (Assuming blocks are hourly from the start hour)
         const blocks = [];
-        if (hora_inicio && hora_fin) {
-          const [sh, sm] = hora_inicio.split(':').map(Number);
-          const [eh, em] = hora_fin.split(':').map(Number);
+        if (startTimeFormatted && endTimeFormatted) {
+          try {
+            const [sh, sm] = startTimeFormatted.split(':').map(Number);
+            const [eh, em] = endTimeFormatted.split(':').map(Number);
 
-           // Ensure hours are valid numbers
-          if (!isNaN(sh) && !isNaN(eh)) {
-             // Iterate from start hour up to (but not including) end hour
-             // This is a common way to represent blocks occupied.
-             // If a class is 14:00 to 15:00, it occupies the 14:00 block.
-             // If it's 14:30 to 15:30, it might occupy 14:00 and 15:00 blocks depending on granularity.
-             // The current implementation adds all full hours between start and end. Let's stick to that.
-            for (let h = sh; h <= eh; h++) { // Includes the end hour block if the time falls on the hour
-              const period = h < 12 ? 'a.m.' : 'p.m.';
-              const displayHour = h % 12 === 0 ? 12 : h % 12;
-              blocks.push(`${displayHour}:00 ${period}`);
+            if (!isNaN(sh) && !isNaN(sm) && !isNaN(eh) && !isNaN(em) && sh >= 0 && sh <= 23 && eh >= 0 && eh <= 23) {
+
+              // Add block for the start hour if minutes > 0 to catch partial start times
+              if (sm > 0 && sh < 24) { // Ensure hour is valid before processing
+                const period = sh < 12 ? 'a.m.' : 'p.m.';
+                const displayHour = sh % 12 === 0 ? 12 : sh % 12;
+                // Use the standard block format for display matching timeSlots
+                // Blocks should probably represent the *start* of an occupied hour slot.
+                // If a class is 14:30-15:30, it occupies the 14:00 slot (partially) and the 15:00 slot (partially).
+                // Let's refine this: Mark *every* hour block the class *spans across*.
+                let currentHour = sh;
+                const endHourAdjusted = em > 0 ? eh + 1 : eh; // If ends at 15:30, it occupies the 15:00 slot
+
+                while (currentHour < endHourAdjusted && currentHour < 24) {
+                  const period = currentHour < 12 || currentHour === 24 ? 'a.m.' : 'p.m.';
+                  const displayHour = currentHour % 12 === 0 ? 12 : currentHour % 12;
+                  blocks.push(`${displayHour}:00 ${period}`);
+                  currentHour++;
+                }
+
+                // Remove duplicates if any from this logic
+                const uniqueBlocks = [...new Set(blocks)];
+                blocks.length = 0; // Clear blocks
+                blocks.push(...uniqueBlocks); // Add unique blocks back
+
+
+              } else {
+                // Original logic for clean hour starts
+                // Iterate from start hour up to (but not including) end hour
+                let currentHour = sh;
+                // End hour is included *if* it's exactly on the hour or has minutes
+                const adjustedEndHour = em === 0 && sh !== eh ? eh - 1 : eh; // If ends exactly at 15:00 and started before 15:00, the last block is 14:00. If ends at 15:30, last block is 15:00. If starts and ends same hour 14:00-14:30, block is 14:00. If 14:00-15:00, block 14:00.
+                const finalEndHour = em > 0 || sh === eh ? eh : eh - 1; // If ends at hh:mm with mm > 0, or starts/ends in same hour, include the end hour block. Otherwise end at the previous hour block. This is tricky.
+
+                // Let's simplify: A class from SH:SM to EH:EM occupies all hourly slots H:00 where H >= SH and H < EH, plus the EH:00 slot if EM > 0 or EH=SH.
+                // A simpler rule for display: A class at SH:SM ending at EH:EM covers all hourly slots from SH:00 up to, but *not including* EH:00, PLUS EH:00 if EM > 0. If EH=SH and EM>0, it covers SH:00.
+                // Example: 14:00-15:00 -> 14:00 block. 14:30-15:30 -> 14:00, 15:00 blocks. 14:00-14:30 -> 14:00 block. 14:00-16:00 -> 14:00, 15:00 blocks. 14:00-16:30 -> 14:00, 15:00, 16:00 blocks.
+
+                let hourBlock = sh;
+                while (hourBlock <= eh && hourBlock < 24) { // Iterate from start hour up to end hour block
+                  if (hourBlock === eh && em === 0 && sh !== eh) {
+                    // If it ends *exactly* on the hour (and isn't a single hour slot like 14:00-15:00)
+                    // then the EH:00 slot isn't the *start* of a block it fully occupies.
+                    // The loop condition `hourBlock <= eh` is slightly off if ending exactly on the hour.
+                    // Let's use '<' and potentially add the last block if needed.
+                    break; // Exit if we reached the end hour and minutes are 0 (covered by previous hour block)
+                  }
+                  const period = hourBlock < 12 || hourBlock === 24 ? 'a.m.' : 'p.m.';
+                  const displayHour = hourBlock % 12 === 0 ? 12 : hourBlock % 12;
+                  blocks.push(`${displayHour}:00 ${period}`);
+                  hourBlock++;
+                }
+
+                // Correction for exact hour end: A class 14:00-15:00 only occupies the 14:00 block.
+                // If end minute is 0 and start hour is not the same as end hour, stop *before* end hour.
+                // If end minute is > 0, or start hour is same as end hour (e.g., 14:00-14:30), include end hour.
+                blocks.length = 0; // Clear blocks from previous loop
+                let h = sh;
+                const lastHourBlock = (em > 0 || sh === eh) ? eh : eh - 1;
+
+                while (h <= lastHourBlock && h < 24) {
+                  const period = h < 12 ? 'a.m.' : 'p.m.';
+                  const displayHour = h % 12 === 0 ? 12 : h % 12;
+                  blocks.push(`${displayHour}:00 ${period}`);
+                  h++;
+                }
+
+
+              }
+            } else {
+              console.warn("Invalid time numbers for item:", item);
             }
+
+          } catch (timeParseError) {
+            console.error("Error parsing times for blocks:", startTimeFormatted, endTimeFormatted, timeParseError);
           }
         }
+
 
         // Map day names from API to the required format ('LUNES', 'MARTES', etc.)
         const dayName = diaObj.nombre?.toUpperCase() || 'SIN DÍA';
         const normalizedDayName = days.find(d => d === dayName) || 'SIN DÍA'; // Ensure day name is one of the valid days
 
         return {
-          room: item.aula?.codigo || 'Sin aula',
+          room: item.aula.codigo || 'Sin aula',
           day: normalizedDayName, // Usar el nombre normalizado
           startTime,
           endTime,
-          code: item.curso?.codigo || 'Sin código',
-          name: item.curso?.nombre || 'Sin nombre',
+          code: item.curso.codigo || 'Sin código', // Access course code
+          name: item.curso.nombre || 'Sin nombre', // Access course name
           color: `${color.bg} ${color.text} ${color.border}`,
           timeBlocks: blocks,
         };
@@ -163,25 +247,24 @@ export default function PrincipalSchedule() {
     }).filter(item => item.day !== 'SIN DÍA'); // Filter out items with invalid days
 
     setScheduleData(transformed);
-  }, [rawData, currentWeekStart]); // Depende de rawData y la semana actual
+  }, [rawData, currentWeekStart, es]); // Depende de rawData, la semana actual, y locale
 
   const days = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SABADO'];
   // Generar slots de tiempo de 6 a 20 (8pm)
   const timeSlots = Array.from({ length: 15 }, (_, i) => {
-    const hour = 6 + i;
+    const hour = 6 + i; // Hours 6, 7, ..., 20
+    // Handle 12-hour format display
     const period = hour < 12 || hour === 24 ? 'a.m.' : 'p.m.'; // 24:00 is midnight, usually shown as 12 a.m.
-    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-     return `${displayHour}:00 ${period}`;
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour; // 0:00 becomes 12, >12 becomes hour-12
+
+    return `${displayHour}:00 ${period}`;
   });
 
 
   // Función para obtener las clases que caen en un slot de tiempo y día específicos
   const getClassForSlot = (time, day) => {
-    // Nota: Esta función asume que timeBlocks contiene el slot exacto.
-    // Si timeBlocks solo tiene las horas completas (como en la lógica actual),
-    // una clase que va de 14:30 a 15:30 se mostraría en el slot 2 p.m. (14:00).
-    // Si necesitas mayor granularidad (ej: 14:30), timeSlots y timeBlocks
-    // deberían ser más detallados (ej: '2:00 p.m.', '2:30 p.m.', etc.).
+    // time here is in 'H:00 a.m./p.m.' format matching timeSlots
+    // We need to filter scheduleData where item.day matches AND item.timeBlocks includes the specific `time` string.
     return scheduleData.filter(item => item.day === day && item.timeBlocks.includes(time));
   }
 
@@ -189,14 +272,29 @@ export default function PrincipalSchedule() {
   const api = getApi(); // Asumiendo que getApi está definido y devuelve tu instancia de axios/api
 
   // Función para cargar los datos del horario desde la API
-  // Ahora solo carga los datos crudos, el filtrado por fecha se hace en el useEffect
-  async function fetchData(filterKey = null, filterValue = null) {
+  // Modified to accept filter parameters based on formData state
+  async function fetchData(filter = {}) {
     setLoading(true);
     try {
       let endpoint = '/Horario';
-      if (filterKey && filterValue !== null && filterValue !== "") { // Añadir chequeo para valor vacío
-          endpoint = `/Horario/search?${filterKey}=${filterValue}`;
+      const params = new URLSearchParams();
+
+      // Build search parameters based on the current filter object
+      if (filter.ciudad_id) {
+        params.append('ciudad_id', filter.ciudad_id);
+      } else if (filter.sede_id) { // Assuming filter by sede uses sede_id or aula_sede? Sticking to original 'aula_sede' for now if it works. Let's assume 'sede_id' is better. Or let's map 'sede' formData key to 'sede_id' filter key.
+        params.append('sede_id', filter.sede_id); // Use sede_id based on API /sede endpoint returning idSede
+      } else if (filter.entidad_id) {
+        params.append('entidad_id', filter.entidad_id);
+      } else if (filter.idCurso) { // <-- Handle new course filter key
+        params.append('idCurso', filter.idCurso);
       }
+      // Removed the generic filter/searchValue logic
+
+      if (params.toString()) {
+        endpoint = `/Horario/search?${params.toString()}`;
+      }
+
       const response = await api.get(endpoint);
       let raw = [];
       // Manejar diferentes estructuras de respuesta
@@ -206,12 +304,17 @@ export default function PrincipalSchedule() {
         raw = response.data.data;
       } else if (Array.isArray(response.data.data?.data)) {
         raw = response.data.data.data;
+      } else if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+        // If the backend /search endpoint returns a single item object when only one result
+        // Wrap it in an array to maintain consistent data structure.
+        raw = [response.data];
       }
+
 
       // Asegurarse de que raw es un array, si no, lanzar error o establecer a []
       if (!Array.isArray(raw)) {
-           console.error("API did not return an array for Horario:", response.data);
-           raw = []; // Establecer a array vacío para evitar errores
+        console.error("API did not return an array for Horario:", response.data);
+        raw = []; // Establecer a array vacío para evitar errores
       }
 
       setRawData(raw); // Guardar los datos crudos
@@ -223,121 +326,95 @@ export default function PrincipalSchedule() {
     }
   }
 
-  // Cargar datos iniciales (horarios, sedes, ciudades, entidades) al montar el componente
+  // Cargar datos iniciales (horarios, sedes, ciudades, entidades, courses) al montar el componente
   useEffect(() => {
-    fetchData(); // Carga inicial de horarios
-    // Cargar otros datos (pueden hacerse en paralelo)
+    // Fetch initial schedules without filter first
+    fetchData();
+
+    // Fetch other data (can be done in parallel)
     api.get('/sede').then(res => setSedes(res.data)).catch(err => console.error("Error fetching sedes:", err));
     api.get('/ciudad').then(res => setCiudades(res.data)).catch(err => console.error("Error fetching ciudades:", err));
     api.get('/entidad').then(res => setEntidades(res.data)).catch(err => console.error("Error fetching entidades:", err));
+    // New: Fetch courses
+    api.get('/curso').then(res => setCourses(res.data)).catch(err => console.error("Error fetching courses:", err));
+
   }, []); // El array vacío [] asegura que solo se ejecuta una vez al montar
 
   // Manejar cambios en los inputs de filtro
   const handleChange = (e) => {
     const { name, value } = e.target;
-    let updatedFormData = { ...formData, [name]: value };
 
-    // Función auxiliar para resetear campos
-    const resetFields = (fieldsToReset) => {
-        fieldsToReset.forEach(field => {
-            updatedFormData[field] = "";
-        });
+    // Reset all main filter states first
+    const updatedFormData = {
+      ciudad: "",
+      sede: "",
+      entidad: "",
+      idCurso: "", // Include new course filter
+      // Remove searchValue and filtro
     };
 
-    // Lógica de reseteo y llamada a fetchData con filtros
-    // Cuando cambias Ciudad, Sede o Entidad, resetea los otros filtros y el de búsqueda
-    if (name === "ciudad" && value) {
-        resetFields(["sede", "entidad", "filtro", "searchValue"]);
-        fetchData("ciudad_id", value);
-    } else if (name === "ciudad" && !value) {
-         resetFields(["sede", "entidad", "filtro", "searchValue"]); // Resetear todo al quitar filtro de ciudad
-        fetchData(); // Sin filtros
+    // Set the value for the specific filter that was changed
+    updatedFormData[name] = value;
+
+    setFormData(updatedFormData); // Update state immediately
+
+    // Determine which filter (if any) is now active based on the new state
+    let filterToApply = {};
+    if (updatedFormData.ciudad) {
+      filterToApply = { ciudad_id: updatedFormData.ciudad }; // Assuming backend uses ciudad_id
+    } else if (updatedFormData.sede) {
+      filterToApply = { sede_id: updatedFormData.sede }; // Assuming backend uses sede_id (maps idSede from /sede)
+    } else if (updatedFormData.entidad) {
+      filterToApply = { entidad_id: updatedFormData.entidad }; // Assuming backend uses entidad_id (maps idEntidad from /entidad)
+    } else if (updatedFormData.idCurso) { // <-- Handle new course filter
+      filterToApply = { idCurso: updatedFormData.idCurso }; // Assuming backend uses idCurso (maps idCurso from /curso)
     }
 
-    if (name === "sede" && value) {
-        resetFields(["ciudad", "entidad", "filtro", "searchValue"]);
-        fetchData("aula_sede", value);
-    } else if (name === "sede" && !value) {
-         resetFields(["ciudad", "entidad", "filtro", "searchValue"]); // Resetear todo al quitar filtro de sede
-        fetchData(); // Sin filtros
+    // Trigger fetch data call
+    if (Object.keys(filterToApply).length > 0) {
+      // Fetch with the determined filter
+      fetchData(filterToApply);
+    } else {
+      // If no filters are active, fetch all data
+      fetchData();
     }
-
-    if (name === "entidad" && value) {
-      resetFields(["ciudad", "sede", "filtro", "searchValue"]);
-      fetchData("entidad_id", value);
-    } else if (name === "entidad" && !value) {
-         resetFields(["ciudad", "sede", "filtro", "searchValue"]); // Resetear todo al quitar filtro de entidad
-        fetchData(); // Sin filtros
-    }
-
-    // Cuando cambias el filtro de búsqueda O el valor de búsqueda
-    // Resetea los filtros de Ciudad y Sede (porque el filtro de búsqueda aplica a todos)
-    // Solo llama a fetchData si hay un filtro seleccionado Y un valor de búsqueda
-    // O si ambos están vacíos (para recargar sin filtros)
-    if (name === "filtro" || name === "searchValue") {
-        resetFields(["ciudad", "sede", "entidad"]); // Resetear filtros de selección
-
-        const newFilterValue = name === "filtro" ? value : formData.filtro;
-        const newSearchValue = name === "searchValue" ? value : formData.searchValue;
-        const trimmedSearchValue = (name === "searchValue" ? value : formData.searchValue).trim();
-
-
-        if (newFilterValue && trimmedSearchValue) {
-             fetchData(newFilterValue, trimmedSearchValue);
-        } else if (!newFilterValue && !trimmedSearchValue) {
-            // Si ambos filtro y searchValue están vacíos, cargar sin filtros
-            fetchData();
-        }
-        // Si hay filtro pero no search value, o search value pero no filtro, no hacer nada (o mostrar un mensaje, etc.)
-        // La lógica actual solo llama si *ambos* están presentes, lo cual parece razonable para una búsqueda filtrada.
-        // O si *ambos* están vacíos.
-    }
-
-     // Manejar el caso especial si solo cambias searchValue y NO hay filtro seleccionado
-     // En este caso, no llamas a fetchData hasta que selecciones un filtro.
-     // La lógica de InputSearch (onSearchChange) ya maneja el caso de searchValue=""
-
-    setFormData(updatedFormData);
   };
 
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Date Navigation */}
+      {/* Date Navigation - kept the original structure */}
       <div className="p-2 md:px-4 md:pt-4 flex items-center justify-between bg-white flex-wrap gap-2">
-         {/* Espacio para posibles botones/filtros arriba del todo si se necesitan */}
+        {/* Espacio para posibles botones/filtros arriba del todo si se necesitan */}
       </div>
 
       {/* Date Navigation and "Today" Button */}
       <div className="p-2 md:px-4 md:pt-2 flex items-center justify-center bg-white gap-4">
         <button
-            onClick={goToPrevWeek}
-            className="p-2 rounded hover:bg-gray-100"
-            aria-label="Semana anterior"
+          onClick={goToPrevWeek}
+          className="p-2 rounded hover:bg-gray-100"
+          aria-label="Semana anterior"
         >
           <ChevronLeft size={20} />
         </button>
-         <div className="flex items-center gap-2">
-           <div className="text-sm md:text-base font-medium text-gray-700">{currentDateRange}</div>
-            {/* Botón "Hoy" */}
-            <button
-                onClick={goToToday}
-                 // Deshabilitar si ya estamos en la semana actual
-                disabled={isSameWeek(currentWeekStart, new Date(), { weekStartsOn: 1 })}
-                className="px-2 py-1 border rounded text-xs text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Ir a la semana actual"
-            >
-               Hoy
-            </button>
-         </div>
+        <div className="flex items-center gap-2">
+          <div className="text-sm md:text-base font-medium text-gray-700">{currentDateRange}</div>
+          {/* Botón "Hoy" */}
+          <button
+            onClick={goToToday}
+            // Deshabilitar si ya estamos en la semana actual
+            disabled={isCurrentWeek}
+            className="px-2 py-1 border rounded text-xs text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Ir a la semana actual"
+          >
+            Hoy
+          </button>
+        </div>
         <button
-            onClick={goToNextWeek}
-            className="p-2 rounded hover:bg-gray-100"
-             aria-label="Semana siguiente"
-            // No deshabilitamos "Siguiente semana" por defecto, a menos que sea la última semana con datos
-            // La lógica de deshabilitar basada en `isCurrentWeek` de la versión parcial
-            // era incorrecta, ya que impedía ver el futuro.
-             // disabled={isCurrentWeek} // <-- Removed this
+          onClick={goToNextWeek}
+          className="p-2 rounded hover:bg-gray-100"
+          aria-label="Semana siguiente"
+        // No deshabilitamos "Siguiente semana" por defecto
         >
           <ChevronRight size={20} />
         </button>
@@ -345,13 +422,13 @@ export default function PrincipalSchedule() {
 
       {/* Schedule Table */}
       <div className="flex-1 overflow-hidden p-2 md:px-4 bg-white"> {/* Changed overflow-auto to overflow-hidden here */}
-          {loading && (
-              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
-                  <p className="text-gray-700 text-lg">Cargando horario...</p>
-              </div>
-          )}
+        {loading && (
+          <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+            <p className="text-gray-700 text-lg">Cargando horario...</p>
+          </div>
+        )}
         <div className="bg-white border rounded-md overflow-hidden">
-           {/* Added h-96 to parent div instead of table wrapper for better control */}
+          {/* Added h-96 to parent div instead of table wrapper for better control */}
           <div className="overflow-x-auto relative" style={{ maxHeight: 'calc(100vh - 350px)' }}> {/* Altura ajustada, puedes modificar 350px */}
             <table className="w-full table-fixed border-collapse min-w-[1200px]">
               <thead>
@@ -382,13 +459,15 @@ export default function PrincipalSchedule() {
                                   {classInfo.code} (Aula {classInfo.room})
                                 </div>
                                 <div className="text-[8px] md:text-[10px] whitespace-normal break-words">{classInfo.name}</div> {/* Allow text wrap */}
-                               {/* Opcional: Mostrar horas exactas de inicio/fin dentro de la celda */}
-                                {/* <div className="text-[7px] md:text-[9px] text-gray-600">{classInfo.startTime} - {classInfo.endTime}</div> */}
+                                {/* Opcional: Mostrar horas exactas de inicio/fin dentro de la celda */}
+                                {/* Add a span around time to prevent text overflow if needed */}
+                                {/* <div className="text-[7px] md:text-[9px] text-gray-600 whitespace-normal break-words">{classInfo.startTime} - {classInfo.endTime}</div> */}
                               </div>
                             ))}
                             {/* Rellenar espacio si no hay clases para mantener altura */}
+                            {/* Add a minimal height or padding instead of an invisible dot */}
                             {classesInfo.length === 0 && (
-                                 <div className="p-1 invisible">.</div> // Punto invisible para mantener la altura de la fila
+                              <div className="min-h-[1.5rem]"></div> // Use min-height for empty cells
                             )}
                           </div>
                         </td>
@@ -396,35 +475,38 @@ export default function PrincipalSchedule() {
                     })}
                   </tr>
                 ))}
-                 {/* Si no hay datos después de cargar */}
-                {!loading && scheduleData.length === 0 && rawData.length > 0 && (
-                     <tr>
-                        <td colSpan={days.length + 1} className="text-center py-4 text-gray-600">
-                           No hay horarios programados para la semana del {currentDateRange}.
-                        </td>
-                    </tr>
+                {/* Si no hay datos después de cargar */}
+                {/* Improve empty state messages */}
+                {!loading && rawData.length === 0 && ( // No raw data means no data at all or filters returned nothing
+                  <tr>
+                    <td colSpan={days.length + 1} className="text-center py-8 text-gray-600 text-base">
+                      {
+                        // Check if any filter is currently applied
+                        formData.ciudad || formData.sede || formData.entidad || formData.idCurso
+                          ? 'No se encontraron horarios que coincidan con los filtros aplicados para esta semana.'
+                          : 'No hay datos de horarios disponibles.'
+                      }
+                    </td>
+                  </tr>
                 )}
-                 {!loading && rawData.length === 0 && (
-                     <tr>
-                        <td colSpan={days.length + 1} className="text-center py-4 text-gray-600">
-                           No se encontraron datos de horarios con los filtros aplicados.
-                        </td>
-                    </tr>
-                )}
+                {/* Optional: Message if rawData exists but no schedules fall into *this week* */}
+                {/* You could add this by checking rawData.length > 0 && scheduleData.length === 0, but the above covers most cases */}
+
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Filters abajo */}
-        <div className="p-2 md:p-4 flex items-center justify-between bg-white flex-wrap gap-2 mt-7">
-          <div className="flex items-center gap-2 md:gap-5 flex-wrap">
+        {/* Filters below table */}
+        <div className="p-2 md:p-4 flex items-center justify-start bg-white flex-wrap gap-4 mt-7"> {/* Adjusted justify-between to justify-start and increased gap */}
+          <div className="flex items-end gap-4 md:gap-5 flex-wrap"> {/* Align items to the bottom and potentially closer gaps */}
             {/* <div className="flex items-center border rounded-md">
               <Button variant="ghost" className="flex items-center gap-1 rounded-none text-xs md:text-sm py-1 px-2 md:py-2 md:px-3 h-auto">
                 <span>Todos los...</span>
                 <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
                 </Button>
                 </div> */}
+            {/* Ciudad Filter */}
             <div className="space-y-2 min-w-[150px]"> {/* Added min-width */}
               <InputLabel htmlFor="ciudad" value="Ciudad" className="text-sm" />
               <SelectInput
@@ -435,13 +517,13 @@ export default function PrincipalSchedule() {
                 options={[
                   { value: "", label: "Todas las Ciudades" },
                   ...ciudades.map((ciudad) => ({
-                    value: ciudad.idCiudad,
+                    value: ciudad.idCiudad, // Assuming API uses idCiudad for filtering
                     label: ciudad.nombre,
                   })),
                 ]}
-                // required // Consider if this should be required
               />
             </div>
+            {/* Sede Filter */}
             <div className="space-y-2 min-w-[150px]"> {/* Added min-width */}
               <InputLabel htmlFor="sede" value="Sede" className="text-sm" />
               <SelectInput
@@ -452,13 +534,13 @@ export default function PrincipalSchedule() {
                 options={[
                   { value: "", label: "Todas las Sedes" },
                   ...sedes.map((sede) => ({
-                    value: sede.idSede,
+                    value: sede.idSede, // Assuming API uses idSede for filtering
                     label: sede.nombre,
                   })),
                 ]}
-                 // required // Consider if this should be required
               />
             </div>
+            {/* Entidad Filter */}
             <div className="space-y-2 min-w-[150px]"> {/* Added min-width */}
               <InputLabel htmlFor="entidad" value="Entidad" className="text-sm" />
               <SelectInput
@@ -468,58 +550,24 @@ export default function PrincipalSchedule() {
                 onChange={handleChange}
                 options={[
                   { value: "", label: "Todas las Entidades" },
-                  ...entidades.map((ent) => ({ value: ent.idEntidad, label: ent.nombre })),
+                  ...entidades.map((ent) => ({ value: ent.idEntidad, label: ent.nombre })), // Assuming API uses idEntidad for filtering
                 ]}
-                 // required // Consider if this should be required
               />
             </div>
 
-            {/* Search Input */}
-             <div className="space-y-2 w-full sm:w-72 mx-1"> {/* Wrapped InputSearch in a div with space-y-2 */}
-               <InputLabel htmlFor="search" value="Buscar" className="text-sm" /> {/* Added a label for accessibility/clarity */}
-                <InputSearch
-                  id="search" // Added an ID
-                  valueInput={formData.searchValue}
-                  placeHolderText="Buscar por aula o curso..."
-                  onSearchChange={(value) => {
-                    const trimmedValue = value.trim();
-                    // Update search value and reset filters
-                    setFormData((prev) => ({
-                        ...prev,
-                        searchValue: value,
-                        ciudad: "",
-                        sede: "",
-                        entidad: "" // Reset entidad too
-                    }));
-                    // Trigger fetch if filter is selected OR if search value is empty
-                    if (formData.filtro && trimmedValue !== "") {
-                        fetchData(formData.filtro, trimmedValue);
-                    } else if (trimmedValue === "" && !formData.filtro && !formData.ciudad && !formData.sede && !formData.entidad) {
-                         // Only refetch without filters if search is empty AND no other filters are active
-                         fetchData();
-                    }
-                     // If search is empty but a filter is active, the filter's change handler would have already fetched
-                     // If search has a value but no filter is selected, wait for filter selection via handleChange('filtro')
-                  }}
-                />
-              </div>
-
-            {/* Filter Select */}
-            <div className="space-y-2 min-w-[150px]"> {/* Added min-width */}
-              <InputLabel htmlFor="filtro" value="Filtro de búsqueda" className="text-sm" /> {/* Added a label */}
+            {/* NEW: Curso Filter - Using structure similar to ClassForm */}
+            <div className="space-y-2 min-w-[200px]"> {/* Adjusted min-width slightly */}
+              <InputLabel htmlFor="idCurso" value="Curso (Código)" className="text-sm" />
               <SelectInput
-                id="filtro"
-                name="filtro"
-                value={formData.filtro}
+                id="idCurso"
+                name="idCurso"
+                value={formData.idCurso}
                 onChange={handleChange}
                 options={[
-                  { value: "", label: "Filtrar por ..." },
-                  ...filtrosDisponibles.map((filter) => ({
-                    value: filter.value,
-                    label: filter.label,
-                  })),
+                  { value: '', label: 'Todos los Cursos' },
+                  // Map fetched courses - use idCurso as value and codigoGrupo as label
+                  ...courses.map(c => ({ value: c.idCurso, label: c.codigoGrupo })),
                 ]}
-                 // required // Consider if this should be required
               />
             </div>
           </div>
