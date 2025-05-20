@@ -298,7 +298,7 @@ class HorarioController extends Controller
                     $endTime   = $d['hora_fin'];
 
                     // --- Query base de solapamiento de fechas, excluyendo el mismo registro ---
-                    $baseQ = Horario::where('idHorario', '!=', $horario->idHorario)
+                    $baseQ = Horario::where('horario.idHorario', '!=', $horario->idHorario)
                         ->where('fecha_fin', '>=', $newStart)
                         ->where('fecha_inicio', '<=', $newEnd);
 
@@ -657,7 +657,7 @@ class HorarioController extends Controller
             'Fecha fin',
             'Programa',
             'Nivel',
-            'Número de horas',   // Nueva columna después de Nivel
+            'Número de horas',   // Ahora tomamos de curso->horas
             'Tipo formación',
             'Lote',
             'Ciudad',
@@ -701,11 +701,9 @@ class HorarioController extends Controller
             }
 
             foreach ($h->dias as $d) {
-                // Cálculo de día y número de horas
                 $diaNombre = $diasSemana[$d->idDia - 1] ?? "Día {$d->idDia}";
-                $horaInicio = Carbon::parse($d->pivot->hora_inicio);
-                $horaFin    = Carbon::parse($d->pivot->hora_fin);
-                $numHoras   = round($horaFin->diffInMinutes($horaInicio) / 60, 2);
+                // Usar horas desde el modelo Curso
+                $numHoras  = $curso->horas;
 
                 $data = [
                     $curso->codigo,
@@ -714,14 +712,14 @@ class HorarioController extends Controller
                     $h->fecha_fin,
                     $programas,
                     $curso->nivel,
-                    $numHoras,         // Valor calculado
+                    $numHoras,
                     $tipoFormacion,
                     $lote,
                     $ciudad,
                     $entidad,
                     $sede,
                     $aula,
-                    $diaNombre,        // Día antes de hora inicio
+                    $diaNombre,
                     $d->pivot->hora_inicio,
                     $d->pivot->hora_fin,
                     implode(', ', $ej),
