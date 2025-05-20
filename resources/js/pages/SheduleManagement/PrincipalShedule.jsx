@@ -15,11 +15,12 @@ export default function PrincipalSchedule() {
   const [sedes, setSedes] = useState([]);
   const [entidades, setEntidades] = useState([]);
   const [ciudades, setCiudades] = useState([]);
+  const [professionals, setProfessionals] = useState([]);
   // New: Add courses state
   const [courses, setCourses] = useState([]);
 
   // Updated: Remove 'filtro' and 'searchValue', add 'idCurso'
-  const [formData, setFormData] = useState({ ciudad: "", sede: "", entidad: "", idCurso: "" });
+  const [formData, setFormData] = useState({ ciudad: "", sede: "", entidad: "", idCurso: "", profesional: "" });
 
   // No longer needed as we are using a specific Course filter select
   // const filtrosDisponibles = [
@@ -289,6 +290,7 @@ export default function PrincipalSchedule() {
       } else if (filter.idCurso) { // <-- Handle new course filter key
         params.append('idCurso', filter.idCurso);
       }
+      else if (filter.profesional_codigo) params.append('profesional_codigo', filter.profesional_codigo);
       // Removed the generic filter/searchValue logic
 
       if (params.toString()) {
@@ -335,6 +337,7 @@ export default function PrincipalSchedule() {
     api.get('/sede').then(res => setSedes(res.data)).catch(err => console.error("Error fetching sedes:", err));
     api.get('/ciudad').then(res => setCiudades(res.data)).catch(err => console.error("Error fetching ciudades:", err));
     api.get('/entidad').then(res => setEntidades(res.data)).catch(err => console.error("Error fetching entidades:", err));
+    api.get('/profesional').then(res => setProfessionals(res.data)).catch(err => console.error("Error fetching profesionales:", err));
     // New: Fetch courses
     api.get('/curso').then(res => setCourses(res.data)).catch(err => console.error("Error fetching courses:", err));
 
@@ -350,6 +353,7 @@ export default function PrincipalSchedule() {
       sede: "",
       entidad: "",
       idCurso: "", // Include new course filter
+      profesional: ""
       // Remove searchValue and filtro
     };
 
@@ -368,7 +372,7 @@ export default function PrincipalSchedule() {
       filterToApply = { entidad_id: updatedFormData.entidad }; // Assuming backend uses entidad_id (maps idEntidad from /entidad)
     } else if (updatedFormData.idCurso) { // <-- Handle new course filter
       filterToApply = { idCurso: updatedFormData.idCurso }; // Assuming backend uses idCurso (maps idCurso from /curso)
-    }
+    } else if (updatedFormData.profesional) filterToApply = { profesional_codigo: updatedFormData.profesional };
 
     // Trigger fetch data call
     if (Object.keys(filterToApply).length > 0) {
@@ -551,6 +555,23 @@ export default function PrincipalSchedule() {
                 options={[
                   { value: "", label: "Todas las Entidades" },
                   ...entidades.map((ent) => ({ value: ent.idEntidad, label: ent.nombre })), // Assuming API uses idEntidad for filtering
+                ]}
+              />
+            </div>
+            {/* Profesional Filter */}
+            <div className="space-y-2 min-w-[200px]">
+              <InputLabel htmlFor="profesional" value="Profesional (Código)" className="text-sm" />
+              <SelectInput
+                id="profesional"
+                name="profesional"
+                value={formData.profesional}
+                onChange={handleChange}
+                options={[
+                  { value: "", label: "Todos los Profesionales" },
+                  ...professionals.map(p => ({
+                    value: p.codigo,      // Aquí tomamos el código del profesional
+                    label: `${p.codigo} – ${p.nombreCompleto}`
+                  }))
                 ]}
               />
             </div>
