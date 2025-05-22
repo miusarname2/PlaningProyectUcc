@@ -198,3 +198,6 @@ html {
     background-color: hsl(var(--accent));
 }
 
+.MuiPopper-root.MuiPickerPopper-root.css-18ultcs-MuiPopper-root-MuiPickerPopper-root {
+  transform: translate(55vw, 15vh) !important;
+}
