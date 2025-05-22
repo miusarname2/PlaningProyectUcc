@@ -1,14 +1,18 @@
 import { useState, useEffect, useRef } from "react"
-import { ChevronLeft, ChevronRight, Calendar, Filter, ChevronDown } from "lucide-react"
-import { Button } from "@/Components/Button"
-import InputSearch from "@/Components/InputSearch"
+import { LocalizationProvider, DatePicker, PickersDay } from '@mui/x-date-pickers'
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Filter, ChevronDown } from "lucide-react"
+import { IconButton } from '@mui/material'
+import TextField from '@mui/material/TextField'
 import InputLabel from "@/Components/InputLabel";
 import SelectInput from "@/Components/SelectInput";
-import { format, startOfWeek, addWeeks, subWeeks, isSameWeek, addDays } from "date-fns"
+import { format, startOfWeek, addWeeks, subWeeks, isSameWeek, addDays, isWithinInterval } from "date-fns"
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { es } from "date-fns/locale"
 import { getApi } from "@/utils/generalFunctions";
 
 export default function PrincipalSchedule() {
+  const [open, setOpen] = useState(false)
+  const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [rawData, setRawData] = useState([]); // Guarda los datos crudos de la API
   const [scheduleData, setScheduleData] = useState([]); // Datos transformados y filtrados por semana
   const [loading, setLoading] = useState(true);
@@ -33,6 +37,7 @@ export default function PrincipalSchedule() {
     startOfWeek(new Date(), { weekStartsOn: 1 }) // weekStartsOn: 1 = Lunes
   );
 
+  const anchorRef = useRef(null);
   const goToPrevWeek = () => setCurrentWeekStart(prev => subWeeks(prev, 1));
   const goToNextWeek = () => setCurrentWeekStart(prev => addWeeks(prev, 1));
   const goToToday = () => setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -44,6 +49,14 @@ export default function PrincipalSchedule() {
 
   // isSameWeek check remains valid for enabling/disabling "Hoy" button
   const isCurrentWeek = isSameWeek(currentWeekStart, new Date(), { weekStartsOn: 1 });
+
+  const handleWeekChange = (date) => {
+    if (date) {
+      const monday = startOfWeek(date, { weekStartsOn: 1 });
+      setCurrentWeekStart(monday);
+      setOpen(false);
+    }
+  };
 
   const convertirHora = hora24 => {
     if (!hora24) return 'Sin hora';
@@ -66,7 +79,6 @@ export default function PrincipalSchedule() {
       return 'Error';
     }
   };
-
 
   const colorPalette = [
     { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-300' },
@@ -413,6 +425,62 @@ export default function PrincipalSchedule() {
           >
             Hoy
           </button>
+          <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
+            {/* SOLO EL ICONO */}
+            <IconButton
+              onClick={() => setOpen(true)}
+              size="small"
+              aria-label="Seleccionar semana"
+              className="ml-2"
+            >
+              <CalendarIcon />
+            </IconButton>
+
+            <div className="hidden">
+              <DatePicker
+                open={open}
+                onOpen={() => setOpen(true)}
+                onClose={() => setOpen(false)}
+                value={currentWeekStart}
+                onChange={handleWeekChange}
+                // deshabilita todo menos los lunes
+                shouldDisableDate={(day) => day.getDay() !== 1}
+                // resalta la semana completa
+                renderDay={(day, _value, DayComponentProps) => {
+                  const weekEnd = addDays(weekStart, 6);
+                  const isInWeek = isWithinInterval(day, { start: weekStart, end: weekEnd });
+                  return (
+                    <PickersDay
+                      {...DayComponentProps}
+                      sx={{
+                        ...(isInWeek && {
+                          bgcolor: 'primary.light',
+                          color: 'primary.contrastText',
+                          '&:hover, &:focus': {
+                            bgcolor: 'primary.main',
+                          },
+                        }),
+                      }}
+                    />
+                  );
+                }}
+                // NO PINTA NINGÚN INPUT
+                renderInput={() => null}
+                PopperProps={
+                  {
+                    anchorEl: anchorRef.current,
+                    placement: 'bottom-start',
+                    disablePortal: true,
+                    modifiers: [
+                      { name: 'offset', options: { offset: [0, 8] } },
+                      { name: 'preventOverflow', options: { altAxis: true } },
+                      { name: 'flip', options: { fallbackPlacements: [] } }
+                    ]
+                  }
+                }
+              />
+            </div>
+          </LocalizationProvider>
         </div>
         <button
           onClick={goToNextWeek}

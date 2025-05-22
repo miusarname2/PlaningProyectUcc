@@ -220,7 +220,6 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
                                     name="perfil"
                                     accept="application/pdf"
                                     onChange={handleFileChange}
-                                    required={!isEditMode} // Si es creación, lo requerimos; en edición puede ser opcional
                                 />
                             )}
                         </div>
