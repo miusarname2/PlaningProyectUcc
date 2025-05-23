@@ -578,7 +578,7 @@ class HorarioController extends Controller
             ->values();
 
         // 2) Definir días de la semana para la hoja 1
-        $diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        $diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado','Domingo'];
 
         // 3) Primera hoja: Horario de franjas
         $spreadsheet = new Spreadsheet();
