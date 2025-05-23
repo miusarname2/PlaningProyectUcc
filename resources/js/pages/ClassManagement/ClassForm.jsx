@@ -491,7 +491,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                                 value=""
                                 onChange={handleSelectProfessionalToAdd}
                                 options={[{ value: '', label: 'Seleccione Profesional para asignar.', disabled: true },
-                                ...availableProfessionalsForAssignment.map(p => ({ value: p.idProfesional, label: p.nombreCompleto }))]}
+                                ...availableProfessionalsForAssignment.map(p => ({ value: p.idProfesional, label: `${p.codigo}-${p.nombreCompleto}` }))]}
                                 disabled={!!professionalPendingRoleSelection || professionals.length === 0} // Disable if adding is in progress or no professionals loaded
                             />
 
