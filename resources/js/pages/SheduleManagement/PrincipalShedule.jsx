@@ -627,7 +627,7 @@ export default function PrincipalSchedule() {
             </div>
             {/* NEW: Curso Filter - Using structure similar to ClassForm */}
             <div className="space-y-2 min-w-[200px]"> {/* Adjusted min-width slightly */}
-              <InputLabel htmlFor="idCurso" value="Curso (Código)" className="text-sm" />
+              <InputLabel htmlFor="idCurso" value="Curso (Código) 🔍" className="text-sm" />
               <SelectInput
                 id="idCurso"
                 name="idCurso"
