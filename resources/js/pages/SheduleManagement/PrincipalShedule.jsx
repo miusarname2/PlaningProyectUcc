@@ -13,25 +13,16 @@ import { getApi } from "@/utils/generalFunctions";
 export default function PrincipalSchedule() {
   const [open, setOpen] = useState(false)
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
-  const [rawData, setRawData] = useState([]); // Guarda los datos crudos de la API
-  const [scheduleData, setScheduleData] = useState([]); // Datos transformados y filtrados por semana
+  const [rawData, setRawData] = useState([]);
+  const [scheduleData, setScheduleData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sedes, setSedes] = useState([]);
   const [entidades, setEntidades] = useState([]);
   const [ciudades, setCiudades] = useState([]);
   const [professionals, setProfessionals] = useState([]);
-  // New: Add courses state
   const [courses, setCourses] = useState([]);
-
-  // Updated: Remove 'filtro' and 'searchValue', add 'idCurso'
-  const [formData, setFormData] = useState({ ciudad: "", sede: "", entidad: "", idCurso: "", profesional: "" });
-
-  // No longer needed as we are using a specific Course filter select
-  // const filtrosDisponibles = [
-  //   { value: "curso_codigo", label: "Codigo del curso" },
-  //   { value: "curso_nombre", label: "Nombre del curso" },
-  //   { value: "profesional_codigo", label: "Codigo del profesional" }
-  // ];
+  const [aulas, setAulas] = useState([]);
+  const [formData, setFormData] = useState({ ciudad: "", sede: "", entidad: "", idCurso: "", aula: "", profesional: "" });
 
   const [currentWeekStart, setCurrentWeekStart] = useState(
     startOfWeek(new Date(), { weekStartsOn: 1 }) // weekStartsOn: 1 = Lunes
@@ -92,6 +83,43 @@ export default function PrincipalSchedule() {
     { bg: 'bg-indigo-100', text: 'text-indigo-800', border: 'border-indigo-300' },
     { bg: 'bg-rose-100', text: 'text-rose-800', border: 'border-rose-300' },
   ];
+
+  const filteredEntidades = formData.ciudad
+    ? entidades.filter(ent =>
+      sedes.some(s => s.idEntidadPropietaria === ent.idEntidad && s.idCiudad === Number(formData.ciudad))
+    )
+    : entidades;
+
+  const filteredSedes = formData.entidad
+    ? sedes.filter(s =>
+      s.idEntidadPropietaria === Number(formData.entidad) &&
+      (!formData.ciudad || s.idCiudad === Number(formData.ciudad))
+    )
+    : formData.ciudad
+      ? sedes.filter(s => s.idCiudad === Number(formData.ciudad))
+      : sedes;
+
+  const filteredAulas = formData.sede
+    ? aulas.filter(a => a.idSede === Number(formData.sede))
+    : [];
+
+  const availableCourseIds = formData.aula
+    ? new Set(
+      rawData
+        .filter(item => item.idAula === Number(formData.aula))
+        .map(item => item.idCurso)
+    )
+    : formData.sede
+      ? new Set(
+        rawData
+          .filter(item => item.aula.sede.idSede === Number(formData.sede))
+          .map(item => item.idCurso)
+      )
+      : null;
+
+  const filteredCourses = availableCourseIds
+    ? courses.filter(c => availableCourseIds.has(c.idCurso))
+    : courses;
 
   const aulaColorMap = useRef(new Map());
   const colorIndex = useRef(0);
@@ -276,16 +304,11 @@ export default function PrincipalSchedule() {
 
   // Función para obtener las clases que caen en un slot de tiempo y día específicos
   const getClassForSlot = (time, day) => {
-    // time here is in 'H:00 a.m./p.m.' format matching timeSlots
-    // We need to filter scheduleData where item.day matches AND item.timeBlocks includes the specific `time` string.
     return scheduleData.filter(item => item.day === day && item.timeBlocks.includes(time));
   }
 
-
   const api = getApi(); // Asumiendo que getApi está definido y devuelve tu instancia de axios/api
 
-  // Función para cargar los datos del horario desde la API
-  // Modified to accept filter parameters based on formData state
   async function fetchData(filter = {}) {
     setLoading(true);
     try {
@@ -293,21 +316,14 @@ export default function PrincipalSchedule() {
       const params = new URLSearchParams();
 
       // Build search parameters based on the current filter object
-      if (filter.ciudad_id) {
-        params.append('ciudad_id', filter.ciudad_id);
-      } else if (filter.sede_id) { // Assuming filter by sede uses sede_id or aula_sede? Sticking to original 'aula_sede' for now if it works. Let's assume 'sede_id' is better. Or let's map 'sede' formData key to 'sede_id' filter key.
-        params.append('sede_id', filter.sede_id); // Use sede_id based on API /sede endpoint returning idSede
-      } else if (filter.entidad_id) {
-        params.append('entidad_id', filter.entidad_id);
-      } else if (filter.idCurso) { // <-- Handle new course filter key
-        params.append('idCurso', filter.idCurso);
-      }
-      else if (filter.profesional_codigo) params.append('profesional_codigo', filter.profesional_codigo);
+      if (filter.ciudad_id) params.append('ciudad_id', filter.ciudad_id);
+      if (filter.entidad_id) params.append('entidad_id', filter.entidad_id);
+      if (filter.aula_sede) params.append('aula_sede', filter.aula_sede);
+      if (filter.idCurso) params.append('idCurso', filter.idCurso);
+      if (filter.profesional_codigo) params.append('profesional_codigo', filter.profesional_codigo);
       // Removed the generic filter/searchValue logic
 
-      if (params.toString()) {
-        endpoint = `/Horario/search?${params.toString()}`;
-      }
+      if (params.toString()) endpoint = `/Horario/search?${params.toString()}`;
 
       const response = await api.get(endpoint);
       let raw = [];
@@ -342,60 +358,52 @@ export default function PrincipalSchedule() {
 
   // Cargar datos iniciales (horarios, sedes, ciudades, entidades, courses) al montar el componente
   useEffect(() => {
-    // Fetch initial schedules without filter first
     fetchData();
-
-    // Fetch other data (can be done in parallel)
+    api.get('/aula').then(res => setAulas(res.data)).catch(err => console.error("Error fetching aulas:", err));
     api.get('/sede').then(res => setSedes(res.data)).catch(err => console.error("Error fetching sedes:", err));
     api.get('/ciudad').then(res => setCiudades(res.data)).catch(err => console.error("Error fetching ciudades:", err));
     api.get('/entidad').then(res => setEntidades(res.data)).catch(err => console.error("Error fetching entidades:", err));
     api.get('/profesional').then(res => setProfessionals(res.data)).catch(err => console.error("Error fetching profesionales:", err));
-    // New: Fetch courses
     api.get('/curso').then(res => setCourses(res.data)).catch(err => console.error("Error fetching courses:", err));
-
-  }, []); // El array vacío [] asegura que solo se ejecuta una vez al montar
+  }, []);
 
   // Manejar cambios en los inputs de filtro
-  const handleChange = (e) => {
+  function handleChange(e) {
     const { name, value } = e.target;
-
-    // Reset all main filter states first
-    const updatedFormData = {
-      ciudad: "",
-      sede: "",
-      entidad: "",
-      idCurso: "", // Include new course filter
-      profesional: ""
-      // Remove searchValue and filtro
-    };
-
-    // Set the value for the specific filter that was changed
-    updatedFormData[name] = value;
-
-    setFormData(updatedFormData); // Update state immediately
-
-    // Determine which filter (if any) is now active based on the new state
-    let filterToApply = {};
-    if (updatedFormData.ciudad) {
-      filterToApply = { ciudad_id: updatedFormData.ciudad }; // Assuming backend uses ciudad_id
-    } else if (updatedFormData.sede) {
-      filterToApply = { sede_id: updatedFormData.sede }; // Assuming backend uses sede_id (maps idSede from /sede)
-    } else if (updatedFormData.entidad) {
-      filterToApply = { entidad_id: updatedFormData.entidad }; // Assuming backend uses entidad_id (maps idEntidad from /entidad)
-    } else if (updatedFormData.idCurso) { // <-- Handle new course filter
-      filterToApply = { idCurso: updatedFormData.idCurso }; // Assuming backend uses idCurso (maps idCurso from /curso)
-    } else if (updatedFormData.profesional) filterToApply = { profesional_codigo: updatedFormData.profesional };
-
-    // Trigger fetch data call
-    if (Object.keys(filterToApply).length > 0) {
-      // Fetch with the determined filter
-      fetchData(filterToApply);
-    } else {
-      // If no filters are active, fetch all data
-      fetchData();
+    if (name === 'profesional') {
+      setFormData({ ciudad: '', entidad: '', sede: '', aula: '', idCurso: '', profesional: value });
+      fetchData({ profesional_codigo: value });
+      return;
     }
-  };
-
+    const newForm = { ...formData, [name]: value };
+    if (name === 'ciudad') {
+      newForm.entidad = '';
+      newForm.sede = '';
+      newForm.aula = '';
+      newForm.idCurso = '';
+    }
+    if (name === 'entidad') {
+      newForm.sede = '';
+      newForm.aula = '';
+      newForm.idCurso = '';
+    }
+    if (name === 'sede') {
+      newForm.aula = '';
+      newForm.idCurso = '';
+    }
+    if (name === 'aula') {
+      newForm.idCurso = '';
+    }
+    setFormData(newForm);
+    const params = {};
+    if (newForm.ciudad) params.ciudad_id = newForm.ciudad;
+    if (newForm.entidad) params.entidad_id = newForm.entidad;
+    if (newForm.sede) params.aula_sede = newForm.sede;
+    if (newForm.aula) params.idAula = newForm.aula;
+    if (newForm.idCurso) params.idCurso = newForm.idCurso;
+    if (Object.keys(params).length) fetchData(params);
+    else fetchData();
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -586,30 +594,7 @@ export default function PrincipalSchedule() {
                 name="ciudad"
                 value={formData.ciudad}
                 onChange={handleChange}
-                options={[
-                  { value: "", label: "Todas las Ciudades" },
-                  ...ciudades.map((ciudad) => ({
-                    value: ciudad.idCiudad, // Assuming API uses idCiudad for filtering
-                    label: ciudad.nombre,
-                  })),
-                ]}
-              />
-            </div>
-            {/* Sede Filter */}
-            <div className="space-y-2 min-w-[150px]"> {/* Added min-width */}
-              <InputLabel htmlFor="sede" value="Sede" className="text-sm" />
-              <SelectInput
-                id="sede"
-                name="sede"
-                value={formData.sede}
-                onChange={handleChange}
-                options={[
-                  { value: "", label: "Todas las Sedes" },
-                  ...sedes.map((sede) => ({
-                    value: sede.idSede, // Assuming API uses idSede for filtering
-                    label: sede.nombre,
-                  })),
-                ]}
+                options={[{ value: '', label: 'Todas las Ciudades' }, ...ciudades.map(c => ({ value: c.idCiudad, label: c.nombre }))]}
               />
             </div>
             {/* Entidad Filter */}
@@ -620,10 +605,35 @@ export default function PrincipalSchedule() {
                 name="entidad"
                 value={formData.entidad}
                 onChange={handleChange}
-                options={[
-                  { value: "", label: "Todas las Entidades" },
-                  ...entidades.map((ent) => ({ value: ent.idEntidad, label: ent.nombre })), // Assuming API uses idEntidad for filtering
-                ]}
+                options={[{ value: '', label: 'Todas las Entidades' }, ...filteredEntidades.map(e => ({ value: e.idEntidad, label: e.nombre }))]}
+              />
+            </div>
+            {/* Sede Filter */}
+            <div className="space-y-2 min-w-[150px]"> {/* Added min-width */}
+              <InputLabel htmlFor="sede" value="Sede" className="text-sm" />
+              <SelectInput
+                id="sede"
+                name="sede"
+                value={formData.sede}
+                onChange={handleChange}
+                options={[{ value: '', label: 'Todas las Sedes' }, ...filteredSedes.map(s => ({ value: s.idSede, label: s.nombre }))]}
+              />
+            </div>
+            {/* Aula Filter */}
+            <div className="space-y-2 min-w-[150px]"> {/* Added min-width */}
+              <InputLabel htmlFor="sede" value="Aula" className="text-sm" />
+              <SelectInput id="aula" name="aula" value={formData.aula} onChange={handleChange}
+                options={[{ value: '', label: 'Todas las Aulas' }, ...filteredAulas.map(a => ({ value: a.idAula, label: a.codigo }))]} />
+            </div>
+            {/* NEW: Curso Filter - Using structure similar to ClassForm */}
+            <div className="space-y-2 min-w-[200px]"> {/* Adjusted min-width slightly */}
+              <InputLabel htmlFor="idCurso" value="Curso (Código)" className="text-sm" />
+              <SelectInput
+                id="idCurso"
+                name="idCurso"
+                value={formData.idCurso}
+                onChange={handleChange}
+                options={[{ value: '', label: 'Todos los Cursos' }, ...filteredCourses.map(c => ({ value: c.idCurso, label: c.codigoGrupo }))]}
               />
             </div>
             {/* Profesional Filter */}
@@ -634,29 +644,7 @@ export default function PrincipalSchedule() {
                 name="profesional"
                 value={formData.profesional}
                 onChange={handleChange}
-                options={[
-                  { value: "", label: "Todos los Profesionales" },
-                  ...professionals.map(p => ({
-                    value: p.codigo,      // Aquí tomamos el código del profesional
-                    label: `${p.codigo} – ${p.nombreCompleto}`
-                  }))
-                ]}
-              />
-            </div>
-
-            {/* NEW: Curso Filter - Using structure similar to ClassForm */}
-            <div className="space-y-2 min-w-[200px]"> {/* Adjusted min-width slightly */}
-              <InputLabel htmlFor="idCurso" value="Curso (Código)" className="text-sm" />
-              <SelectInput
-                id="idCurso"
-                name="idCurso"
-                value={formData.idCurso}
-                onChange={handleChange}
-                options={[
-                  { value: '', label: 'Todos los Cursos' },
-                  // Map fetched courses - use idCurso as value and codigoGrupo as label
-                  ...courses.map(c => ({ value: c.idCurso, label: c.codigoGrupo })),
-                ]}
+                options={[{ value: '', label: 'Todos los Profesionales' }, ...professionals.map(p => ({ value: p.codigo, label: `${p.codigo} – ${p.nombreCompleto}` }))]}
               />
             </div>
           </div>
