@@ -24,6 +24,7 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
         experiencia: parseInt(initialData?.experiencia) || "",
         estado: initialData?.estado || "Activo",
         perfil: initialData?.perfil || "",
+        codigo: initialData?.codigo || "" 
     });
 
     const [errors, setErrors] = useState({});
@@ -69,28 +70,7 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
             if (isEditMode) {
                 await api.put(`/profesional/${initialData.id}`, payload);
             } else {
-                // 1. Traer todos los profesionales
-                const response = await api.get("/profesional");
-                const profesionales = response.data;
-
-                // 2. Extraer los números existentes
-                const numerosExistentes = profesionales
-                    .map(prof => {
-                        const match = prof.codigo.match(/^PROF(\d{3})$/);
-                        return match ? parseInt(match[1], 10) : null;
-                    })
-                    .filter(n => n !== null);
-
-                let siguiente = 1;
-                const numerosSet = new Set(numerosExistentes);
-                while (numerosSet.has(siguiente)) {
-                    siguiente++;
-                }
-
-                const formattedNumber = String(siguiente).padStart(3, "0");
-                payload.codigo = `PROF${formattedNumber}`;
-                payload.perfil = payload.perfil; 
-
+                // En modo creación, el código debe ser proporcionado por el usuario
                 await api.post("/profesional", payload);
             }
 
@@ -112,6 +92,20 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
             <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Campo Código */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="codigo" value="Código" />
+                            <TextInput
+                                id="codigo"
+                                name="codigo"
+                                value={formData.codigo}
+                                onChange={handleChange}
+                                placeholder="Ingrese el código"
+                                required
+                                disabled={isEditMode}
+                            />
+                        </div>
+
                         {/* Campo Nombre Completo */}
                         <div className="space-y-2">
                             <InputLabel htmlFor="nombreCompleto" value="Nombre Completo" />
