@@ -23,7 +23,7 @@ class SendDailyDashboardEmails extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Envía recordatorios de cursos próximos a vencer';
 
     /**
      * Execute the console command.
@@ -32,61 +32,54 @@ class SendDailyDashboardEmails extends Command
     {
         $today = Carbon::today();
 
-        // 1) Cursos a vencer en ≤15 días desde hoy
+        // Cursos que acaban en ≤15 días
         $cursos = Curso::whereBetween('fecha_fin', [
             $today,
-            $today->copy()->addDays(15)
+            $today->copy()->addDays(15),
         ])->get();
 
         if ($cursos->isEmpty()) {
-            $this->info('No hay cursos próximos a vencer hoy.');
-            return;
+            return $this->info('No hay cursos próximos a vencer hoy.');
         }
 
-        // 2) IDs de perfiles Admin y Planeador
+        // IDs de perfiles
         $perfilIds = Perfil::whereIn('nombre', [
             'Administrador General',
-            'Planeador'
+            'admon',
+            'Planeador',
         ])->pluck('idPerfil');
 
         if ($perfilIds->isEmpty()) {
-            $this->info('No existen perfiles Admin/Planeador configurados.');
-            return;
+            return $this->info('No existen perfiles Admin/Planeador configurados.');
         }
 
-        // 3) Usuarios con esos perfiles
-        $usuarios = Usuario::whereHas('usuarioPerfil', function ($q) use ($perfilIds) {
-            $q->whereIn('idPerfil', $perfilIds);
-        })
-            ->get();
+        // Usuarios con esos perfiles
+        $usuarios = Usuario::whereHas(
+            'usuarioPerfil',
+            fn($q) =>
+            $q->whereIn('idPerfil', $perfilIds)
+        )->get();
 
         if ($usuarios->isEmpty()) {
-            $this->info('No hay usuarios con perfil Admin o Planeador.');
-            return;
+            return $this->info('No hay usuarios con perfil Admin o Planeador.');
         }
 
-        // 4) Iterar cursos y enviar emails
+        // Instancia única del cliente Resend
+        $resend = Resend::client(config('services.resend.key'));
+
         foreach ($cursos as $curso) {
             $daysLeft = $today->diffInDays(Carbon::parse($curso->fecha_fin));
 
             foreach ($usuarios as $usuario) {
-                // 5) Chequeo diario: pivot no tiene timestamp, 
-                //    evitamos duplicar en un mismo handle()
-                //    (en un cron real usarías una tabla de logs o pivot con timestamp)
-
-                // 6) Preparar asunto y cuerpo
+                // Construir asunto y cuerpo dinámicamente
                 if ($daysLeft === 0) {
                     $subject = "Hoy termina el curso: {$curso->nombre}";
-                    $body    = "¡Hoy es el último día de tu curso “{$curso->nombre}”!";
                 } else {
                     $subject = "Faltan {$daysLeft} días para que termine el curso: {$curso->nombre}";
-                    $body    = "Faltan {$daysLeft} días para que termine el curso “{$curso->nombre}”. ¿Deseas renovarlo o reemplazarlo?";
                 }
 
-                $resend = Resend::client('re_evHz5XXk_AJCQkAxt9eSxHkzaKUs92j3U');
-
                 $resend->emails->send([
-                    'from' => 'onboarding@resend.dev',
+                    'from'    => config('services.resend.from'),
                     'to'      => $usuario->email,
                     'subject' => $subject,
                     'html'    => view('emails.course-ending', [
@@ -95,8 +88,6 @@ class SendDailyDashboardEmails extends Command
                         'daysLeft' => $daysLeft,
                     ])->render(),
                 ]);
-
-                 // 7) Envío con Resend
 
                 $this->info("Enviado a {$usuario->email}: {$subject}");
             }
