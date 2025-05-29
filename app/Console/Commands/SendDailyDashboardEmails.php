@@ -71,7 +71,7 @@ class SendDailyDashboardEmails extends Command
                     'from'    => config('services.resend.from'),
                     'to'      => $usuario->email,
                     'subject' => "📘 Recordatorio: {$cursos->count()} cursos por vencer",
-                    'html'    => view('emails.course-ending-multiple', [
+                    'html'    => view('emails.course-ending', [
                         'usuario' => $usuario,
                         'cursos'  => $cursos,
                     ])->render(),

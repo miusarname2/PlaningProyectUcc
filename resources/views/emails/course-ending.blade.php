@@ -66,6 +66,7 @@
         @php
             $fechaFin = \Carbon\Carbon::parse($curso->fecha_fin);
             $daysLeft = now()->diffInDays($fechaFin, false);
+            $daysLeft = intval($daysLeft);
 
             $badgeColor = $daysLeft === 0 ? 'red' : ($daysLeft <= 3 ? 'yellow' : 'green');
             $badgeText = $daysLeft === 0 ? 'Vence Hoy' : ($daysLeft === 1 ? 'Vence Mañana' : "Vence en {$daysLeft} días");
