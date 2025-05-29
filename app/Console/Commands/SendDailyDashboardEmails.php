@@ -71,25 +71,32 @@ class SendDailyDashboardEmails extends Command
             $daysLeft = $today->diffInDays(Carbon::parse($curso->fecha_fin));
 
             foreach ($usuarios as $usuario) {
-                // Construir asunto y cuerpo dinámicamente
                 if ($daysLeft === 0) {
                     $subject = "Hoy termina el curso: {$curso->nombre}";
                 } else {
                     $subject = "Faltan {$daysLeft} días para que termine el curso: {$curso->nombre}";
                 }
 
-                $resend->emails->send([
-                    'from'    => config('services.resend.from'),
-                    'to'      => $usuario->email,
-                    'subject' => $subject,
-                    'html'    => view('emails.course-ending', [
-                        'usuario'  => $usuario,
-                        'curso'    => $curso,
-                        'daysLeft' => $daysLeft,
-                    ])->render(),
-                ]);
+                try {
+                    $resend->emails->send([
+                        'from'    => config('services.resend.from'),
+                        'to'      => $usuario->email,
+                        'subject' => $subject,
+                        'html'    => view('emails.course-ending', [
+                            'usuario'  => $usuario,
+                            'curso'    => $curso,
+                            'daysLeft' => $daysLeft,
+                        ])->render(),
+                    ]);
 
-                $this->info("Enviado a {$usuario->email}: {$subject}");
+                    $this->info("Enviado a {$usuario->email}: {$subject}");
+
+                    // Espera para evitar que Resend bloquee por frecuencia
+                    sleep(1); // puedes ajustar a 2 o más si tienes muchos usuarios
+
+                } catch (\Exception $e) {
+                    $this->error("Error al enviar a {$usuario->email}: " . $e->getMessage());
+                }
             }
         }
 
