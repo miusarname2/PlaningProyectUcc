@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Recordatorio de Cursos</title>
+    <title>Resumen de Cursos por Vencer</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -57,29 +57,31 @@
         <p>Sistema de Gestión Académica</p>
     </div>
 
-    <h3>⚠️ Recordatorio: Fechas de Vencimiento de Cursos</h3>
+    <h3>⚠️ Recordatorio: Cursos por Vencer</h3>
 
     <p>Estimado/a {{ $usuario->nombre }},</p>
-    <p>Te recordamos que el siguiente curso está próximo a vencer. Asegúrate de completar todas las actividades pendientes.</p>
+    <p>A continuación se listan los cursos que están próximos a vencer. Te recomendamos revisarlos y completar todas las actividades pendientes:</p>
 
-    <div class="curso">
-        <h4>{{ $curso->codigo }} – {{ $curso->nombre }}</h4>
-        <p><strong>Programa:</strong> {{ $curso->programa ?? 'Ingeniería de Sistemas' }}</p>
-        <p>
-            <strong>Fecha límite:</strong>
-            {{ \Carbon\Carbon::parse($curso->fecha_fin)->format('d M Y') }}
-            a las {{ \Carbon\Carbon::parse($curso->fecha_fin)->format('h:i A') }}
-        </p>
-
+    @foreach ($cursos as $curso)
         @php
+            $fechaFin = \Carbon\Carbon::parse($curso->fecha_fin);
+            $daysLeft = now()->diffInDays($fechaFin, false);
+
             $badgeColor = $daysLeft === 0 ? 'red' : ($daysLeft <= 3 ? 'yellow' : 'green');
             $badgeText = $daysLeft === 0 ? 'Vence Hoy' : ($daysLeft === 1 ? 'Vence Mañana' : "Vence en {$daysLeft} días");
         @endphp
 
-        <span class="badge {{ $badgeColor }}">{{ $badgeText }}</span>
-
-        <p><strong>Actividades pendientes:</strong> {{ $curso->pendientes ?? 'No especificadas' }}</p>
-    </div>
+        <div class="curso">
+            <h4>{{ $curso->codigo }} – {{ $curso->nombre }}</h4>
+            <p><strong>Programa:</strong> {{ $curso->programa ?? 'Ingeniería de Sistemas' }}</p>
+            <p>
+                <strong>Fecha límite:</strong>
+                {{ $fechaFin->format('d M Y') }} a las {{ $fechaFin->format('h:i A') }}
+            </p>
+            <span class="badge {{ $badgeColor }}">{{ $badgeText }}</span>
+            <p><strong>Actividades pendientes:</strong> {{ $curso->pendientes ?? 'No especificadas' }}</p>
+        </div>
+    @endforeach
 
     <div class="footer">
         Este correo fue generado automáticamente por PlanningProject.

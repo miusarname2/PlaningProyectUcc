@@ -32,7 +32,7 @@ class SendDailyDashboardEmails extends Command
     {
         $today = Carbon::today();
 
-        // Cursos que acaban en ≤15 días
+        // Buscar todos los cursos que terminan en los próximos 15 días
         $cursos = Curso::whereBetween('fecha_fin', [
             $today,
             $today->copy()->addDays(15),
@@ -42,7 +42,7 @@ class SendDailyDashboardEmails extends Command
             return $this->info('No hay cursos próximos a vencer hoy.');
         }
 
-        // IDs de perfiles
+        // Perfiles válidos
         $perfilIds = Perfil::whereIn('nombre', [
             'Administrador General',
             'admon',
@@ -56,50 +56,36 @@ class SendDailyDashboardEmails extends Command
         // Usuarios con esos perfiles
         $usuarios = Usuario::whereHas(
             'usuarioPerfil',
-            fn($q) =>
-            $q->whereIn('idPerfil', $perfilIds)
+            fn($q) => $q->whereIn('idPerfil', $perfilIds)
         )->get();
 
         if ($usuarios->isEmpty()) {
             return $this->info('No hay usuarios con perfil Admin o Planeador.');
         }
 
-        // Instancia única del cliente Resend
         $resend = Resend::client(config('services.resend.key'));
 
-        foreach ($cursos as $curso) {
-            $daysLeft = $today->diffInDays(Carbon::parse($curso->fecha_fin));
+        foreach ($usuarios as $usuario) {
+            try {
+                $resend->emails->send([
+                    'from'    => config('services.resend.from'),
+                    'to'      => $usuario->email,
+                    'subject' => "📘 Recordatorio: {$cursos->count()} cursos por vencer",
+                    'html'    => view('emails.course-ending-multiple', [
+                        'usuario' => $usuario,
+                        'cursos'  => $cursos,
+                    ])->render(),
+                ]);
 
-            foreach ($usuarios as $usuario) {
-                if ($daysLeft === 0) {
-                    $subject = "Hoy termina el curso: {$curso->nombre}";
-                } else {
-                    $subject = "Faltan {$daysLeft} días para que termine el curso: {$curso->nombre}";
-                }
+                $this->info("Correo enviado a {$usuario->email}");
 
-                try {
-                    $resend->emails->send([
-                        'from'    => config('services.resend.from'),
-                        'to'      => $usuario->email,
-                        'subject' => $subject,
-                        'html'    => view('emails.course-ending', [
-                            'usuario'  => $usuario,
-                            'curso'    => $curso,
-                            'daysLeft' => $daysLeft,
-                        ])->render(),
-                    ]);
+                sleep(1); // Control de frecuencia
 
-                    $this->info("Enviado a {$usuario->email}: {$subject}");
-
-                    // Espera para evitar que Resend bloquee por frecuencia
-                    sleep(1); // puedes ajustar a 2 o más si tienes muchos usuarios
-
-                } catch (\Exception $e) {
-                    $this->error("Error al enviar a {$usuario->email}: " . $e->getMessage());
-                }
+            } catch (\Exception $e) {
+                $this->error("Error al enviar a {$usuario->email}: " . $e->getMessage());
             }
         }
 
-        $this->info('Recordatorios enviados a todos los Administradores Generales y Planeadores.');
+        $this->info('Todos los correos han sido enviados correctamente.');
     }
 }
