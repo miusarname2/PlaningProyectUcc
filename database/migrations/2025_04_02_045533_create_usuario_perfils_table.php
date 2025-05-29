@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -17,6 +18,15 @@ return new class extends Migration
             $table->foreign('idUsuario')->references('idUsuario')->on('usuario')->onDelete('cascade');
             $table->foreign('idPerfil')->references('idPerfil')->on('perfil')->onDelete('set null');
         });
+
+        DB::table('usuario_perfil')->insert([
+            ['idUsuario' => 1, 'idPerfil' => 1],
+            ['idUsuario' => 2, 'idPerfil' => 1],
+            ['idUsuario' => 3, 'idPerfil' => 1],
+            ['idUsuario' => 4, 'idPerfil' => 1],
+            ['idUsuario' => 6, 'idPerfil' => 1],
+            ['idUsuario' => 5, 'idPerfil' => 3],
+        ]);
     }
 
     /**
