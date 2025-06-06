@@ -623,7 +623,7 @@ export default function PrincipalSchedule() {
             <div className="space-y-2 min-w-[150px]"> {/* Added min-width */}
               <InputLabel htmlFor="sede" value="Aula" className="text-sm" />
               <SelectInput id="aula" name="aula" value={formData.aula} onChange={handleChange}
-                options={[{ value: '', label: 'Todas las Aulas' }, ...filteredAulas.map(a => ({ value: a.idAula, label: a.nombre }))]} />
+                options={[{ value: '', label: 'Todas las Aulas' }, ...filteredAulas.map(a => ({ value: a.idAula, label: a.codigo }))]} />
             </div>
             {/* NEW: Curso Filter - Using structure similar to ClassForm */}
             <div className="space-y-2 min-w-[200px]"> {/* Adjusted min-width slightly */}
