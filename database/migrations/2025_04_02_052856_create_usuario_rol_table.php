@@ -22,7 +22,12 @@ return new class extends Migration
         });
 
         DB::table('usuario_rol')->insert([
-            ['idUsuario' => 1, 'idRol' => 2]
+            ['idUsuario' => 1, 'idRol' => 2],
+            ['idUsuario' => 2, 'idRol' => 2],
+            ['idUsuario' => 3, 'idRol' => 2],
+            ['idUsuario' => 4, 'idRol' => 2],
+            ['idUsuario' => 6, 'idRol' => 2],
+            ['idUsuario' => 5, 'idRol' => 5],
         ]);
     }
 

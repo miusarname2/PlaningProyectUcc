@@ -21,6 +21,11 @@ return new class extends Migration
 
         DB::table('usuario_perfil')->insert([
             ['idUsuario' => 1, 'idPerfil' => 1],
+            ['idUsuario' => 2, 'idPerfil' => 1],
+            ['idUsuario' => 3, 'idPerfil' => 1],
+            ['idUsuario' => 4, 'idPerfil' => 1],
+            ['idUsuario' => 6, 'idPerfil' => 1],
+            ['idUsuario' => 5, 'idPerfil' => 3],
         ]);
     }
 
