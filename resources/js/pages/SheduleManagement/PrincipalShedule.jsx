@@ -292,8 +292,8 @@ export default function PrincipalSchedule() {
 
   const days = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SABADO','DOMINGO'];
   // Generar slots de tiempo de 6 a 20 (8pm)
-  const timeSlots = Array.from({ length: 15 }, (_, i) => {
-    const hour = 6 + i; // Hours 6, 7, ..., 20
+  const timeSlots = Array.from({ length: 17 }, (_, i) => {
+    const hour = 6 + i; // Hours 6, 7, ..., 22
     // Handle 12-hour format display
     const period = hour < 12 || hour === 24 ? 'a.m.' : 'p.m.'; // 24:00 is midnight, usually shown as 12 a.m.
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour; // 0:00 becomes 12, >12 becomes hour-12
