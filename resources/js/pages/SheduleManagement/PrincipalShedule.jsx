@@ -10,6 +10,11 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { es } from "date-fns/locale"
 import { getApi } from "@/utils/generalFunctions";
 
+// Helper function to remove diacritics from a string
+const removeDiacritics = (str) => {
+  return str.normalize("NFD").replace(/\u0300-\u036f/g, "");
+};
+
 export default function PrincipalSchedule() {
   const [open, setOpen] = useState(false)
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -272,7 +277,12 @@ export default function PrincipalSchedule() {
 
         // Map day names from API to the required format ('LUNES', 'MARTES', etc.)
         const dayName = diaObj.nombre?.toUpperCase() || 'SIN DÍA';
-        const normalizedDayName = days.find(d => d === dayName) || 'SIN DÍA'; // Ensure day name is one of the valid days
+        // Normalize day name by removing diacritics before finding in the days array
+        const processedDayName = removeDiacritics(dayName);
+        const foundDay = days.find(d => d === processedDayName);
+        const normalizedDayName = foundDay || 'SIN DÍA'; // Ensure day name is one of the valid days
+
+        // Log the original and normalized day name for debugging
 
         return {
           room: item.aula.codigo || 'Sin aula',
