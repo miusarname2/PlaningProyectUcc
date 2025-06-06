@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Aula;
 use App\Models\Dia;
 use App\Models\FranjaHoraria;
 use App\Models\Horario;
@@ -81,6 +82,17 @@ class HorarioController extends Controller
                 'message' => 'Error en la validación',
                 'errors'  => $ex->errors(),
             ], 422);
+        }
+
+        if (! is_null($validated['idAula'])) {
+            $aula = Aula::find($validated['idAula']);
+            if (! $aula || $aula->estado !== 'Disponible') {
+                return response()->json([
+                    'success' => false,
+                    'status'  => 409,
+                    'message' => 'El aula no está disponible para asignar.',
+                ], 409);
+            }
         }
 
         // 2) Obtener IDs de roles especiales
@@ -274,6 +286,17 @@ class HorarioController extends Controller
                 'message' => 'Error en la validación de los datos.',
                 'errors'  => $ex->errors(),
             ], 422);
+        }
+
+        if (! is_null($validated['idAula'])) {
+            $aula = Aula::find($validated['idAula']);
+            if (! $aula || $aula->estado !== 'Disponible') {
+                return response()->json([
+                    'success' => false,
+                    'status'  => 409,
+                    'message' => 'El aula no está disponible para asignar.',
+                ], 409);
+            }
         }
 
         // 2) Obtener IDs de roles especiales
@@ -578,7 +601,7 @@ class HorarioController extends Controller
             ->values();
 
         // 2) Definir días de la semana para la hoja 1
-        $diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado','Domingo'];
+        $diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
         // 3) Primera hoja: Horario de franjas
         $spreadsheet = new Spreadsheet();
