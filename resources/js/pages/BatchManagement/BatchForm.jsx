@@ -8,7 +8,7 @@ import { Save } from "lucide-react";
 import { getApi } from "@/utils/generalFunctions";
 
 export default function BatchForm({ onCancel, initialData = null, onSubmitSuccess }) {
-    const defaultProgramOption = { value: "", label: "Seleccione programa", disabled: true };
+    const defaultCityOption = { value: "", label: "Seleccione Ciudad", disabled: true };
     const defaultEstadoOption = { value: "", label: "Seleccione estado", disabled: true };
     const api = getApi();
     const isEditMode = Boolean(initialData);
@@ -24,13 +24,13 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
         }
     };
 
-    const [programOptions, setProgramOptions] = useState([defaultProgramOption]);
+    const [cityOptions, setCityOptions] = useState([defaultCityOption])
 
     const [formData, setFormData] = useState({
         idLote: initialData?.id || "",
         codigo: initialData?.codigo || "",
         nombre: initialData?.nombre || "",
-        idPrograma: initialData?.idPrograma,
+        idCiudad: initialData?.idCiudad || '',
         estado: initialData?.estado || "Activo",
         fechaInicio: initialData?.rangoFechas?.inicio || initialData?.rangoFechas?.inicio || "",
         FechaFin: initialData?.rangoFechas?.fin || initialData?.rangoFechas?.fin || "",
@@ -43,14 +43,14 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
         // Traer programas disponibles desde API
         const fetchPrograms = async () => {
             try {
-                const response = await api.get("/programa"); // Ajusta si tu endpoint es diferente
-                const options = response.data.map((program) => ({
-                    value: program.idPrograma,
-                    label: program.nombre,
+                const response = await api.get("/ciudad"); // Ajusta si tu endpoint es diferente
+                const options = response.data.map((ciudad) => ({
+                    value: ciudad.idCiudad,
+                    label: ciudad.nombre,
                 }));
-                setProgramOptions([defaultProgramOption, ...options]);
+                setCityOptions([defaultCityOption, ...options]);
             } catch (error) {
-                console.error("Error fetching programs:", error);
+                console.error("Error fetching cities:", error);
             }
         };
 
@@ -116,17 +116,17 @@ export default function BatchForm({ onCancel, initialData = null, onSubmitSucces
                         </div>
 
                         <div className="space-y-2">
-                            <InputLabel htmlFor="programId" value="Programa" />
+                            <InputLabel htmlFor="ciudadId" value="Ciudad" />
                             <SelectInput
-                                id="programId"
-                                name="idPrograma"
-                                value={formData.idPrograma}
+                                id="ciudadId"
+                                name="idCiudad"
+                                value={formData.idCiudad}
                                 onChange={(e) => {
-                                    handleChange({ target: { name: 'idPrograma', value: e.target.value } });
+                                    handleChange({ target: { name: 'idCiudad', value: e.target.value } });
                                 }}
-                                options={programOptions}
+                                options={cityOptions}
                                 required
-                                error={errors.idPrograma}
+                                error={errors.idCiudad}
                                 placeholder="Seleccionar programa"
                             />
                         </div>

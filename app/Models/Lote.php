@@ -15,7 +15,7 @@ class Lote extends Model
     protected $fillable = [
         'codigo',
         'nombre',
-        'idPrograma',
+        'idCiudad',
         'fechaInicio',
         'FechaFin',
         'numEstudiantes',
@@ -25,6 +25,6 @@ class Lote extends Model
     // Relación: un lote pertenece a un programa
     public function programa()
     {
-        return $this->belongsTo(Programa::class, 'idPrograma', 'idPrograma');
+        return $this->belongsTo(Ciudad::class, 'idCiudad', 'idCiudad');
     }
 }
