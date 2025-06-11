@@ -91,6 +91,33 @@ export default function PrincipalCourse() {
         fetchData();
     }, []);
 
+    function getSearchType(value) {
+        return "codigo";
+    }
+
+    async function handleSearch(value) {
+        if (!value) {
+            fetchData();
+            return;
+        }
+
+        try {
+            const type = getSearchType(value);
+            const response = await api.get(`/curso/search?${type}=${encodeURIComponent(value)}`);
+
+            const transformed = response.data.data.data.map((curso) => ({
+                ...curso,
+                id: curso.idCurso,
+                estudiantes: curso.estudiantes || 0,
+                cursos: curso.cursos || 0,
+                codigoCurso: curso.codigo
+            }));
+            setData(transformed);
+        } catch (error) {
+            console.error("Error buscando cursos:", error);
+        }
+    }
+
     return (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
@@ -105,9 +132,12 @@ export default function PrincipalCourse() {
                     exportExcel={true}
                     handleExport={exportExcel}
                 />
-
                 {!showForm ? (
                     <div className="space-y-4">
+                        <InputSearch
+                            onSearchChange={(val) => handleSearch(val)}
+                            placeHolderText="Buscando cursos"
+                        />
                         {loading ? (
                             <p className="text-center text-gray-500">
                                 Cargando Cursos...

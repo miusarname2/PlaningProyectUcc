@@ -102,6 +102,7 @@ class ProfesionalController extends Controller
         // 1. Validación de la entrada
         $validator = Validator::make($request->all(), [
             'codigo'          => 'nullable|string|max:255',
+            'identificacion' => "nullable|string|max:20",
             'nombreCompleto'  => 'nullable|string|max:255',
             'email'           => 'nullable|email|max:255',
             'titulo'          => 'nullable|string|max:255',
@@ -120,7 +121,6 @@ class ProfesionalController extends Controller
 
         // 2. Inicializamos el query builder
         $query = Profesional::query();
-
         // 3. Aplicamos filtros si vienen en la petición
         if ($request->filled('codigo')) {
             $query->where('codigo', 'like', '%' . trim($request->input('codigo')) . '%');
@@ -154,10 +154,9 @@ class ProfesionalController extends Controller
             $query->where('perfil', 'like', '%' . trim($request->input('perfil')) . '%');
         }
 
-        // 4. Cargamos la relación especialidades
-        $query->with('especialidades');
 
-        // 5. Ejecutamos la consulta con paginación
+
+        // 4. Ejecutamos la consulta con paginación
         try {
             $profesionales = $query->paginate(10);
 

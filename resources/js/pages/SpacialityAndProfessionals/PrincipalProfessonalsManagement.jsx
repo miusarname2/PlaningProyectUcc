@@ -98,6 +98,32 @@ export default function PrincipalProfessonalsManagement() {
         fetchData();
     }, []);
 
+    function getSearchType(value) {
+        const trimmed = value.trim();
+        if (/^\d+$/.test(trimmed)) return "identificacion"; 
+        if (/^[a-zA-Z\s]+$/.test(trimmed)) return "nombreCompleto"; 
+    }
+
+    async function handleSearch(value) {
+        if (!value) {
+            fetchData();
+            return;
+        }
+
+        try {
+            const type = getSearchType(value);
+            const response = await api.get(`/profesional/search?${type}=${encodeURIComponent(value)}`);
+
+            const transformed = response.data.data.data.map((profesional) => ({
+                 ...profesional,
+                id: profesional.idProfesional,
+            }));
+            setData(transformed);
+        } catch (error) {
+            console.error("Error buscando profesionales:", error);
+        }
+    }
+
     return (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
@@ -115,7 +141,10 @@ export default function PrincipalProfessonalsManagement() {
 
                 {!showForm ? (
                     <div className="space-y-4">
-
+                        <InputSearch
+                            onSearchChange={(val) => handleSearch(val)}
+                            placeHolderText="Buscando profesionales"
+                        />
                         {loading ? (
                             <p className="text-center text-gray-500">
                                 Cargando Profesionales...
