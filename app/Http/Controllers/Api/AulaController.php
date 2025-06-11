@@ -18,7 +18,7 @@ class AulaController extends Controller
      */
     public function index()
     {
-        $aulas = Aula::with(['sede','sede.ciudad','sede.propietario'])->get();
+        $aulas = Aula::with(['sede', 'sede.ciudad', 'sede.propietario'])->get();
         return response()->json($aulas);
     }
 
@@ -29,8 +29,8 @@ class AulaController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'codigo'=>"required|string|max:17",
-                'nombre'=> "required|string|max:90",
+                'codigo' => "required|string|max:17",
+                'nombre' => "required|string|max:90",
                 'descripcion' => "nullable|string",
                 "idSede" => "required|numeric",
                 "capacidad" => "required|numeric",
@@ -48,7 +48,7 @@ class AulaController extends Controller
 
         $aula->load(['sede']);
 
-        return response()->json($aula,201);
+        return response()->json($aula, 201);
     }
 
     /**
@@ -67,8 +67,8 @@ class AulaController extends Controller
     {
         $aula = Aula::findOrFail($id);
         $validatedData = $request->validate([
-            'codigo'=>"sometimes|string|max:17",
-            'nombre'=> "sometimes|string|max:90",
+            'codigo' => "sometimes|string|max:17",
+            'nombre' => "sometimes|string|max:90",
             'descripcion' => "sometimes|nullable|string",
             "idSede" => "sometimes|numeric",
             "capacidad" => "sometimes|numeric",
@@ -160,5 +160,13 @@ class AulaController extends Controller
                 'mensaje' => 'Error interno del servidor.',
             ], 500);
         }
+    }
+
+    public function indexAvailable()
+    {
+        $aulas = Aula::with(['sede', 'sede.ciudad', 'sede.propietario'])
+            ->where('estado', 'Disponible')
+            ->get();
+        return response()->json($aulas);
     }
 }

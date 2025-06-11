@@ -17,7 +17,7 @@ class ProgramaController extends Controller
      */
     public function index()
     {
-        $programa = Programa::with(["lotes", "cursos"])->get();
+        $programa = Programa::with(["cursos"])->get();
         return response()->json($programa);
     }
 
@@ -51,7 +51,7 @@ class ProgramaController extends Controller
      */
     public function show(string $id)
     {
-        $programa = Programa::with(['lotes', 'cursos'])->findOrFail($id);
+        $programa = Programa::with(['cursos'])->findOrFail($id);
         return response()->json($programa);
     }
 

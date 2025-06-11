@@ -30,7 +30,7 @@ class CursoController extends Controller
     {
         try {
             $validateData = $request->validate([
-                'codigo' => "required|string|max:12",
+                'codigo' => "required|string|max:30",
                 'nombre' => "required|string|max:100",
                 'codigoGrupo' => "required|string|max:25",
                 'cohorte' => "required|numeric",
@@ -107,7 +107,7 @@ class CursoController extends Controller
         $curso = Curso::findOrFail($id);
 
         $validateData = $request->validate([
-            'codigo' => "sometimes|required|string|max:12",
+            'codigo' => "sometimes|required|string|max:30",
             'nombre' => "sometimes|required|string|max:100",
             'descripcion' => 'sometimes|required|string',
             'codigoGrupo' => "required|string|max:25",

@@ -18,7 +18,7 @@ class LoteController extends Controller
      */
     public function index()
     {
-        $lotes = Lote::with(["programa", "programa.cursos"])->get();
+        $lotes = Lote::with(["ciudad"])->get();
         return response()->json($lotes);
     }
 
@@ -31,7 +31,7 @@ class LoteController extends Controller
             $validatedData = $request->validate([
                 'codigo'        => 'required|string|max:255',
                 'nombre'        => 'required|string|max:255',
-                'idPrograma'    => 'required|integer|exists:programa,idPrograma',
+                'idCiudad'    => 'required|integer|exists:ciudad,idCiudad',
                 'fechaInicio'   => 'required|date',
                 'FechaFin'      => 'required|date',
                 'numEstudiantes' => 'required|integer',
@@ -47,7 +47,7 @@ class LoteController extends Controller
 
         $lote = Lote::create($validatedData);
         // Cargamos la relación del programa
-        $lote->load('programa');
+        $lote->load('ciudad');
 
         return response()->json($lote, 201);
     }
@@ -57,7 +57,7 @@ class LoteController extends Controller
      */
     public function show(string $id)
     {
-        $lote = Lote::with("programa")->findOrFail($id);
+        $lote = Lote::with("ciudad")->findOrFail($id);
         return response()->json($lote);
     }
 
@@ -71,7 +71,7 @@ class LoteController extends Controller
         $validatedData = $request->validate([
             'codigo'        => 'sometimes|required|string|max:255',
             'nombre'        => 'sometimes|required|string|max:255',
-            'idPrograma'    => 'sometimes|required|integer|exists:programa,idPrograma',
+            'idCiudad'    => 'sometimes|required|integer|exists:ciudad,idCiudad',
             'fechaInicio'   => 'sometimes|required|date',
             'FechaFin'      => 'sometimes|required|date',
             'numEstudiantes' => 'sometimes|required|integer',
@@ -79,7 +79,7 @@ class LoteController extends Controller
         ]);
 
         $lote->update($validatedData);
-        $lote->load('programa');
+        $lote->load('ciudad');
 
         return response()->json($lote, 200);
     }
@@ -102,7 +102,7 @@ class LoteController extends Controller
         $validator = Validator::make($request->all(), [
             'codigo'    => 'nullable|string|max:255',
             'nombre'    => 'nullable|string|max:255',
-            'idPrograma' => 'nullable|integer',
+            'idCiudad' => 'nullable|integer',
             'estado'    => 'nullable|string|max:50',
         ]);
 
@@ -132,9 +132,9 @@ class LoteController extends Controller
         }
 
         // Búsqueda por idPrograma (búsqueda exacta)
-        if ($request->filled('idPrograma')) {
-            $idPrograma = $request->input('idPrograma');
-            $query->where('idPrograma', $idPrograma);
+        if ($request->filled('idCiudad')) {
+            $idCiudad = $request->input('idCiudad');
+            $query->where('idCiudad', $idCiudad);
         }
 
         // Búsqueda por estado (por ejemplo, búsqueda exacta o parcial según convenga)
@@ -144,7 +144,7 @@ class LoteController extends Controller
         }
 
         // Se incluyen las relaciones definidas en el modelo, por ejemplo programa y cursos
-        $query->with(['programa', 'programa.cursos']);
+        $query->with(['ciudad']);
 
         try {
             // Paginar los resultados

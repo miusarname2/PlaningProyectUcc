@@ -75,7 +75,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                     api.get('/profesional'),
                     api.get('/ciudad'),
                     api.get('/sede'),
-                    api.get('/aula'),
+                    api.get('/aula/getAvailable'),
                     api.get('/rolDocente'),
                     api.get('/dia'),
                 ]);

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('curso', function (Blueprint $table) {
             $table->increments('idCurso');
-            $table->string('codigo', 26)->unique();
+            $table->string('codigo', 30)->unique();
             $table->string('codigoGrupo', 30)->nullable();
             $table->string('nombre', 100);
             $table->text('descripcion')->nullable();

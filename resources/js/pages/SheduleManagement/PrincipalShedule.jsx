@@ -178,18 +178,15 @@ export default function PrincipalSchedule() {
           // console.warn("Missing dia object, pivot, curso, or aula data for item:", item);
           return null; // Omitir este día si falta data crítica
         }
-
+        console.log(item);
+        const ejecutorNombre = (item.profesionales.filter(profesional => profesional.rolDocente.nombre == "Ejecutor"))[0].nombreCompleto;
         const { hora_inicio, hora_fin } = diaObj.pivot;
         // Ensure times are in HH:mm format if they come differently (e.g., HH:mm:ss)
         const startTimeFormatted = hora_inicio ? hora_inicio.substring(0, 5) : null;
         const endTimeFormatted = hora_fin ? hora_fin.substring(0, 5) : null;
-
-
         const startTime = convertirHora(startTimeFormatted);
         const endTime = convertirHora(endTimeFormatted);
         const color = getColorForRoom(item.aula?.codigo || 'Sin aula');
-
-        // Build time blocks (Assuming blocks are hourly from the start hour)
         const blocks = [];
         if (startTimeFormatted && endTimeFormatted) {
           try {
@@ -273,19 +270,14 @@ export default function PrincipalSchedule() {
             console.error("Error parsing times for blocks:", startTimeFormatted, endTimeFormatted, timeParseError);
           }
         }
-
-
         // Map day names from API to the required format ('LUNES', 'MARTES', etc.)
         const dayName = diaObj.nombre?.toUpperCase() || 'SIN DÍA';
         // Normalize day name by removing diacritics before finding in the days array
         const processedDayName = removeDiacritics(dayName);
         const foundDay = days.find(d => d === processedDayName);
         const normalizedDayName = foundDay || 'SIN DÍA'; // Ensure day name is one of the valid days
-
-        // Log the original and normalized day name for debugging
-
         return {
-          room: item.aula.codigo || 'Sin aula',
+          room: item.aula.nombre || 'Sin aula',
           day: normalizedDayName, // Usar el nombre normalizado
           startTime,
           endTime,
@@ -293,6 +285,7 @@ export default function PrincipalSchedule() {
           name: item.curso.nombre || 'Sin nombre', // Access course name
           color: `${color.bg} ${color.text} ${color.border}`,
           timeBlocks: blocks,
+          ejecutorNombre
         };
       }).filter(item => item !== null); // Remove any null items resulting from validation failures
     }).filter(item => item.day !== 'SIN DÍA'); // Filter out items with invalid days
@@ -546,7 +539,7 @@ export default function PrincipalSchedule() {
                               // Added block class to make it take full width if only one item
                               <div key={idx} className={`p-1 block ${classInfo.color} border-l-4 flex flex-col`}>
                                 <div className="font-bold text-[10px] md:text-[12px] whitespace-normal break-words"> {/* Allow text wrap */}
-                                  {classInfo.code} (Aula {classInfo.room})
+                                  {classInfo.code}-{classInfo.ejecutorNombre} (Aula {classInfo.room})
                                 </div>
                                 <div className="text-[8px] md:text-[10px] whitespace-normal break-words">{classInfo.name}</div> {/* Allow text wrap */}
                                 {/* Opcional: Mostrar horas exactas de inicio/fin dentro de la celda */}

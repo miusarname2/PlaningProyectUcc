@@ -23,7 +23,7 @@ class Lote extends Model
     ];
 
     // Relación: un lote pertenece a un programa
-    public function programa()
+    public function ciudad()
     {
         return $this->belongsTo(Ciudad::class, 'idCiudad', 'idCiudad');
     }

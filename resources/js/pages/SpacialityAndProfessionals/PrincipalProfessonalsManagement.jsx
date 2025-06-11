@@ -7,7 +7,8 @@ import StatusBadge from "@/Components/StatusBadge";
 import ContainerShowData from "@/Components/ContainerShowData";
 import ProfessonalForm from "@/pages/SpacialityAndProfessionals/ProfessonalForm";
 import LinkConIcono from "@/Components/LinkConIcono";
-import { ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { Button } from "@/Components/Button";
+import { Download, ExternalLink, Pencil, Trash2 } from "lucide-react";
 
 const columns = [
     { title: "Id", key: "codigo" },
@@ -83,6 +84,16 @@ export default function PrincipalProfessonalsManagement() {
         }
     }
 
+    const exportExcel = async () => {
+        const response = await api.get("/profesional/export-xlsx");
+        const link = document.createElement('a');
+        link.href = 'data:application/vnd.ms-excel;base64,' + response.data.base64;
+        link.download = response.data.filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    }
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -98,6 +109,8 @@ export default function PrincipalProfessonalsManagement() {
                     showButton={!showForm}
                     verifyPermission={true}
                     module="professionals_management"
+                    exportExcel={true}
+                    handleExport={exportExcel}
                 />
 
                 {!showForm ? (

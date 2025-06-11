@@ -8,7 +8,7 @@ import ClassForm from "@/pages/ClassManagement/ClassForm";
 import { Pencil, Trash2 } from "lucide-react";
 
 const columns = [
-    { title: "Curso", key: "nombreCurso" },
+    { title: "Curso", key: "cursoNombreCodigo" },
     {
         title: "Profesional/docente", key: "profesionales", render: (row) => {
             const ejecutor = row.filter((profesional) => profesional.rolDocente.nombre == "Ejecutor");
@@ -68,6 +68,7 @@ export default function PrincipalClass() {
         try {
             const response = await api.get("/Horario");
             const transformed = response.data.map(horario => {
+                console.log(horario)
                 // Log de profesionales (o array vacío si no existe)
                 const profesionalesArray = horario?.profesionales ?? [];
 
@@ -79,6 +80,7 @@ export default function PrincipalClass() {
                 const sede = horario?.aula?.sede;
                 const ciudad = sede?.ciudad;
                 const aula = horario?.aula;
+                const cursoNombreCodigo = `(${horario.curso.codigo}) ${horario.curso.nombre}`
 
                 return {
                     // Si necesitas conservar props originales, déjalo; si no, quítalo:
@@ -112,9 +114,10 @@ export default function PrincipalClass() {
                     idCurso: hasCurso ? (horario.curso.idCurso ?? null) : null,
                     idSede: hasAula ? (sede?.idSede ?? null) : null,
                     idAula: hasAula ? (aula?.idAula ?? null) : null,
+                    cursoNombreCodigo
                 };
             });
-
+            console.log(transformed);
             setData(transformed);
         } catch (error) {
             console.error("Error fetching classes:", error);

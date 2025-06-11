@@ -59,6 +59,7 @@ Route::middleware(['auth:sanctum', 'throttle:search'])
         Route::delete('perfilRol/{idPerfil}/{idRol}',     [PerfilRolController::class, 'destroy']);
         Route::get('user/{user}/permisos', [UsuarioController::class, 'permisos']);
         Route::get('horario/export-xlsx', [HorarioController::class, 'exportXls']);
+        Route::get( 'profesional/export-xlsx', [ProfesionalController::class,'exportProfesionalesXls']);
         Route::resource('user', UsuarioController::class);
         Route::resource('ciudad', CiudadController::class);
         Route::resource('curso', CursoController::class);
@@ -73,6 +74,7 @@ Route::middleware(['auth:sanctum', 'throttle:search'])
         Route::resource('rol', RolController::class);
         Route::resource('sede', SedeController::class);
         Route::resource('usuarioPerfil', UsuarioPerfilController::class);
+        Route::get('aula/getAvailable', [AulaController::class,'indexAvailable']);
         Route::resource('aula', AulaController::class);
         Route::resource('estado', EstadoController::class);
         Route::resource('rolDocente', RolDocenteController::class);

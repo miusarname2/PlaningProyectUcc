@@ -11,7 +11,7 @@ import { Pencil, Trash2 } from "lucide-react";
 const columns = [
     { title: "Código", key: "codigo" },
     { title: "Nombre del lote", key: "nombre" },
-    { title: "Programa", key: "programa" },
+    { title: "Ciudad", key: "ciudad" },
     {
         title: "Intervalo de fechas",
         key: "rangoFechas",
@@ -22,10 +22,6 @@ const columns = [
         },
     },
     { title: "Estudiantes", key: "estudiantes" },
-    {
-        title: "Cursos",
-        key: "cursos",
-    },
     {
         title: "Estado",
         key: "estado",
@@ -83,20 +79,22 @@ export default function PrincipalBatch() {
                 lotes = response.data?.data?.data || [];
             }
 
-            const transformed = lotes.map((lote) => ({
+            const transformed = lotes.map((lote) => {
+                console.log(lote);
+                return ({
                 id: lote.idLote,
                 codigo: lote.codigo,
                 nombre: lote.nombre,
-                programa: lote.programa?.nombre || "Sin programa",
+                ciudad: lote.ciudad?.nombre || "Sin Ciudad",
                 rangoFechas: {
                     inicio: lote.fechaInicio,
                     fin: lote.fechaFin,
                 },
                 estudiantes: lote.numEstudiantes || 0,
-                cursos: lote.programa?.cursos?.length || 0,
                 estado: lote.estado,
-                idPrograma: lote.idPrograma || 0,
-            }));
+                idCiudad: lote.idCiudad || 0,
+            })
+            });
 
             setData(transformed);
         } catch (error) {

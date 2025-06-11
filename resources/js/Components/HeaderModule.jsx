@@ -1,18 +1,19 @@
-import { CirclePlus } from "lucide-react";
+import { CirclePlus, Download } from "lucide-react";
 import ButtonGradient from "@/Components/ButtonGradient";
 import { filtered,permissionStrings } from "./SideBar";
-import { useEffect } from "react";
+import { Button } from "@/Components/Button";
 import { useRouteGuard } from "@/utils/generalFunctions";
-
 
 export default function HeaderModule({
   title,
   description,
   buttonText,
   onClick,
+  handleExport,
   showButton = true,
   verifyPermission = false,
   module = "users",
+  exportExcel= false,
 }) {
   const permissions = JSON.parse(permissionStrings);
 
@@ -38,10 +39,22 @@ export default function HeaderModule({
       </div>
 
       {canShowButton() && (
-        <ButtonGradient onClick={onClick}>
+        <div className="flex gap-4">
+            <ButtonGradient onClick={onClick}>
           <CirclePlus className="w-4 h-4 mr-2" />
           {buttonText}
         </ButtonGradient>
+        {exportExcel && (
+            <Button
+              variant="ghost"
+              className="flex items-center gap-1 text-xs md:text-sm"
+              onClick={handleExport}
+            >
+              <Download className="h-4 w-4 md:h-5 md:w-5" />
+              <span className="hidden sm:inline">Exportar</span>
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );

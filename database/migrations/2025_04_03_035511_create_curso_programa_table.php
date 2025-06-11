@@ -17,12 +17,12 @@ return new class extends Migration
             $table->primary(['idCurso', 'idPrograma']);
 
             $table->foreign('idCurso')
-                  ->references('idCurso')->on('curso')
-                  ->onDelete('cascade');
+                ->references('idCurso')->on('curso')
+                ->onDelete('cascade');
 
             $table->foreign('idPrograma')
-                  ->references('idPrograma')->on('programa')
-                  ->onDelete('cascade');
+                ->references('idPrograma')->on('programa')
+                ->onDelete('cascade');
         });
     }
 

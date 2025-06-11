@@ -18,13 +18,13 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
 
     const [formData, setFormData] = useState({
         nombreCompleto: initialData?.nombreCompleto || "",
-        email: initialData?.email || "",
+        email: initialData?.email,
         identificacion: initialData?.identificacion || "",
         titulo: initialData?.titulo || "",
         experiencia: parseInt(initialData?.experiencia) || "",
         estado: initialData?.estado || "Activo",
         perfil: initialData?.perfil || "",
-        codigo: initialData?.codigo || "" 
+        codigo: initialData?.codigo || ""
     });
 
     const [errors, setErrors] = useState({});
@@ -141,7 +141,6 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
                                 value={formData.email}
                                 onChange={handleChange}
                                 placeholder="Ingrese el email"
-                                required
                             />
                         </div>
 
@@ -167,7 +166,6 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
                                 value={formData.experiencia}
                                 onChange={handleChange}
                                 placeholder="Ingrese años de experiencia"
-                                required
                             />
                         </div>
 

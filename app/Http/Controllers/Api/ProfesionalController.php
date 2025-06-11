@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
 
 class ProfesionalController extends Controller
 {
@@ -30,9 +33,9 @@ class ProfesionalController extends Controller
                 'codigo' => "required|string|max:20",
                 'identificacion' => "required|string|max:20",
                 'nombreCompleto' => "required|string|max:100",
-                'email' => "required|email|unique:profesional,email",
+                'email' => "sometimes|email|unique:profesional,email",
                 'titulo' => "required|string|max:200",
-                'experiencia' => "required|integer",
+                'experiencia' => "sometimes|nullable|integer",
                 'estado' => "required|string",
                 'perfil' => "nullable|string",
             ]);
@@ -43,9 +46,9 @@ class ProfesionalController extends Controller
                 'errors'  => $e->errors()
             ], 422);
         }
-
+        $validatedData['experiencia'] = $validatedData['experiencia'] ?? 0;
+        $validatedData['email'] = $validatedData['email'] ?? "";
         $profesional = Profesional::create($validatedData);
-
         return response()->json($profesional, 201);
     }
 
@@ -169,5 +172,74 @@ class ProfesionalController extends Controller
                 'mensaje' => 'Error interno del servidor.'
             ], 500);
         }
+    }
+
+    public function exportProfesionalesXls()
+    {
+        // 1) Carga de todos los profesionales
+        $profesionales = Profesional::all();
+
+        // 2) Crear el spreadsheet y la hoja activa
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Profesionales');
+
+        // 3) Definir cabeceras: usa los campos fillable de tu modelo
+        $headers = [
+            'ID',
+            'Código',
+            'Identificación',
+            'Nombre completo',
+            'Email',
+            'Título',
+            'Años de experiencia',
+            'Estado',
+            'Perfil',
+        ];
+        foreach ($headers as $idx => $title) {
+            $col = Coordinate::stringFromColumnIndex($idx + 1);
+            $sheet->setCellValue("{$col}1", $title);
+            $sheet->getStyle("{$col}1")->getFont()->setBold(true);
+        }
+
+        // 4) Rellenar filas con los datos de cada profesional
+        $row = 2;
+        foreach ($profesionales as $p) {
+            $data = [
+                $p->getKey(),           // idProfesional
+                $p->codigo,
+                $p->identificacion,
+                $p->nombreCompleto,
+                $p->email,
+                $p->titulo,
+                $p->experiencia,
+                $p->estado,
+                $p->perfil,
+            ];
+            foreach ($data as $i => $val) {
+                $col = Coordinate::stringFromColumnIndex($i + 1);
+                $sheet->setCellValue("{$col}{$row}", $val);
+                // Ajuste de texto si fuera necesario
+                $sheet->getStyle("{$col}{$row}")->getAlignment()->setWrapText(true);
+            }
+            $row++;
+        }
+
+        // 5) Auto-ajustar anchos de columna
+        foreach (range(1, count($headers)) as $colIndex) {
+            $col = Coordinate::stringFromColumnIndex($colIndex);
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // 6) Generar y devolver XLS en base64 (o como descarga directa)
+        $writer = new Xls($spreadsheet);
+        ob_start();
+        $writer->save('php://output');
+        $xlsData = ob_get_clean();
+
+        return response()->json([
+            'filename' => 'profesionales.xls',
+            'base64'   => base64_encode($xlsData),
+        ]);
     }
 }
