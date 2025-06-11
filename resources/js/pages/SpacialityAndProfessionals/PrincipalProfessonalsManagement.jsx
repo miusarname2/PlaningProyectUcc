@@ -101,7 +101,7 @@ export default function PrincipalProfessonalsManagement() {
     function getSearchType(value) {
         const trimmed = value.trim();
         if (/^\d+$/.test(trimmed)) return "identificacion"; 
-        if (/^[a-zA-Z\s]+$/.test(trimmed)) return "nombreCompleto"; 
+        if (/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(trimmed)) return "nombreCompleto"; 
     }
 
     async function handleSearch(value) {
