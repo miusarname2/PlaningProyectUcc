@@ -5,7 +5,7 @@ import { router } from "@inertiajs/react";
 export default function HeaderSchedule({ title = "Cronograma de Horarios", backTo = null,handleExport=()=>console.log('Se exporto...') }) {
 
   const handlePrint = () => {
-    print();
+    window.print();
   }
 
   return (

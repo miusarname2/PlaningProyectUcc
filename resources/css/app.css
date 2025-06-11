@@ -123,6 +123,40 @@
     }
 }
 
+@media print {
+   html, body {
+    height: auto;
+    overflow: visible !important;
+  }
+
+  .printable, .printable * {
+    visibility: visible;
+  }
+
+  .printable {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    overflow: visible !important;
+  }
+
+  @page {
+    size: A3 landscape;
+    margin: 1cm;
+  }
+  
+   html, body {
+    page-break-before: avoid;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+  
+}
+
 :root {
     --muted-foreground: 215.4 16.3% 46.9%;
     --muted: 210 40% 96.1%;

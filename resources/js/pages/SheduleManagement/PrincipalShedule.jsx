@@ -504,13 +504,13 @@ export default function PrincipalSchedule() {
       </div>
 
       {/* Schedule Table */}
-      <div className="flex-1 overflow-hidden p-2 md:px-4 bg-white"> {/* Changed overflow-auto to overflow-hidden here */}
+      <div className="flex-1 overflow-hidden p-2 md:px-4 bg-white "> {/* Changed overflow-auto to overflow-hidden here */}
         {loading && (
           <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
             <p className="text-gray-700 text-lg">Cargando horario...</p>
           </div>
         )}
-        <div className="bg-white border rounded-md overflow-hidden">
+        <div className="bg-white border rounded-md overflow-visible printable">
           {/* Added h-96 to parent div instead of table wrapper for better control */}
           <div className="overflow-x-auto relative" style={{ maxHeight: 'calc(100vh - 350px)' }}> {/* Altura ajustada, puedes modificar 350px */}
             <table className="w-full table-fixed border-collapse min-w-[1200px]">
