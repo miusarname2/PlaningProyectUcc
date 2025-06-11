@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
 
 class CursoController extends Controller
 {
@@ -251,5 +254,99 @@ class CursoController extends Controller
                 'mensaje' => 'Error interno del servidor.'
             ], 500);
         }
+    }
+
+    public function exportCursosXls(): \Illuminate\Http\JsonResponse
+    {
+        // 1) Seleccionar todas las columnas de la tabla 'curso'
+        $cursos = DB::table('curso')
+            ->select([
+                'idCurso',
+                'codigo',
+                'codigoGrupo',
+                'nombre',
+                'descripcion',
+                'nivel',
+                'cohorte',
+                'creditos',
+                'modalidad',
+                'horas',
+                'estado',
+                'fecha_inicio',
+                'fecha_fin',
+            ])
+            ->get();
+
+        // 2) Crear el spreadsheet y la hoja activa
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Cursos');
+
+        // 3) Definir cabeceras según columnas seleccionadas
+        $headers = [
+            'ID Curso',
+            'Código',
+            'Código Grupo',
+            'Nombre',
+            'Descripción',
+            'Nivel',
+            'Cohorte',
+            'Créditos',
+            'Modalidad',
+            'Horas',
+            'Estado',
+            'Fecha Inicio',
+            'Fecha Fin',
+        ];
+
+        foreach ($headers as $idx => $title) {
+            $col = Coordinate::stringFromColumnIndex($idx + 1);
+            $sheet->setCellValue("{$col}1", $title);
+            $sheet->getStyle("{$col}1")->getFont()->setBold(true);
+        }
+
+        // 4) Rellenar filas con los datos de cada curso
+        $row = 2;
+        foreach ($cursos as $curso) {
+            $data = [
+                $curso->idCurso,
+                $curso->codigo,
+                $curso->codigoGrupo,
+                $curso->nombre,
+                $curso->descripcion,
+                $curso->nivel,
+                $curso->cohorte,
+                $curso->creditos,
+                $curso->modalidad,
+                $curso->horas,
+                $curso->estado,
+                optional($curso->fecha_inicio)->format('Y-m-d') ?? $curso->fecha_inicio,
+                optional($curso->fecha_fin)->format('Y-m-d') ?? $curso->fecha_fin,
+            ];
+
+            foreach ($data as $i => $val) {
+                $col = Coordinate::stringFromColumnIndex($i + 1);
+                $sheet->setCellValue("{$col}{$row}", $val);
+                $sheet->getStyle("{$col}{$row}")->getAlignment()->setWrapText(true);
+            }
+            $row++;
+        }
+
+        // 5) Auto-ajustar anchos de columna
+        foreach (range(1, count($headers)) as $colIndex) {
+            $col = Coordinate::stringFromColumnIndex($colIndex);
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // 6) Generar y devolver XLS en base64
+        $writer = new Xls($spreadsheet);
+        ob_start();
+        $writer->save('php://output');
+        $xlsData = ob_get_clean();
+
+        return response()->json([
+            'filename' => 'cursos.xls',
+            'base64'   => base64_encode($xlsData),
+        ]);
     }
 }

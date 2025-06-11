@@ -77,6 +77,16 @@ export default function PrincipalCourse() {
         }
     }
 
+    const exportExcel = async () => {
+        const response = await api.get("/curso/export-xlsx");
+        const link = document.createElement('a');
+        link.href = 'data:application/vnd.ms-excel;base64,' + response.data.base64;
+        link.download = response.data.filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    }
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -92,6 +102,8 @@ export default function PrincipalCourse() {
                     module="courses_management"
                     onClick={() => setShowForm(true)}
                     showButton={!showForm}
+                    exportExcel={true}
+                    handleExport={exportExcel}
                 />
 
                 {!showForm ? (
