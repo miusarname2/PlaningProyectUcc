@@ -20,12 +20,16 @@ return new class extends Migration
             $table->enum('modalidad', ['Presencial', 'Virtual'])->nullable();
             $table->enum('nivel', ['Avanzado', 'Intermedio', 'Basico'])->nullable();
             $table->unsignedInteger('cohorte')->nullable();
-            $table->integer('creditos')->unsigned();
+            $table->unsignedInteger('idLote')->nullable();
             $table->integer('horas')->unsigned();
             $table->enum('estado', ['Activo', 'Inactivo']);
             $table->date('fecha_inicio')->nullable();
             $table->date('fecha_fin')->nullable();
             $table->timestamps();
+
+            $table->foreign('idLote')
+                ->references('idLote')->on('lote')
+                ->onDelete('cascade');
         });
     }
 
