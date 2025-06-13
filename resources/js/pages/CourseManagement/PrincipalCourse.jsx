@@ -12,7 +12,6 @@ const columns = [
     { title: "Código", key: "codigoCurso" },
     { title: "Nombre", key: "nombre" },
     { title: "Descripción", key: "descripcion" },
-    { title: "Créditos", key: "creditos" },
     { title: "Horas", key: "horas" },
     {
         title: "Programa",

@@ -27,4 +27,9 @@ class Lote extends Model
     {
         return $this->belongsTo(Ciudad::class, 'idCiudad', 'idCiudad');
     }
+
+    public function curso()
+    {
+        return $this->hasOne(Curso::class, 'idLote', 'idLote');
+    }
 }

@@ -15,12 +15,13 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
     // State for dropdown data
     const [specialties, setSpecialties] = useState([]);
     const [programs, setPrograms] = useState([]);
+    const [lotes, setLotes] = useState([]);
 
     // Form state with proper initialData mapping
     const [formData, setFormData] = useState({
         nombre: initialData?.nombre || "",
         descripcion: initialData?.descripcion || "",
-        creditos: initialData?.creditos ?? "",
+        idLote: initialData?.idLote ?? "",
         horas: initialData?.horas ?? "",
         estado: initialData?.estado || "",
         modalidad: initialData?.modalidad || "",
@@ -45,6 +46,9 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
         api.get('/programa')
             .then(res => setPrograms(res.data || []))
             .catch(err => console.error('Error loading programs', err));
+        api.get('/lote')
+            .then(res => setLotes(res.data || []))
+            .catch(err => console.error('Error loading betches', err));
     }, []);
 
     const generateCodigo = async () => {
@@ -91,7 +95,7 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
             codigo: formData.codigo,
             nombre: formData.nombre,
             descripcion: formData.descripcion,
-            creditos: Number(formData.creditos),
+            idLote: formData.idLote,
             horas: Number(formData.horas),
             estado: formData.estado,
             modalidad: formData.modalidad,
@@ -158,7 +162,21 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                         </div>
 
                     </div>
-
+                    <div className="space-y-2">
+                        <InputLabel htmlFor="idLote" value="Lote" />
+                        <SelectInput
+                            id="idLote"
+                            name="idLote"
+                            value={formData.idLote}
+                            onChange={handleChange}
+                            options={[
+                                { value: "", label: "Seleccionar Lote" },
+                                ...lotes.map(s => ({ value: s.idLote, label: s.nombre }))
+                            ]}
+                            required
+                            error={errors.idLote}
+                        />
+                    </div>
 
                     {/* Descripción */}
                     <div className="space-y-2">
@@ -176,20 +194,6 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Créditos */}
-                        <div className="space-y-2">
-                            <InputLabel htmlFor="creditos" value="Créditos" />
-                            <TextInput
-                                id="creditos"
-                                name="creditos"
-                                type="number"
-                                value={formData.creditos}
-                                onChange={handleChange}
-                                placeholder="Ej: 3"
-                                required
-                                error={errors.creditos}
-                            />
-                        </div>
                         {/* Horas */}
                         <div className="space-y-2">
                             <InputLabel htmlFor="horas" value="Horas" />

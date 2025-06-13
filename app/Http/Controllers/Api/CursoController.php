@@ -22,7 +22,7 @@ class CursoController extends Controller
      */
     public function index()
     {
-        $cursos = Curso::with(['programas'])->get();
+        $cursos = Curso::with(['programas', 'lote'])->get();
         return response()->json($cursos);
     }
 
@@ -39,7 +39,7 @@ class CursoController extends Controller
                 'cohorte' => "required|numeric",
                 'nivel' => 'sometimes|in:Avanzado,Intermedio,Basico',
                 'descripcion' => "required|string",
-                'creditos' => 'required|numeric',
+                'idLote' => 'required|integer|exists:lote,idLote',
                 'horas' => "required|numeric",
                 'modalidad' => 'required|in:Presencial,Virtual',
                 'estado' => 'required|in:Activo,Inactivo',
@@ -116,7 +116,7 @@ class CursoController extends Controller
             'codigoGrupo' => "required|string|max:25",
             'cohorte' => "required|numeric",
             'nivel' => 'sometimes|in:Avanzado,Intermedio,Basico',
-            'creditos' => "sometimes|required|numeric",
+            'idLote' => 'sometimes|integer|exists:lote,idLote',
             'modalidad' => 'sometimes|in:Presencial,Virtual',
             'horas' => "sometimes|required|numeric",
             'estado' => 'sometimes|required|in:Activo,Inactivo',

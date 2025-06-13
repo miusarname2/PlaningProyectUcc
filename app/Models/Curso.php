@@ -20,7 +20,7 @@ class Curso extends Model
         'descripcion',
         'nivel',
         'cohorte',
-        'creditos',
+        'idLote',
         'modalidad',
         'horas',
         'estado',
@@ -35,7 +35,7 @@ class Curso extends Model
 
     public const NIVELES = ['Avanzado', 'Intermedio', 'Basico'];
 
-    public const MODALIDAD = ['Presencial','Virtual'];
+    public const MODALIDAD = ['Presencial', 'Virtual'];
 
     public const ESTADOS = ['Activo', 'Inactivo'];
 
@@ -52,4 +52,12 @@ class Curso extends Model
         return $this->hasMany(Horario::class, 'idCurso', 'idCurso');
     }
 
+    /**
+     * Relación uno a uno inversa con Lote
+     * Un curso pertenece a un lote.
+     */
+    public function lote()
+    {
+        return $this->belongsTo(Lote::class, 'idLote', 'idLote');
+    }
 }
