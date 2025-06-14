@@ -14,7 +14,7 @@ import { useLoader } from "@/Components/LoaderProvider";
 
 export default function ClassForm({ onCancel, initialData = null, onSubmitSuccess }) {
     const { show, hide } = useLoader();
-    console.log(JSON.stringify(initialData));
+    console.log(initialData);
     const api = getApi();
     const { toast } = useToast();
 
@@ -22,7 +22,6 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
 
     const [courses, setCourses] = useState([]);
     const [professionals, setProfessionals] = useState([]);
-    const [rolesDocentes, setRolesDocentes] = useState([]);
     const [cities, setCities] = useState([]);
     const [sedes, setSedes] = useState([]);
     const [aulas, setAulas] = useState([]);
@@ -69,14 +68,13 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
         const fetchData = async () => {
             try {
                 // 1) Petición paralela a /curso y /Horario
-                const [coursesRes, horariosRes, professionalsRes, citiesRes, sedesRes, aulasRes, rolesDocentesRes, diaRes] = await Promise.all([
+                const [coursesRes, horariosRes, professionalsRes, citiesRes, sedesRes, aulasRes, diaRes] = await Promise.all([
                     api.get('/curso'),
                     api.get('/Horario'),
                     api.get('/profesional'),
                     api.get('/ciudad'),
                     api.get('/sede'),
                     api.get('/aula/getAvailable'),
-                    api.get('/rolDocente'),
                     api.get('/dia'),
                 ]);
 
@@ -95,7 +93,6 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                 setCities(citiesRes.data || []);
                 setSedes(sedesRes.data || []);
                 setAulas(aulasRes.data || []);
-                setRolesDocentes(rolesDocentesRes.data.data || []);
                 setDia(diaRes.data.data || []);
             } catch (error) {
                 console.error('Error fetching master lists:', error);
@@ -186,7 +183,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
         const professional = professionals.find(p => p.idProfesional === selectedId);
 
         if (professional) {
-            setProfessionalPendingRoleSelection({ idProfesional: professional.idProfesional, nombreCompleto: professional.nombreCompleto });
+            setProfessionalPendingRoleSelection(professional);
             setSelectedRoleForPendingProf('');
             if (errors.selectedProfessionals) {
                 setErrors(prev => ({ ...prev, selectedProfessionals: null }));
@@ -512,7 +509,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                                                 value={selectedRoleForPendingProf}
                                                 onChange={handleRoleChangeForPendingProf}
                                                 options={[{ value: '', label: 'Seleccione Rol.', disabled: true },
-                                                ...rolesDocentes.map(role => ({ value: role.idRolDocente, label: role.nombre }))]}
+                                                ...professionalPendingRoleSelection.roles.map(r => ({ value: r.idRolDocente, label: r.nombre }))]}
                                                 required
                                             />
                                         </div>
