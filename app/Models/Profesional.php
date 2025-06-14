@@ -25,7 +25,7 @@ class Profesional extends Model
 
     public function roles()
     {
-        return $this->belongsToMany(RolDocente::class, 'profesional_rol', 'idProfesional', 'idRol');
+        return $this->belongsToMany(RolDocente::class, 'profesional_rol', 'idProfesional', 'idRolDocente');
     }
 
     public function horarios()

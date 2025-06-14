@@ -5,11 +5,12 @@ import SelectInput from "@/Components/SelectInput";
 import ButtonGradient from "@/Components/ButtonGradient";
 import CancelButton from "@/Components/CancelButton";
 import ToggleSwitch from "@/Components/ToggleSwitch"; // lo vamos a crear
-import { Save } from "lucide-react";
+import { Save, XCircle } from "lucide-react";
 import { getApi } from "@/utils/generalFunctions";
 
 export default function ProfessonalForm({ onCancel, initialData = null, onSubmitSuccess }) {
     const api = getApi();
+    console.log(initialData.roles);
     const isEditMode = Boolean(initialData);
 
     function fromBase64(base64) {
@@ -24,10 +25,23 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
         experiencia: parseInt(initialData?.experiencia) || "",
         estado: initialData?.estado || "Activo",
         perfil: initialData?.perfil || "",
-        codigo: initialData?.codigo || ""
+        codigo: initialData?.codigo || "",
+        roles: initialData?.roles?.map(r => r.idRolDocente) || []
     });
 
     const [errors, setErrors] = useState({});
+    const [availableRoles, setAvailableRoles] = useState([]);
+
+    const availableRoleOptions = availableRoles
+        .filter(r => !formData.roles.includes(r.idRolDocente))
+        .map(r => ({ value: r.idRolDocente, label: r.nombre }));
+
+    useEffect(() => {
+        // Cargar roles disponibles desde API
+        api.get('/rolDocente').then(({ data }) => {
+            setAvailableRoles(data.data);
+        }).catch(err => console.error(err));
+    }, []);
 
     const toBase64 = (text) => {
         return btoa(unescape(encodeURIComponent(text)));
@@ -37,6 +51,22 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSelectRoleToAdd = (e) => {
+        const id = parseInt(e.target.value, 10);
+        if (id && !formData.roles.includes(id)) {
+            setFormData(prev => ({ ...prev, roles: [...prev.roles, id] }));
+            setErrors(prev => ({ ...prev, roles: null }));
+        }
+        e.target.value = "";
+    };
+
+    const handleRemoveRole = (id) => {
+        setFormData(prev => ({
+            ...prev,
+            roles: prev.roles.filter(r => r !== id)
+        }));
     };
 
     // Manejador para la subida del PDF
@@ -183,6 +213,32 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
                                 ]}
                                 required
                             />
+                        </div>
+
+                        {/* Sección para asignar Roles */}
+                        <div className="space-y-2 md:col-span-2">
+                            <InputLabel htmlFor="addRole" value="Roles" />
+                            <SelectInput
+                                id="addRole"
+                                value=""
+                                onChange={handleSelectRoleToAdd}
+                                options={[{ value: "", label: "Agregar Rol" }, ...availableRoleOptions]}
+                            />
+                            {errors.roles && <div className="text-red-500 text-sm">{errors.roles}</div>}
+                            <div className="mt-2 flex flex-wrap items-center gap-2 border border-gray-300 p-2 rounded min-h-[40px]">
+                                {formData.roles.length === 0 && <span className="text-gray-500 text-sm">Ningún rol seleccionado.</span>}
+                                {formData.roles.map(id => {
+                                    const role = availableRoles.find(r => r.idRolDocente === id);
+                                    return role ? (
+                                        <div key={id} className="inline-flex items-center border border-blue-200 rounded-md pl-2 py-1 pr-1 bg-blue-50">
+                                            <span className="text-blue-700 text-sm font-medium">{role.nombre}</span>
+                                            <button type="button" onClick={() => handleRemoveRole(id)} className="ml-1 p-0.5 text-blue-600 hover:text-blue-800 focus:outline-none rounded-sm">
+                                                <XCircle size={14} />
+                                            </button>
+                                        </div>
+                                    ) : null;
+                                })}
+                            </div>
                         </div>
 
                         {/* Campo para subir PDF (Perfil) */}

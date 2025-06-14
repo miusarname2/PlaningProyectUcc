@@ -105,7 +105,6 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
             fecha_inicio: formData.fecha_inicio,
             fecha_fin: formData.fecha_fin,
             programas: formData.selectedPrograms
-
         };
 
         try {
