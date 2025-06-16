@@ -34,7 +34,7 @@ class ProfesionalController extends Controller
                 'identificacion' => 'required|string|max:20',
                 'nombreCompleto' => 'required|string|max:100',
                 'email'          => 'sometimes|email|unique:profesional,email',
-                'titulo'         => 'required|string|max:200',
+                'titulo'         => 'sometimes|nullable|string|max:200',
                 'experiencia'    => 'sometimes|nullable|integer',
                 'estado'         => 'required|string',
                 'perfil'         => 'nullable|string',
@@ -52,6 +52,7 @@ class ProfesionalController extends Controller
         // Valores por defecto
         $validatedData['experiencia'] = $validatedData['experiencia'] ?? 0;
         $validatedData['email']       = $validatedData['email']       ?? '';
+        $validatedData['titulo']       = $validatedData['titulo']       ?? '';
 
         // 1) Crear profesional
         $profesional = Profesional::create($validatedData);
@@ -88,7 +89,7 @@ class ProfesionalController extends Controller
             'identificacion' => 'sometimes|string|max:20',
             'nombreCompleto' => 'sometimes|required|string|max:255',
             'email'          => 'sometimes|required|email|unique:profesional,email,' . $id . ',idProfesional',
-            'titulo'         => 'sometimes|required|string|max:255',
+            'titulo'         => 'sometimes|nullable|required|string|max:255',
             'experiencia'    => 'sometimes|required|integer',
             'estado'         => 'sometimes|required|string',
             'perfil'         => 'sometimes|nullable|string',

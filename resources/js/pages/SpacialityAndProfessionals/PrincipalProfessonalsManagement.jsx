@@ -15,7 +15,6 @@ const columns = [
     { title: "Profesional", key: "nombreCompleto" },
     { title: "Numero de Identificacion", key: "identificacion" },
     { title: "Email", key: "email" },
-    { title: "Cualificación", key: "titulo" },
     { title: "Experiencia(Años)", key: "experiencia" },
     {
         title: "Estado",
@@ -100,8 +99,8 @@ export default function PrincipalProfessonalsManagement() {
 
     function getSearchType(value) {
         const trimmed = value.trim();
-        if (/^\d+$/.test(trimmed)) return "identificacion"; 
-        if (/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(trimmed)) return "nombreCompleto"; 
+        if (/^\d+$/.test(trimmed)) return "identificacion";
+        if (/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(trimmed)) return "nombreCompleto";
     }
 
     async function handleSearch(value) {

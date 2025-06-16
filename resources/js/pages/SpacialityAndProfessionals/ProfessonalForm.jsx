@@ -173,19 +173,6 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
                             />
                         </div>
 
-                        {/* Campo Cualificación (Título) */}
-                        <div className="space-y-2">
-                            <InputLabel htmlFor="titulo" value="Cualificación" />
-                            <TextInput
-                                id="titulo"
-                                name="titulo"
-                                value={formData.titulo}
-                                onChange={handleChange}
-                                placeholder="Ingrese su cualificación o título"
-                                required
-                            />
-                        </div>
-
                         {/* Campo Experiencia */}
                         <div className="space-y-2">
                             <InputLabel htmlFor="experiencia" value="Experiencia (años)" />
