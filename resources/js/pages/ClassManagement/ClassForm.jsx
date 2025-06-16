@@ -4,6 +4,7 @@ import { TextField } from '@mui/material';
 import TextInput from "@/Components/TextInput";
 import InputLabel from "@/Components/InputLabel";
 import SelectInput from "@/Components/SelectInput";
+import SearchableSelect from "@/Components/SearchableSelect";
 import { useToast } from '@/lib/toast-context'
 import ButtonGradient from "@/Components/ButtonGradient";
 import CancelButton from "@/Components/CancelButton";
@@ -396,7 +397,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                         {/* Curso */}
                         <div className="space-y-2">
                             <InputLabel htmlFor="idCurso" value="Curso" />
-                            <SelectInput id="idCurso" name="idCurso" value={formData.idCurso} onChange={handleChange}
+                            <SearchableSelect id="idCurso" name="idCurso" value={formData.idCurso} onChange={handleChange}
                                 options={[{ value: '', label: 'Seleccione Curso mediante su Codigo', disabled: true },
                                 ...courses.map(c => ({ value: c.idCurso, label: c.codigoGrupo }))]}
                                 required error={errors.idCurso}
