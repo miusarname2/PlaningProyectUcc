@@ -10,7 +10,6 @@ import { getApi } from "@/utils/generalFunctions";
 
 export default function ProfessonalForm({ onCancel, initialData = null, onSubmitSuccess }) {
     const api = getApi();
-    console.log(initialData.roles);
     const isEditMode = Boolean(initialData);
 
     function fromBase64(base64) {
