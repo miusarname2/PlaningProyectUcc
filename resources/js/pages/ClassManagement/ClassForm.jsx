@@ -388,11 +388,13 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
 
             } else if (err.response?.status == 409 && err.response.data.message == "Teacher, has reached the maximum number of teaching and tutoring assignments.") {
                 toast({ title: '¡Error!', description: 'El docente, ha alcanzado el numero maximo de asignaciones como Mentor y tutor', variant: 'error' });
-            } else if (err.response?.status == 409 && err.response.data.message == "Teacher, busy at that time") {
+            } else if (err.response?.status == 409 && (err.response.data.message == "Teacher, busy at that time" || err.response.data.message == "El ejecutor ya tiene una asignación en esa franja horaria.")) {
                 toast({ title: '¡Error!', description: 'El docente esta ocupado en ese horario.', variant: 'error' });
+            } else if(err.response?.status == 409 && (err.response.data.message == "El aula no está disponible para asignar." || err.response.data.message == "El ejecutor ya tiene una asignación en esa franja horaria." || err.response.data.message == "El docente ha alcanzado el máximo de 4 asignaciones en esa franja." || err.response.data.message == "El aula ya está ocupada en esa franja horaria." || err.response.data.message == "El ejecutor ya tiene una asignación en esa franja horaria.")){
+                toast({ title: '¡Error!', description: err.response.data.message, variant: 'error' });
             } else if (err.response?.status == 409 && err.response.data.message != "Teacher, has reached the maximum number of teaching and tutoring assignments." && err.response.data.message != "Teacher, busy at that time") {
                 toast({ title: '¡Error!', description: 'Conflicto de horario o profesional.', variant: 'error' });
-            } else {
+            }else {
                 console.error(err);
                 toast({ title: '¡Error!', description: 'Error inesperado al guardar.', variant: 'error' });
             }
