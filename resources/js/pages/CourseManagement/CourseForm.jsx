@@ -286,7 +286,7 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
 
                         {/* Cohorte */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="cohorte" value="cohorte" />
+                            <InputLabel htmlFor="cohorte" value="Cohorte" />
                             <TextInput
                                 id="cohorte"
                                 name="cohorte"
@@ -301,7 +301,7 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
 
                         {/* Nivel */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="nivel" value="nivel" />
+                            <InputLabel htmlFor="nivel" value="Nivel" />
                             <SelectInput
                                 id="nivel"
                                 name="nivel"
