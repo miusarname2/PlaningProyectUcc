@@ -24,6 +24,9 @@ class Curso extends Model
         'modalidad',
         'horas',
         'estado',
+        'tipo',
+        'numero',
+        'convenio',
         'fecha_inicio',
         'fecha_fin'
     ];

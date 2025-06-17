@@ -29,6 +29,9 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
         codigoGrupo: initialData?.codigo || "",
         nivel: initialData?.nivel || "",
         codigo: initialData?.codigo || "",
+        tipo: initialData?.tipo || "",
+        numero: initialData?.numero || "",
+        convenio:initialData?.convenio || "",
         fecha_inicio: initialData?.fecha_inicio || "",
         fecha_fin: initialData?.fecha_fin || "",
         // Map initialData.programas to array of IDs
@@ -104,6 +107,9 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
             nivel: formData.nivel,
             fecha_inicio: formData.fecha_inicio,
             fecha_fin: formData.fecha_fin,
+            tipo: formData.tipo,
+            numero:formData.numero,
+            convenio: formData.convenio,
             programas: formData.selectedPrograms
         };
 
@@ -205,6 +211,48 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                                 placeholder="Ej: 40"
                                 required
                                 error={errors.horas}
+                            />
+                        </div>
+
+                        {/* tipo */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="tipo" value="Tipo" />
+                            <TextInput
+                                id="tipo"
+                                name="tipo"
+                                value={formData.tipo}
+                                onChange={handleChange}
+                                placeholder="Ej: tipo 1"
+                                required
+                                error={errors.tipo}
+                            />
+                        </div>
+
+                        {/* numero */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="numero" value="Numero" />
+                            <TextInput
+                                id="numero"
+                                name="numero"
+                                value={formData.numero}
+                                onChange={handleChange}
+                                placeholder="Ej: 40521"
+                                required
+                                error={errors.numero}
+                            />
+                        </div>
+
+                        {/* convenio */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="convenio" value="Convenio" />
+                            <TextInput
+                                id="convenio"
+                                name="convenio"
+                                value={formData.convenio}
+                                onChange={handleChange}
+                                placeholder="Ej: 40521"
+                                required
+                                error={errors.convenio}
                             />
                         </div>
 
