@@ -670,24 +670,26 @@ class HorarioController extends Controller
             $sheet1->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // 4) Segunda hoja: Tabla detallada de horarios
+        // 4) Segunda hoja: Tabla detallada de horarios con campos extras
         $sheet2 = $spreadsheet->createSheet();
         $sheet2->setTitle('Detalle Horarios');
         $headers = [
             'Código de curso',
             'Nombre del curso',
+            'Fecha creación',       // Nuevo
             'Fecha inicio',
             'Fecha fin',
             'Programa',
             'Nivel',
-            'Número de horas',   // Ahora tomamos de curso->horas
+            'Número de horas',      // Ahora tomamos de curso->horas
             'Tipo formación',
             'Lote',
             'Ciudad',
+            'Ubicación',            // Nuevo: acceso + ciudad
             'Entidad',
             'Sede',
             'Aula',
-            'Día',              // Nueva columna antes de Hora inicio
+            'Día',                  // Nueva columna antes de Hora inicio
             'Hora inicio',
             'Hora fin',
             'Ejecutor',
@@ -707,6 +709,8 @@ class HorarioController extends Controller
             $tipoFormacion = $curso->modalidad;
             $lote        = $curso->codigoGrupo;
             $ciudad      = optional($h->aula->sede->ciudad)->nombre;
+            $acceso      = optional($h->aula->sede)->acceso;
+            $ubicacion   = trim(implode(' - ', array_filter([$acceso, $ciudad])));
             $entidad     = optional($h->aula->sede->propietario)->nombre;
             $sede        = optional($h->aula->sede)->nombre;
             $aula        = $h->aula->codigo;
@@ -725,12 +729,13 @@ class HorarioController extends Controller
 
             foreach ($h->dias as $d) {
                 $diaNombre = $diasSemana[$d->idDia - 1] ?? "Día {$d->idDia}";
-                // Usar horas desde el modelo Curso
-                $numHoras  = $curso->horas;
+                $numHoras  = $curso->horas;  // horas del curso
+                $fechaCreacion = $curso->created_at->format('Y-m-d');
 
                 $data = [
                     $curso->codigo,
                     $curso->nombre,
+                    $fechaCreacion,
                     $h->fecha_inicio,
                     $h->fecha_fin,
                     $programas,
@@ -739,6 +744,7 @@ class HorarioController extends Controller
                     $tipoFormacion,
                     $lote,
                     $ciudad,
+                    $ubicacion,
                     $entidad,
                     $sede,
                     $aula,
