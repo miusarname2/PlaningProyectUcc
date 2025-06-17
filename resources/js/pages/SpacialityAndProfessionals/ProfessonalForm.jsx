@@ -163,7 +163,7 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
 
                         {/* Campo Email */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="email" value="Email" />
+                            <InputLabel htmlFor="email" value="Email(Opcional)" />
                             <TextInput
                                 id="email"
                                 name="email"
@@ -175,7 +175,7 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
 
                         {/* Campo Experiencia */}
                         <div className="space-y-2">
-                            <InputLabel htmlFor="experiencia" value="Experiencia (años)" />
+                            <InputLabel htmlFor="experiencia" value="Experiencia (años) (Opcional)" />
                             <TextInput
                                 id="experiencia"
                                 name="experiencia"
