@@ -206,7 +206,7 @@ class ProfesionalController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Profesionales');
 
-        // 3) Definir cabeceras: usa los campos fillable de tu modelo
+        // 3) Definir cabeceras: sin la columna Perfil
         $headers = [
             'ID',
             'Código',
@@ -216,7 +216,6 @@ class ProfesionalController extends Controller
             'Título',
             'Años de experiencia',
             'Estado',
-            'Perfil',
         ];
         foreach ($headers as $idx => $title) {
             $col = Coordinate::stringFromColumnIndex($idx + 1);
@@ -236,7 +235,6 @@ class ProfesionalController extends Controller
                 $p->titulo,
                 $p->experiencia,
                 $p->estado,
-                $p->perfil,
             ];
             foreach ($data as $i => $val) {
                 $col = Coordinate::stringFromColumnIndex($i + 1);
