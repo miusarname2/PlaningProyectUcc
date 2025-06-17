@@ -175,6 +175,7 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
 
                         {/* Campo Experiencia */}
                         <div className="space-y-2">
+
                             <InputLabel htmlFor="experiencia" value="Experiencia (años) (Opcional)
                             " />
                             <TextInput

@@ -7,6 +7,7 @@ use App\Models\Profesional;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -84,12 +85,21 @@ class ProfesionalController extends Controller
     {
         $profesional = Profesional::findOrFail($id);
 
+        // Si el usuario envía "" en email, lo convertimos a null para la validación:
+        if ($request->has('email') && $request->input('email') === '') {
+            $request->merge(['email' => null]);
+        }
+
         $validatedData = $request->validate([
             'codigo'         => 'sometimes|required|string|max:20',
             'identificacion' => 'sometimes|string|max:20',
-            'nombreCompleto' => 'sometimes|required|string|max:255',
-            'email'          => 'sometimes|required|email|unique:profesional,email,' . $id . ',idProfesional',
-            'titulo'         => 'sometimes|nullable|required|string|max:255',
+            'nombreCompleto' => 'sometimes|string|max:255',
+            'email'          => [
+                'sometimes',
+                'nullable',
+                'email',
+                Rule::unique('profesional', 'email')->ignore($id, 'idProfesional'),
+            ],
             'experiencia'    => 'sometimes|required|integer',
             'estado'         => 'sometimes|required|string',
             'perfil'         => 'sometimes|nullable|string',
@@ -97,16 +107,20 @@ class ProfesionalController extends Controller
             'roles.*'        => 'integer|exists:rolDocente,idRolDocente',
         ]);
 
+        // Si validación dejó 'email' => null, lo quitamos para no tocar esa columna
+        if (array_key_exists('email', $validatedData) && $validatedData['email'] === null) {
+            unset($validatedData['email']);
+        }
+
         // 1) Actualizar datos básicos
         $profesional->update($validatedData);
 
         // 2) Sincronizar roles (si vienen en el request)
         if (array_key_exists('roles', $validatedData)) {
-            // Si envían un array vacío, borra todos los roles.
             $profesional->roles()->sync($validatedData['roles']);
         }
 
-        // 3) Recargar roles para la respuesta
+        // 3) Recargar relación para la respuesta
         $profesional->load('roles');
 
         return response()->json($profesional);
