@@ -23,6 +23,9 @@ return new class extends Migration
             $table->unsignedInteger('idLote')->nullable();
             $table->integer('horas')->unsigned();
             $table->enum('estado', ['Activo', 'Inactivo']);
+            $table->string('tipo', 50)->nullable();
+            $table->string('numero', 50)->nullable();
+            $table->string('convenio', 100)->nullable();
             $table->date('fecha_inicio')->nullable();
             $table->date('fecha_fin')->nullable();
             $table->timestamps();
