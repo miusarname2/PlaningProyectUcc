@@ -238,7 +238,7 @@ class HorarioController extends Controller
      */
     public function show(string $id)
     {
-        $horario = Horario::with(["curso", "profesional", "aula", "aula.sede", 'dias'])->findOrFail($id);
+        $horario = Horario::with(["curso", "profesional", "aula", "aula.sede", 'dias', "aula.sede.ciudad"])->findOrFail($id);
         return response()->json($horario);
     }
 
@@ -566,11 +566,26 @@ class HorarioController extends Controller
             });
         }
 
-        // Cargamos relaciones necesarias (ya no usamos FranjaHoraria)
-        $query->with(['curso', 'profesionales', 'aula', 'aula.sede', 'aula.sede.propietario', 'dias']);
+        // Cargamos relaciones necesarias (ya no usamos FranjaHoraria) ["curso", "profesional", "aula", "aula.sede", 'dias',"aula.sede.ciudad"]
+        $query->with(['curso', 'profesionales', 'aula', 'aula.sede', 'aula.sede.propietario', 'dias', 'aula.sede.ciudad']);
+
 
         try {
-            $horarios = $query->paginate(10);
+            $horarios = $query->paginate(50);
+
+            $coleccion = $horarios->getCollection();
+
+            // 2) Transformarla igual que en tu index()
+            $coleccion->transform(function ($horario) {
+                $horario->profesionales->transform(function ($prof) {
+                    $prof->rolDocente = RolDocente::find($prof->pivot->idRolDocente);
+                    return $prof;
+                });
+                return $horario;
+            });
+
+            // 3) Reemplazar la colección del paginador
+            $horarios->setCollection($coleccion);
 
             return response()->json([
                 'status' => 'success',
