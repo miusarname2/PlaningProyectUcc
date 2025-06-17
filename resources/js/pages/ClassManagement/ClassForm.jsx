@@ -203,6 +203,27 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             return;
         }
 
+        // 1) Verificar que no haya ya 3 profesionales
+        if (formData.selectedProfessionals.length >= 3) {
+            toast({ title: '¡Error!', description: 'Solo puedes asignar 3 profesionales.', variant: 'error' });
+            return;
+        }
+
+        // 2) Contar roles ya asignados
+        const assignedRoles = formData.selectedProfessionals.map(p => String(p.role));
+        // Si ya existe este rol, lo bloqueamos
+        if (assignedRoles.includes(selectedRoleForPendingProf)) {
+            const rolNombre = ['Ejecutor', 'Mentor', 'Monitor'][Number(selectedRoleForPendingProf) - 1] || 'este rol';
+            toast({ title: '¡Error!', description: `Ya hay un ${rolNombre} asignado.`, variant: 'error' });
+            return;
+        }
+
+        // 3) Asegurar que solo manejes los roles 1,2,3
+        if (!['1', '2', '3'].includes(String(selectedRoleForPendingProf))) {
+            toast({ title: '¡Error!', description: 'Rol inválido. Solo Ejecutor, Mentor o Monitor.', variant: 'error' });
+            return;
+        }
+
         setFormData(prev => ({
             ...prev,
             selectedProfessionals: [
