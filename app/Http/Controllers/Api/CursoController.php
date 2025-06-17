@@ -262,9 +262,9 @@ class CursoController extends Controller
         }
     }
 
-    public function exportCursosXls(): \Illuminate\Http\JsonResponse
+    public function exportCursosXls()
     {
-        // 1) Seleccionar todas las columnas de la tabla 'curso'
+        // 1) Seleccionar todas las columnas de la tabla 'curso' (sin la columna 'creditos')
         $cursos = DB::table('curso')
             ->select([
                 'idCurso',
@@ -274,7 +274,6 @@ class CursoController extends Controller
                 'descripcion',
                 'nivel',
                 'cohorte',
-                'creditos',
                 'modalidad',
                 'horas',
                 'estado',
@@ -288,7 +287,7 @@ class CursoController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Cursos');
 
-        // 3) Definir cabeceras según columnas seleccionadas
+        // 3) Definir cabeceras según columnas seleccionadas (sin 'Créditos')
         $headers = [
             'ID Curso',
             'Código',
@@ -297,7 +296,6 @@ class CursoController extends Controller
             'Descripción',
             'Nivel',
             'Cohorte',
-            'Créditos',
             'Modalidad',
             'Horas',
             'Estado',
@@ -322,7 +320,6 @@ class CursoController extends Controller
                 $curso->descripcion,
                 $curso->nivel,
                 $curso->cohorte,
-                $curso->creditos,
                 $curso->modalidad,
                 $curso->horas,
                 $curso->estado,
