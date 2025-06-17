@@ -505,7 +505,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                         <div className="space-y-2 md:col-span-2">
                             <InputLabel htmlFor="addProfessional" value="Asignar Profesionales" />
                             {/* Select para elegir un profesional a añadir */}
-                            <SelectInput
+                            <SearchableSelect
                                 id="addProfessional"
                                 value=""
                                 onChange={handleSelectProfessionalToAdd}
