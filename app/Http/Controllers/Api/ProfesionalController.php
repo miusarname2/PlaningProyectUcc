@@ -66,7 +66,6 @@ class ProfesionalController extends Controller
         $validatedData['contrato']         = $validatedData['contrato'] ?? '';
         $validatedData['numeroContratos']  = $validatedData['numeroContratos'] ?? 0;
         $validatedData['disponibilidad']   = $validatedData['disponibilidad'] ?? '';
-        $validatedData['email']            = $validatedData['email'] ?? '';
 
         // Separar relaciones de los atributos del modelo
         $roles = $validatedData['roles'] ?? [];
