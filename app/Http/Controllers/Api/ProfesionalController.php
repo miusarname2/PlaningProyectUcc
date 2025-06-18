@@ -61,7 +61,6 @@ class ProfesionalController extends Controller
         }
 
         // Valores por defecto
-        $validatedData['experiencia']      = $validatedData['experiencia'] ?? 0;
         $validatedData['titulo']           = $validatedData['titulo'] ?? '';
         $validatedData['contrato']         = $validatedData['contrato'] ?? '';
         $validatedData['numeroContratos']  = $validatedData['numeroContratos'] ?? 0;
