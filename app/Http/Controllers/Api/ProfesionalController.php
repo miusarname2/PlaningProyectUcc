@@ -29,6 +29,10 @@ class ProfesionalController extends Controller
      */
     public function store(Request $request)
     {
+
+        if ($request->has('email') && $request->input('email') === '') {
+            $request->merge(['email' => null]);
+        }
         try {
             $validatedData = $request->validate([
                 'codigo'           => 'required|string|max:20',
