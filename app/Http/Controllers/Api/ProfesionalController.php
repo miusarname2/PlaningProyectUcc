@@ -61,6 +61,7 @@ class ProfesionalController extends Controller
         }
 
         // Valores por defecto
+        $validatedData['experiencia'] = $validatedData['experiencia'] ?? 0;
         $validatedData['titulo']           = $validatedData['titulo'] ?? '';
         $validatedData['contrato']         = $validatedData['contrato'] ?? '';
         $validatedData['numeroContratos']  = $validatedData['numeroContratos'] ?? 0;
@@ -149,6 +150,7 @@ class ProfesionalController extends Controller
         }
 
         // Separar relaciones del modelo
+        $validatedData['experiencia'] = $validatedData['experiencia'] ?? 0;
         $roles = $validatedData['roles'] ?? null;
         $lotes = $validatedData['lotes'] ?? null;
 
