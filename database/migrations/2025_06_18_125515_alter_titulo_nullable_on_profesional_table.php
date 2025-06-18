@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('profesional', function (Blueprint $table) {
-            $table->string('email', 100)->nullable()->change();
             $table->string('titulo', 200)->nullable()->change();
         });
     }
@@ -22,8 +21,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('profesional', function (Blueprint $table) {
-            $table->string('email', 100)->nullable(false)->change();
-        });
+        //
     }
 };
