@@ -119,7 +119,7 @@ class ProfesionalController extends Controller
                 'email',
                 Rule::unique('profesional', 'email')->ignore($id, 'idProfesional'),
             ],
-            'experiencia'    => 'sometimes|required|integer',
+            'experiencia'    => 'sometimes|integer',
             'estado'         => 'sometimes|required|string',
             'perfil'         => 'sometimes|nullable|string',
             'roles'          => 'sometimes|array',
