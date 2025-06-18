@@ -104,43 +104,68 @@ class ProfesionalController extends Controller
     {
         $profesional = Profesional::findOrFail($id);
 
-        // Si el usuario envía "" en email, lo convertimos a null para la validación:
+        // Normalizar email vacío a null para la validación
         if ($request->has('email') && $request->input('email') === '') {
             $request->merge(['email' => null]);
         }
 
-        $validatedData = $request->validate([
-            'codigo'         => 'sometimes|required|string|max:20',
-            'identificacion' => 'sometimes|string|max:20',
-            'nombreCompleto' => 'sometimes|string|max:255',
-            'email'          => [
-                'sometimes',
-                'nullable',
-                'email',
-                Rule::unique('profesional', 'email')->ignore($id, 'idProfesional'),
-            ],
-            'experiencia'    => 'sometimes|integer',
-            'estado'         => 'sometimes|required|string',
-            'perfil'         => 'sometimes|nullable|string',
-            'roles'          => 'sometimes|array',
-            'roles.*'        => 'integer|exists:rolDocente,idRolDocente',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'codigo'           => 'sometimes|required|string|max:20',
+                'identificacion'   => 'sometimes|string|max:20',
+                'nombreCompleto'   => 'sometimes|string|max:255',
+                'email'            => [
+                    'sometimes',
+                    'nullable',
+                    'email',
+                    Rule::unique('profesional', 'email')->ignore($id, 'idProfesional'),
+                ],
+                'titulo'           => 'sometimes|nullable|string|max:200',
+                'experiencia'      => 'sometimes|nullable|integer|min:0',
+                'estado'           => 'sometimes|required|string|in:Activo,Inactivo',
+                'perfil'           => 'sometimes|nullable|string',
+                'contrato'         => 'sometimes|nullable|string|max:255',
+                'numeroContratos'  => 'sometimes|nullable|integer|min:0',
+                'disponibilidad'   => 'sometimes|nullable|string|max:100',
+                'idCiudad'         => 'sometimes|nullable|integer|exists:ciudad,idCiudad',
+                'roles'            => 'sometimes|array',
+                'roles.*'          => 'integer|exists:rolDocente,idRolDocente',
+                'lotes'            => 'sometimes|array',
+                'lotes.*'          => 'integer|exists:lote,idLote',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de los datos.',
+                'errors'  => $e->errors()
+            ], 422);
+        }
 
-        // Si validación dejó 'email' => null, lo quitamos para no tocar esa columna
+        // Evitar que email nulo sobreescriba accidentalmente si no se desea cambiar
         if (array_key_exists('email', $validatedData) && $validatedData['email'] === null) {
             unset($validatedData['email']);
         }
 
+        // Separar relaciones del modelo
+        $roles = $validatedData['roles'] ?? null;
+        $lotes = $validatedData['lotes'] ?? null;
+
+        unset($validatedData['roles'], $validatedData['lotes']);
+
         // 1) Actualizar datos básicos
         $profesional->update($validatedData);
 
-        // 2) Sincronizar roles (si vienen en el request)
-        if (array_key_exists('roles', $validatedData)) {
-            $profesional->roles()->sync($validatedData['roles']);
+        // 2) Sincronizar relaciones si vienen en la solicitud
+        if (!is_null($roles)) {
+            $profesional->roles()->sync($roles);
         }
 
-        // 3) Recargar relación para la respuesta
-        $profesional->load('roles');
+        if (!is_null($lotes)) {
+            $profesional->lotes()->sync($lotes);
+        }
+
+        // 3) Recargar relaciones
+        $profesional->load('roles', 'lotes', 'ciudad');
 
         return response()->json($profesional);
     }
