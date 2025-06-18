@@ -260,15 +260,15 @@ class ProfesionalController extends Controller
 
     public function exportProfesionalesXls()
     {
-        // 1) Carga de todos los profesionales
-        $profesionales = Profesional::all();
+        // 1) Cargar profesionales con su ciudad
+        $profesionales = Profesional::with('ciudad')->get();
 
-        // 2) Crear el spreadsheet y la hoja activa
+        // 2) Crear spreadsheet
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Profesionales');
 
-        // 3) Definir cabeceras: sin la columna Perfil
+        // 3) Definir cabeceras
         $headers = [
             'ID',
             'Código',
@@ -278,18 +278,26 @@ class ProfesionalController extends Controller
             'Título',
             'Años de experiencia',
             'Estado',
+            'Perfil',
+            'Contrato',
+            'Número de contratos',
+            'Disponibilidad',
+            'Ciudad',
+            'Fecha de creación',
+            'Fecha de actualización',
         ];
+
         foreach ($headers as $idx => $title) {
             $col = Coordinate::stringFromColumnIndex($idx + 1);
             $sheet->setCellValue("{$col}1", $title);
             $sheet->getStyle("{$col}1")->getFont()->setBold(true);
         }
 
-        // 4) Rellenar filas con los datos de cada profesional
+        // 4) Agregar filas
         $row = 2;
         foreach ($profesionales as $p) {
             $data = [
-                $p->getKey(),           // idProfesional
+                $p->getKey(),
                 $p->codigo,
                 $p->identificacion,
                 $p->nombreCompleto,
@@ -297,27 +305,36 @@ class ProfesionalController extends Controller
                 $p->titulo,
                 $p->experiencia,
                 $p->estado,
+                $p->perfil,
+                $p->contrato,
+                $p->numeroContratos,
+                $p->disponibilidad,
+                optional($p->ciudad)->nombre, // ← Aquí va el nombre de la ciudad
+                optional($p->created_at)?->format('Y-m-d H:i'),
+                optional($p->updated_at)?->format('Y-m-d H:i'),
             ];
+
             foreach ($data as $i => $val) {
                 $col = Coordinate::stringFromColumnIndex($i + 1);
                 $sheet->setCellValue("{$col}{$row}", $val);
-                // Ajuste de texto si fuera necesario
                 $sheet->getStyle("{$col}{$row}")->getAlignment()->setWrapText(true);
             }
+
             $row++;
         }
 
-        // 5) Auto-ajustar anchos de columna
+        // 5) Ajustar ancho
         foreach (range(1, count($headers)) as $colIndex) {
             $col = Coordinate::stringFromColumnIndex($colIndex);
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // 6) Generar y devolver XLS en base64 (o como descarga directa)
+        // 6) Exportar XLS
         $writer = new Xls($spreadsheet);
         ob_start();
         $writer->save('php://output');
         $xlsData = ob_get_clean();
+
         return response()->json([
             'filename' => 'profesionales.xls',
             'base64'   => base64_encode($xlsData),
