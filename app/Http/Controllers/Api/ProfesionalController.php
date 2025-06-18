@@ -260,8 +260,8 @@ class ProfesionalController extends Controller
 
     public function exportProfesionalesXls()
     {
-        // 1) Cargar profesionales con su ciudad
-        $profesionales = Profesional::with('ciudad')->get();
+        // 1) Cargar profesionales con su ciudad, roles y lotes
+        $profesionales = Profesional::with(['ciudad', 'roles', 'lotes'])->get();
 
         // 2) Crear spreadsheet
         $spreadsheet = new Spreadsheet();
@@ -283,6 +283,8 @@ class ProfesionalController extends Controller
             'Número de contratos',
             'Disponibilidad',
             'Ciudad',
+            'Roles',
+            'Lotes',
             'Fecha de creación',
             'Fecha de actualización',
         ];
@@ -296,6 +298,10 @@ class ProfesionalController extends Controller
         // 4) Agregar filas
         $row = 2;
         foreach ($profesionales as $p) {
+            // Preparar cadenas de roles y lotes
+            $rolesList = $p->roles->pluck('nombre')->implode(', ');
+            $lotesList = $p->lotes->pluck('nombre')->implode(', ');
+
             $data = [
                 $p->getKey(),
                 $p->codigo,
@@ -309,7 +315,9 @@ class ProfesionalController extends Controller
                 $p->contrato,
                 $p->numeroContratos,
                 $p->disponibilidad,
-                optional($p->ciudad)->nombre, // ← Aquí va el nombre de la ciudad
+                optional($p->ciudad)->nombre,
+                $rolesList,
+                $lotesList,
                 optional($p->created_at)?->format('Y-m-d H:i'),
                 optional($p->updated_at)?->format('Y-m-d H:i'),
             ];
