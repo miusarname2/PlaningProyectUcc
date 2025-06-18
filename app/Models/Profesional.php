@@ -20,13 +20,33 @@ class Profesional extends Model
         'titulo',
         'experiencia',
         'estado',
-        'perfil'
+        'perfil',
+        'contrato',
+        'numeroContratos',
+        'disponibilidad',
+        'idCiudad'
     ];
 
     public function roles()
     {
         return $this->belongsToMany(RolDocente::class, 'profesional_rol', 'idProfesional', 'idRolDocente');
     }
+
+    public function ciudad()
+    {
+        return $this->belongsTo(Ciudad::class, 'idCiudad');
+    }
+
+    public function lotes()
+    {
+        return $this->belongsToMany(
+            Lote::class,
+            'lote_profesional',
+            'idProfesional',
+            'idLote'
+        );
+    }
+
 
     public function horarios()
     {

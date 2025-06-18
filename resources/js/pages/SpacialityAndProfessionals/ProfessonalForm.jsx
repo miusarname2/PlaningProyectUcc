@@ -25,20 +25,36 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
         estado: initialData?.estado || "Activo",
         perfil: initialData?.perfil || "",
         codigo: initialData?.codigo || "",
-        roles: initialData?.roles?.map(r => r.idRolDocente) || []
+        numeroContratos: parseInt(initialData?.numeroContratos) || 0,
+        contrato: initialData?.contrato || "",
+        disponibilidad: initialData?.disponibilidad || "",
+        idCiudad: initialData?.idCiudad || "",
+        roles: initialData?.roles?.map(r => r.idRolDocente) || [],
+        lotes: initialData?.lotes?.map(r => r.idLote) || []
     });
 
     const [errors, setErrors] = useState({});
     const [availableRoles, setAvailableRoles] = useState([]);
+    const [ciudades,setCiudades] = useState([]);
+    const [lotes, setLotes] = useState([]);
 
     const availableRoleOptions = availableRoles
         .filter(r => !formData.roles.includes(r.idRolDocente))
         .map(r => ({ value: r.idRolDocente, label: r.nombre }));
+    const availableLoteOptions = lotes
+        .filter(l => !formData.lotes.includes(l.idLote))
+        .map(l => ({ value: l.idLote, label: l.nombre }));
 
     useEffect(() => {
         // Cargar roles disponibles desde API
         api.get('/rolDocente').then(({ data }) => {
             setAvailableRoles(data.data);
+        }).catch(err => console.error(err));
+        api.get('/ciudad').then(({ data }) => {
+            setCiudades(data);
+        }).catch(err => console.error(err));
+        api.get('/lote').then(({ data }) => {
+            setLotes(data);
         }).catch(err => console.error(err));
     }, []);
 
@@ -61,10 +77,26 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
         e.target.value = "";
     };
 
+    const handleSelectBatchToAdd = (e) => {
+        const id = parseInt(e.target.value, 10);
+        if (id && !formData.lotes.includes(id)) {
+            setFormData(prev => ({ ...prev, lotes: [...prev.lotes, id] }));
+            setErrors(prev => ({ ...prev, lotes: null }));
+        }
+        e.target.value = "";
+    };
+
     const handleRemoveRole = (id) => {
         setFormData(prev => ({
             ...prev,
             roles: prev.roles.filter(r => r !== id)
+        }));
+    };
+
+    const handleRemoveBatch = (id) => {
+        setFormData(prev => ({
+            ...prev,
+            lotes: prev.lotes.filter(r => r !== id)
         }));
     };
 
@@ -175,7 +207,6 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
 
                         {/* Campo Experiencia */}
                         <div className="space-y-2">
-
                             <InputLabel htmlFor="experiencia" value="Experiencia (años) (Opcional)
                             " />
                             <TextInput
@@ -184,6 +215,58 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
                                 value={formData.experiencia}
                                 onChange={handleChange}
                                 placeholder="Ingrese años de experiencia"
+                            />
+                        </div>
+
+                        {/* Campo Contrato */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="contrato" value="Contrato" />
+                            <TextInput
+                                id="contrato"
+                                name="contrato"
+                                value={formData.contrato}
+                                onChange={handleChange}
+                                placeholder="Ingrese el contrato"
+                            />
+                        </div>
+
+                        {/* Campo Disponibilidad */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="disponibilidad" value="Disponibilidad" />
+                            <TextInput
+                                id="disponibilidad"
+                                name="disponibilidad"
+                                value={formData.disponibilidad}
+                                onChange={handleChange}
+                                placeholder="Ingrese la disponibilidad"
+                            />
+                        </div>
+
+                        {/* Campo N° de Contratos */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="numeroContratos" value="N° de Contratos" />
+                            <TextInput
+                                id="numeroContratos"
+                                name="numeroContratos"
+                                type="number"
+                                value={formData.numeroContratos}
+                                onChange={handleChange}
+                                placeholder="Ingrese la Cantidad de Contratos"
+                                required
+                                error={errors.numeroContratos}
+                            />
+                        </div>
+
+                        {/* Campo Estado */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="idCiudad" value="Ciudad" />
+                            <SelectInput
+                                id="idCiudad"
+                                name="idCiudad"
+                                value={formData.idCiudad}
+                                onChange={handleChange}
+                                options={[{ value: "", label: "Seleccione una Ciudad" }, ...ciudades.map(c => ({ value: c.idCiudad, label: c.nombre }))]}
+                                required
                             />
                         </div>
 
@@ -201,6 +284,32 @@ export default function ProfessonalForm({ onCancel, initialData = null, onSubmit
                                 ]}
                                 required
                             />
+                        </div>
+
+                        {/* Sección para asignar Lotes */}
+                        <div className="space-y-2 md:col-span-2">
+                            <InputLabel htmlFor="AddLote" value="Lotes" />
+                            <SelectInput
+                                id="AddLote"
+                                value=""
+                                onChange={handleSelectBatchToAdd}
+                                options={[{ value: "", label: "Agregar Lote" }, ...availableLoteOptions]}
+                            />
+                            {errors.lotes && <div className="text-red-500 text-sm">{errors.lotes}</div>}
+                            <div className="mt-2 flex flex-wrap items-center gap-2 border border-gray-300 p-2 rounded min-h-[40px]">
+                                {formData.lotes.length === 0 && <span className="text-gray-500 text-sm">Ningún lote seleccionado.</span>}
+                                {formData.lotes.map(id => {
+                                    const lote = lotes.find(r => r.idLote === id);
+                                    return lote ? (
+                                        <div key={id} className="inline-flex items-center border border-blue-200 rounded-md pl-2 py-1 pr-1 bg-blue-50">
+                                            <span className="text-blue-700 text-sm font-medium">{lote.nombre}</span>
+                                            <button type="button" onClick={() => handleRemoveBatch(id)} className="ml-1 p-0.5 text-blue-600 hover:text-blue-800 focus:outline-none rounded-sm">
+                                                <XCircle size={14} />
+                                            </button>
+                                        </div>
+                                    ) : null;
+                                })}
+                            </div>
                         </div>
 
                         {/* Sección para asignar Roles */}

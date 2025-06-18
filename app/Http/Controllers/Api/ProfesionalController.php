@@ -31,16 +31,22 @@ class ProfesionalController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'codigo'         => 'required|string|max:20',
-                'identificacion' => 'required|string|max:20',
-                'nombreCompleto' => 'required|string|max:100',
-                'email'          => 'sometimes|email|unique:profesional,email',
-                'titulo'         => 'sometimes|nullable|string|max:200',
-                'experiencia'    => 'sometimes|nullable|integer',
-                'estado'         => 'required|string',
-                'perfil'         => 'nullable|string',
-                'roles'          => 'sometimes|array',
-                'roles.*'        => 'integer|exists:rolDocente,idRolDocente',
+                'codigo'           => 'required|string|max:20',
+                'identificacion'   => 'required|string|max:20',
+                'nombreCompleto'   => 'required|string|max:100',
+                'email'            => 'sometimes|nullable|email|unique:profesional,email',
+                'titulo'           => 'sometimes|nullable|string|max:200',
+                'experiencia'      => 'sometimes|nullable|integer|min:0',
+                'estado'           => 'required|string|in:Activo,Inactivo',
+                'perfil'           => 'nullable|string',
+                'contrato'         => 'nullable|string|max:255',
+                'numeroContratos'  => 'nullable|integer|min:0',
+                'disponibilidad'   => 'nullable|string|max:100',
+                'idCiudad'         => 'nullable|integer|exists:ciudad,idCiudad',
+                'roles'            => 'sometimes|array',
+                'roles.*'          => 'integer|exists:rolDocente,idRolDocente',
+                'lotes'            => 'sometimes|array',
+                'lotes.*'          => 'integer|exists:lote,idLote',
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -51,20 +57,33 @@ class ProfesionalController extends Controller
         }
 
         // Valores por defecto
-        $validatedData['experiencia'] = $validatedData['experiencia'] ?? 0;
-        $validatedData['email']       = $validatedData['email']       ?? '';
-        $validatedData['titulo']       = $validatedData['titulo']       ?? '';
+        $validatedData['experiencia']      = $validatedData['experiencia'] ?? 0;
+        $validatedData['titulo']           = $validatedData['titulo'] ?? '';
+        $validatedData['contrato']         = $validatedData['contrato'] ?? '';
+        $validatedData['numeroContratos']  = $validatedData['numeroContratos'] ?? 0;
+        $validatedData['disponibilidad']   = $validatedData['disponibilidad'] ?? '';
+        $validatedData['email']            = $validatedData['email'] ?? '';
 
-        // 1) Crear profesional
+        // Separar relaciones de los atributos del modelo
+        $roles = $validatedData['roles'] ?? [];
+        $lotes = $validatedData['lotes'] ?? [];
+
+        unset($validatedData['roles'], $validatedData['lotes']);
+
+        // Crear profesional
         $profesional = Profesional::create($validatedData);
 
-        // 2) Sincronizar roles (si vienen)
-        if (! empty($validatedData['roles'])) {
-            $profesional->roles()->sync($validatedData['roles']);
+        // Sincronizar relaciones
+        if (!empty($roles)) {
+            $profesional->roles()->sync($roles);
         }
 
-        // 3) Devolver recurso con relaciones cargadas
-        $profesional->load('roles');
+        if (!empty($lotes)) {
+            $profesional->lotes()->sync($lotes);
+        }
+
+        // Devolver recurso con relaciones cargadas
+        $profesional->load('roles', 'lotes', 'ciudad');
 
         return response()->json($profesional, 201);
     }
