@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('identificacion', 20)->unique();
             $table->string('nombreCompleto', 200);
             $table->string('email', 100)->unique()->nullable();
-            $table->string('titulo', 100);
+            $table->string('titulo', 100)->nullable();
             $table->integer('experiencia')->unsigned(); // Se valida en la aplicación o con DB check
             $table->enum('estado', ['Activo', 'Inactivo']);
             $table->mediumText('perfil')->nullable();
@@ -26,18 +26,8 @@ return new class extends Migration
             $table->string('disponibilidad', 100)->nullable();
             $table->timestamps();
 
-            $table->unsignedInteger('idCiudad')->nullable()->after('disponibilidad');
+            $table->unsignedInteger('idCiudad')->nullable();
             $table->foreign('idCiudad')->references('idCiudad')->on('ciudad')->onDelete('set null');
-        });
-
-        Schema::create('lote_profesional', function (Blueprint $table) {
-            $table->unsignedInteger('idLote');
-            $table->unsignedInteger('idProfesional');
-
-            $table->foreign('idLote')->references('idLote')->on('lote')->onDelete('cascade');
-            $table->foreign('idProfesional')->references('idProfesional')->on('profesional')->onDelete('cascade');
-
-            $table->primary(['idLote', 'idProfesional']);
         });
     }
 
