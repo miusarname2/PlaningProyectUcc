@@ -181,9 +181,9 @@ export default function PrincipalSchedule() {
                 console.log(item);
 
                 const ejecutor =
-                    item.profesionales.find(p => p.rolDocente.nombre === "Ejecutor")[0]
-                    || item.profesionales.find(p => p.rolDocente.nombre === "Mentor")[0]
-                    || item.profesionales.find(p => p.rolDocente.nombre === "Monitor")[0];
+                    item.profesionales.find(p => p.rolDocente.nombre === "Ejecutor")
+                    || item.profesionales.find(p => p.rolDocente.nombre === "Mentor")
+                    || item.profesionales.find(p => p.rolDocente.nombre === "Monitor");
 
                 // Si no encuentra ninguno, ejecutor será undefined
                 const ejecutorNombre = ejecutor ? ejecutor.nombreCompleto : null;
