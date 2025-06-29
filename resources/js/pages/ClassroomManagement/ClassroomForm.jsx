@@ -87,9 +87,25 @@ export default function ClassroomForm({ onCancel, initialData = null, onSubmitSu
             if (isEditMode) {
                 await api.put(`/aula/${initialData.id}`, payload);
             } else {
+                // 1) Traemos todos los códigos existentes
                 const response = await api.get("/aula");
-                const nextNum = response.data.length + 1;
+                const aulas = response.data;
+
+                // 2) Extraemos solo la parte numérica de cada código "A###"
+                const numeros = aulas
+                    .map(a => {
+                        const match = /^A(\d+)$/.exec(a.codigo);
+                        return match ? parseInt(match[1], 10) : 0;
+                    });
+
+                // 3) Calculamos el siguiente número como el máximo + 1
+                const maxNum = numeros.length ? Math.max(...numeros) : 0;
+                const nextNum = maxNum + 1;
+
+                // 4) Generamos el nuevo código con padding
                 payload.codigo = `A${String(nextNum).padStart(3, '0')}`;
+
+                // 5) Creamos el aula
                 await api.post("/aula", payload);
             }
 
