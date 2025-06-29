@@ -53,10 +53,8 @@ export default function SheduleManagement({ auth }) {
             }
         >
             <Head title="SheduleManagement" />
-            <PrincipalSchedule
-                formData={filterFormData}
-                setFormData={setFilterFormData}
-            />
+            <PrincipalShedule formData={filterFormData}
+                setFormData={setFilterFormData} />
         </ModulesLayout>
     );
 }
