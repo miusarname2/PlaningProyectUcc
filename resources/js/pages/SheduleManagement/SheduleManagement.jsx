@@ -3,6 +3,7 @@ import PrincipalShedule from "@/pages/SheduleManagement/PrincipalShedule";
 import { Head } from "@inertiajs/react";
 import HeaderSchedule from "@/Components/HeaderSchedule"
 import { getApi } from "@/utils/generalFunctions";
+import { useState } from "react";
 
 
 export default function SheduleManagement({ auth }) {
