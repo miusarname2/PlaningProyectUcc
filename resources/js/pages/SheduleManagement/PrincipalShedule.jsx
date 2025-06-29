@@ -330,6 +330,7 @@ export default function PrincipalSchedule() {
             if (filter.entidad_id) params.append('entidad_id', filter.entidad_id);
             if (filter.aula_sede) params.append('aula_sede', filter.aula_sede);
             if (filter.idCurso) params.append('idCurso', filter.idCurso);
+            if (filter.idAula) params.append('idAula', filter.idAula);
             if (filter.profesional_codigo) params.append('profesional_codigo', filter.profesional_codigo);
             // Removed the generic filter/searchValue logic
 
@@ -411,6 +412,7 @@ export default function PrincipalSchedule() {
         if (newForm.sede) params.aula_sede = newForm.sede;
         if (newForm.aula) params.idAula = newForm.aula;
         if (newForm.idCurso) params.idCurso = newForm.idCurso;
+        if (newForm.profesional && name !== 'profesional') params.profesional_codigo = newForm.profesional;
         if (Object.keys(params).length) fetchData(params);
         else fetchData();
     }
