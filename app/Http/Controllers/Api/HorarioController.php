@@ -600,19 +600,45 @@ class HorarioController extends Controller
         }
     }
 
-    public function exportXls()
+    public function exportXls(Request $request)
     {
+
+        $filters = $request->all();
+
         // 1) Carga de datos con relaciones: incluimos pivot de dias y profesionales
-        $horarios = Horario::with([
+        $query = Horario::with([
             'curso.programas',
             'aula.sede.ciudad',
             'aula.sede.propietario',
             'dias',
             'profesionales' => fn($q) => $q->withPivot('idRolDocente')
-        ])
-            ->get()
-            // Ordenamos por hora_inicio del primer día
-            ->sortBy(fn(Horario $h) => $h->dias->min(fn($d) => $d->pivot->hora_inicio))
+        ]);
+
+        if (!empty($filters['ciudad_id'])) {
+            $query->whereHas('aula.sede', fn($q) => $q->where('idCiudad', $filters['ciudad_id']));
+        }
+        if (!empty($filters['entidad_id'])) {
+            $query->whereHas('aula.sede.propietario', fn($q) => $q->where('idEntidad', $filters['entidad_id']));
+        }
+        // Use 'aula_sede' for sede filter
+        if (!empty($filters['aula_sede'])) {
+            $query->whereHas('aula', fn($q) => $q->where('idSede', $filters['aula_sede']));
+        }
+        if (!empty($filters['idAula'])) {
+            $query->where('idAula', $filters['idAula']);
+        }
+        if (!empty($filters['idCurso'])) {
+            $query->where('idCurso', $filters['idCurso']);
+        }
+        // Use 'profesional_codigo' for professional filter
+        if (!empty($filters['profesional_codigo'])) {
+            $query->whereHas('profesionales', fn($q) => $q->where('codigo', $filters['profesional_codigo']));
+        }
+
+        $horarios = $query
+            ->get() // <-- Gets ONLY the filtered records
+            // Order the filtered results (same as before, added optional for safety)
+            ->sortBy(fn(Horario $h) => optional($h->dias->min(fn($d) => optional($d->pivot)->hora_inicio))) // Added optional
             ->values();
 
         // 2) Definir días de la semana para la hoja 1

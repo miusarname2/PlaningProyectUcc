@@ -15,7 +15,7 @@ const removeDiacritics = (str) => {
     return str.normalize("NFD").replace(/\u0300-\u036f/g, "");
 };
 
-export default function PrincipalSchedule() {
+export default function PrincipalSchedule({ formData, setFormData }) {
     const [open, setOpen] = useState(false)
     const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
     const [rawData, setRawData] = useState([]);
@@ -27,7 +27,6 @@ export default function PrincipalSchedule() {
     const [professionals, setProfessionals] = useState([]);
     const [courses, setCourses] = useState([]);
     const [aulas, setAulas] = useState([]);
-    const [formData, setFormData] = useState({ ciudad: "", sede: "", entidad: "", idCurso: "", aula: "", profesional: "" });
 
     const [currentWeekStart, setCurrentWeekStart] = useState(
         startOfWeek(new Date(), { weekStartsOn: 1 }) // weekStartsOn: 1 = Lunes
@@ -326,12 +325,12 @@ export default function PrincipalSchedule() {
             const params = new URLSearchParams();
 
             // Build search parameters based on the current filter object
-            if (filter.ciudad_id) params.append('ciudad_id', filter.ciudad_id);
-            if (filter.entidad_id) params.append('entidad_id', filter.entidad_id);
-            if (filter.aula_sede) params.append('aula_sede', filter.aula_sede);
-            if (filter.idCurso) params.append('idCurso', filter.idCurso);
-            if (filter.idAula) params.append('idAula', filter.idAula);
-            if (filter.profesional_codigo) params.append('profesional_codigo', filter.profesional_codigo);
+            if (formData.ciudad) params.append('ciudad_id', formData.ciudad);
+            if (formData.entidad) params.append('entidad_id', formData.entidad);
+            if (formData.sede) params.append('aula_sede', formData.sede);
+            if (formData.aula) params.append('idAula', formData.aula);
+            if (formData.idCurso) params.append('idCurso', formData.idCurso);
+            if (formData.profesional) params.append('profesional_codigo', formData.profesional);
             // Removed the generic filter/searchValue logic
 
             if (params.toString()) endpoint = `/Horario/search?${params.toString()}`;

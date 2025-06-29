@@ -58,7 +58,7 @@ Route::middleware(['auth:sanctum', 'throttle:search'])
         Route::put('perfilRol/{idPerfil}/{idRol}',     [PerfilRolController::class, 'update']);
         Route::delete('perfilRol/{idPerfil}/{idRol}',     [PerfilRolController::class, 'destroy']);
         Route::get('user/{user}/permisos', [UsuarioController::class, 'permisos']);
-        Route::get('horario/export-xlsx', [HorarioController::class, 'exportXls']);
+        Route::post('horario/export-xlsx', [HorarioController::class, 'exportXls']);
         Route::get( 'curso/export-xlsx',[CursoController::class,'exportCursosXls']);
         Route::get( 'profesional/export-xlsx', [ProfesionalController::class,'exportProfesionalesXls']);
         Route::resource('user', UsuarioController::class);

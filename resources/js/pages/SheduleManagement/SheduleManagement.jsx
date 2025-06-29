@@ -8,14 +8,37 @@ import { getApi } from "@/utils/generalFunctions";
 export default function SheduleManagement({ auth }) {
     const api = getApi();
 
+    const [filterFormData, setFilterFormData] = useState({
+        ciudad: "", sede: "", entidad: "", idCurso: "", aula: "", profesional: ""
+    });
+
     const exportExcel = async () => {
-        const response = await api.get("/horario/export-xlsx");
-        const link = document.createElement('a');
-        link.href = 'data:application/vnd.ms-excel;base64,' + response.data.base64;
-        link.download = response.data.filename;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
+        try {
+            const filterPayload = {};
+            if (filterFormData.ciudad) filterPayload.ciudad_id = filterFormData.ciudad;
+            if (filterFormData.entidad) filterPayload.entidad_id = filterFormData.entidad;
+            if (filterFormData.sede) filterPayload.aula_sede = filterFormData.sede; // Matches fetchData param name
+            if (filterFormData.aula) filterPayload.idAula = filterFormData.aula;
+            if (filterFormData.idCurso) filterPayload.idCurso = filterFormData.idCurso;
+            if (filterFormData.profesional) filterPayload.profesional_codigo = filterFormData.profesional;
+            const response = await api.post("/horario/export-xlsx", filterPayload, { // <-- Use POST and send payload
+                responseType: 'json' // Expecting JSON response with base64 data
+            });
+            if (response.data && response.data.base64 && response.data.filename) {
+                const link = document.createElement('a');
+                link.href = 'data:application/vnd.ms-excel;base64,' + response.data.base64;
+                link.download = response.data.filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            } else {
+                console.error("Invalid response structure for export:", response.data);
+                alert("Error exporting file: Invalid response from server.");
+            }
+        } catch (error) {
+            console.error("Error exporting schedule:", error);
+            alert("Error exporting schedule. Please try again.");
+        }
     }
 
     return (
@@ -29,7 +52,10 @@ export default function SheduleManagement({ auth }) {
             }
         >
             <Head title="SheduleManagement" />
-            <PrincipalShedule />
+            <PrincipalSchedule
+                formData={filterFormData}
+                setFormData={setFilterFormData}
+            />
         </ModulesLayout>
     );
 }
