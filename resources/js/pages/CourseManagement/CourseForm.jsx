@@ -31,7 +31,7 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
         codigo: initialData?.codigo || "",
         tipo: initialData?.tipo || "",
         numero: initialData?.numero || "",
-        convenio:initialData?.convenio || "",
+        convenio: initialData?.convenio || "",
         fecha_inicio: initialData?.fecha_inicio || "",
         fecha_fin: initialData?.fecha_fin || "",
         // Map initialData.programas to array of IDs
@@ -108,7 +108,7 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
             fecha_inicio: formData.fecha_inicio,
             fecha_fin: formData.fecha_fin,
             tipo: formData.tipo,
-            numero:formData.numero,
+            numero: formData.numero,
             convenio: formData.convenio,
             programas: formData.selectedPrograms
         };
@@ -251,7 +251,6 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                                 value={formData.convenio}
                                 onChange={handleChange}
                                 placeholder="Ej: 40521"
-                                required
                                 error={errors.convenio}
                             />
                         </div>
