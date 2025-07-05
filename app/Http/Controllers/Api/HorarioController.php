@@ -602,12 +602,12 @@ class HorarioController extends Controller
 
     public function exportXls(Request $request)
     {
-
         $filters = $request->all();
 
-        // 1) Carga de datos con relaciones: incluimos pivot de dias y profesionales
+        // 1) Carga de datos con relaciones
         $query = Horario::with([
             'curso.programas',
+            'curso.lote',                    // cargar lote
             'aula.sede.ciudad',
             'aula.sede.propietario',
             'dias',
@@ -620,7 +620,6 @@ class HorarioController extends Controller
         if (!empty($filters['entidad_id'])) {
             $query->whereHas('aula.sede.propietario', fn($q) => $q->where('idEntidad', $filters['entidad_id']));
         }
-        // Use 'aula_sede' for sede filter
         if (!empty($filters['aula_sede'])) {
             $query->whereHas('aula', fn($q) => $q->where('idSede', $filters['aula_sede']));
         }
@@ -630,26 +629,23 @@ class HorarioController extends Controller
         if (!empty($filters['idCurso'])) {
             $query->where('idCurso', $filters['idCurso']);
         }
-        // Use 'profesional_codigo' for professional filter
         if (!empty($filters['profesional_codigo'])) {
             $query->whereHas('profesionales', fn($q) => $q->where('codigo', $filters['profesional_codigo']));
         }
 
         $horarios = $query
-            ->get() // <-- Gets ONLY the filtered records
-            // Order the filtered results (same as before, added optional for safety)
-            ->sortBy(fn(Horario $h) => optional($h->dias->min(fn($d) => optional($d->pivot)->hora_inicio))) // Added optional
+            ->get()
+            ->sortBy(fn(Horario $h) => optional($h->dias->min(fn($d) => optional($d->pivot)->hora_inicio)))
             ->values();
 
-        // 2) Definir días de la semana para la hoja 1
+        // Días de la semana
         $diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
-        // 3) Primera hoja: Horario de franjas
+        // --- Hoja 1: Horario de franjas (sin cambios) ---
         $spreadsheet = new Spreadsheet();
         $sheet1 = $spreadsheet->getActiveSheet();
         $sheet1->setTitle('Horario');
 
-        // 3.1) Construir lista única de franjas
         $franjas = $horarios
             ->flatMap(fn($h) => $h->dias->map(fn($d) => sprintf(
                 '%s - %s',
@@ -658,7 +654,7 @@ class HorarioController extends Controller
             )))
             ->unique()->sort()->values()->all();
 
-        // 3.2) Mapear contenidos
+        // Construir mapa para Hoja 1
         $map = [];
         foreach ($horarios as $h) {
             foreach ($h->dias as $d) {
@@ -678,7 +674,7 @@ class HorarioController extends Controller
             }
         }
 
-        // 3.3) Escribir cabecera hoja 1
+        // Cabecera Hoja 1
         $sheet1->setCellValue('A1', 'HORAS');
         foreach ($diasSemana as $i => $dia) {
             $col = Coordinate::stringFromColumnIndex($i + 2);
@@ -686,7 +682,7 @@ class HorarioController extends Controller
             $sheet1->getStyle("{$col}1")->getFont()->setBold(true);
         }
 
-        // 3.4) Filas de franjas
+        // Filas Franjas
         $row = 2;
         foreach ($franjas as $label) {
             $sheet1->setCellValue("A{$row}", $label);
@@ -704,33 +700,32 @@ class HorarioController extends Controller
             }
             $row++;
         }
-
-        // Auto-ajustar anchos hoja 1
         foreach (range(1, count($diasSemana) + 1) as $colIndex) {
             $col = Coordinate::stringFromColumnIndex($colIndex);
             $sheet1->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // 4) Segunda hoja: Tabla detallada de horarios con campos extras
+        // --- Hoja 2: Detalle Horarios (UN SOLO REGISTRO POR CURSO) ---
         $sheet2 = $spreadsheet->createSheet();
         $sheet2->setTitle('Detalle Horarios');
+
         $headers = [
             'Código de curso',
             'Nombre del curso',
-            'Fecha creación',       // Nuevo
+            'Fecha creación',
             'Fecha inicio',
             'Fecha fin',
             'Programa',
             'Nivel',
-            'Número de horas',      // Ahora tomamos de curso->horas
+            'Número de horas',
             'Tipo formación',
             'Lote',
             'Ciudad',
-            'Ubicación',            // Nuevo: acceso + ciudad
+            'Ubicación',
             'Entidad',
             'Sede',
             'Aula',
-            'Día',                  // Nueva columna antes de Hora inicio
+            'Día',
             'Hora inicio',
             'Hora fin',
             'Ejecutor',
@@ -744,11 +739,17 @@ class HorarioController extends Controller
         }
 
         $row = 2;
-        foreach ($horarios as $h) {
+        // Recorremos cada curso único
+        foreach ($horarios->unique(fn($h) => $h->idCurso) as $h) {
             $curso       = $h->curso;
             $programas   = $curso->programas->pluck('nombre')->join(', ');
-            $tipoFormacion = $curso->modalidad;
-            $lote        = $curso->codigoGrupo;
+            $tipoForm    = $curso->modalidad;
+            // Nuevo: lote a partir de la relación
+            $loteRel     = $curso->lote;
+            $lote        = $loteRel
+                ? sprintf('(%s) %s', $loteRel->codigo, $loteRel->nombre)
+                : '';
+
             $ciudad      = optional($h->aula->sede->ciudad)->nombre;
             $acceso      = optional($h->aula->sede)->acceso;
             $ubicacion   = trim(implode(' - ', array_filter([$acceso, $ciudad])));
@@ -757,58 +758,64 @@ class HorarioController extends Controller
             $aula        = $h->aula->codigo;
 
             // Roles
-            $ej = [];
-            $mo = [];
-            $me = [];
+            $ej = $mo = $me = [];
             foreach ($h->profesionales as $p) {
-                $rolDoc = RolDocente::find($p->pivot->idRolDocente);
-                $rol    = $rolDoc?->nombre;
-                if ($rol === 'Ejecutor') $ej[] = $p->nombreCompleto;
-                if ($rol === 'Monitor')  $mo[] = $p->nombreCompleto;
-                if ($rol === 'Mentor')   $me[] = $p->nombreCompleto;
+                $nombreP = $p->nombreCompleto;
+                $rolDoc  = RolDocente::find($p->pivot->idRolDocente)?->nombre;
+                match ($rolDoc) {
+                    'Ejecutor' => $ej[] = $nombreP,
+                    'Monitor'  => $mo[] = $nombreP,
+                    'Mentor'   => $me[] = $nombreP,
+                    default    => null,
+                };
             }
 
-            foreach ($h->dias as $d) {
-                $diaNombre = $diasSemana[$d->idDia - 1] ?? "Día {$d->idDia}";
-                $numHoras  = $curso->horas;  // horas del curso
-                $fechaCreacion = $curso->created_at->format('Y-m-d');
-
-                $data = [
-                    $curso->codigo,
-                    $curso->nombre,
-                    $fechaCreacion,
-                    $h->fecha_inicio,
-                    $h->fecha_fin,
-                    $programas,
-                    $curso->nivel,
-                    $numHoras,
-                    $tipoFormacion,
-                    $lote,
-                    $ciudad,
-                    $ubicacion,
-                    $entidad,
-                    $sede,
-                    $aula,
-                    $diaNombre,
-                    $d->pivot->hora_inicio,
-                    $d->pivot->hora_fin,
-                    implode(', ', $ej),
-                    implode(', ', $mo),
-                    implode(', ', $me),
-                ];
-
-                foreach ($data as $i => $val) {
-                    $col = Coordinate::stringFromColumnIndex($i + 1);
-                    $sheet2->setCellValue("{$col}{$row}", $val);
-                    $sheet2->getStyle("{$col}{$row}")->getAlignment()->setWrapText(true);
-                }
-                $row++;
+            // Tomamos sólo el primer día para no duplicar
+            $firstDia = $h->dias->first();
+            if ($firstDia) {
+                $diaNombre  = $diasSemana[$firstDia->idDia - 1] ?? "Día {$firstDia->idDia}";
+                $horaInicio = $firstDia->pivot->hora_inicio;
+                $horaFin    = $firstDia->pivot->hora_fin;
+            } else {
+                $diaNombre = $horaInicio = $horaFin = '';
             }
+
+            $data = [
+                $curso->codigo,
+                $curso->nombre,
+                $curso->created_at->format('Y-m-d'),
+                $h->fecha_inicio,
+                $h->fecha_fin,
+                $programas,
+                $curso->nivel,
+                $curso->horas,
+                $tipoForm,
+                $lote,
+                $ciudad,
+                $ubicacion,
+                $entidad,
+                $sede,
+                $aula,
+                $diaNombre,
+                $horaInicio,
+                $horaFin,
+                implode(', ', $ej),
+                implode(', ', $mo),
+                implode(', ', $me),
+            ];
+
+            foreach ($data as $i => $val) {
+                $col = Coordinate::stringFromColumnIndex($i + 1);
+                $sheet2->setCellValue("{$col}{$row}", $val);
+                $sheet2->getStyle("{$col}{$row}")->getAlignment()->setWrapText(true);
+            }
+            $row++;
         }
 
-        // Auto-ajustar anchos hoja 2
         foreach (range(1, count($headers)) as $i) {
-            $sheet2->getColumnDimension(Coordinate::stringFromColumnIndex($i))->setAutoSize(true);
+            $sheet2->getColumnDimension(
+                Coordinate::stringFromColumnIndex($i)
+            )->setAutoSize(true);
         }
 
         // 5) Generar y enviar XLS
