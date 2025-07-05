@@ -5,6 +5,7 @@ import { IconButton } from '@mui/material'
 import TextField from '@mui/material/TextField'
 import InputLabel from "@/Components/InputLabel";
 import SelectInput from "@/Components/SelectInput";
+import SearchableSelect from "@/Components/SearchableSelect";
 import { format, startOfWeek, addWeeks, subWeeks, isSameWeek, addDays, isWithinInterval } from "date-fns"
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { es } from "date-fns/locale"
@@ -638,13 +639,17 @@ export default function PrincipalSchedule({ formData, setFormData }) {
                         </div>
                         {/* NEW: Curso Filter - Using structure similar to ClassForm */}
                         <div className="space-y-2 min-w-[200px]"> {/* Adjusted min-width slightly */}
-                            <InputLabel htmlFor="idCurso" value="Curso (Código) 🔍" className="text-sm" />
-                            <SelectInput
+                            <InputLabel htmlFor="idCurso" value="Curso" className="text-sm" />
+{/*                             <SelectInput
                                 id="idCurso"
                                 name="idCurso"
                                 value={formData.idCurso}
                                 onChange={handleChange}
                                 options={[{ value: '', label: 'Todos los Cursos' }, ...filteredCourses.map(c => ({ value: c.idCurso, label: c.codigoGrupo }))]}
+                            /> */}
+                            <SearchableSelect id="idCurso" name="idCurso" value={formData.idCurso} onChange={handleChange}
+                                options={[{ value: '', label: 'Todos los Cursos' }, ...filteredCourses.map(c => ({ value: c.idCurso, label: c.codigoGrupo }))]}
+                                required
                             />
                         </div>
                         {/* Profesional Filter */}
