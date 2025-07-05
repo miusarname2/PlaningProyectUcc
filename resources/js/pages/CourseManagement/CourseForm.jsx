@@ -178,7 +178,6 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                                 { value: "", label: "Seleccionar Lote" },
                                 ...lotes.map(s => ({ value: s.idLote, label: s.nombre }))
                             ]}
-                            required
                             error={errors.idLote}
                         />
                     </div>
@@ -223,7 +222,6 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                                 value={formData.tipo}
                                 onChange={handleChange}
                                 placeholder="Ej: tipo 1"
-                                required
                                 error={errors.tipo}
                             />
                         </div>
@@ -237,7 +235,6 @@ export default function CourseForm({ onCancel, initialData = null, onSubmitSucce
                                 value={formData.numero}
                                 onChange={handleChange}
                                 placeholder="Ej: 40521"
-                                required
                                 error={errors.numero}
                             />
                         </div>
