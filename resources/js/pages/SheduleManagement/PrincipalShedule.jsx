@@ -384,7 +384,7 @@ export default function PrincipalSchedule({ formData, setFormData }) {
         const fakeEvent = {
             target: {
                 name: 'idCurso', // Explicitly set the name for the idCurso field
-                value: value     // Pass the value received from SearchableSelect
+                value: value.target.value     // Pass the value received from SearchableSelect
             }
         };
         // Call the original handleChange function with the fake event.
