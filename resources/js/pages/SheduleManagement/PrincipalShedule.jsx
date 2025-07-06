@@ -378,44 +378,70 @@ export default function PrincipalSchedule({ formData, setFormData }) {
         api.get('/curso').then(res => setCourses(res.data)).catch(err => console.error("Error fetching courses:", err));
     }, []);
 
+    const handleSearchableSelectChange = (value) => {
+        console.log("SearchableSelect (idCurso) changed:", value);
+        // Create an object that simulates the event structure expected by the main handleChange
+        const fakeEvent = {
+            target: {
+                name: 'idCurso', // Explicitly set the name for the idCurso field
+                value: value     // Pass the value received from SearchableSelect
+            }
+        };
+        // Call the original handleChange function with the fake event.
+        handleChange(fakeEvent); // <-- Now calls original handleChange with a simulated event
+    };
+
+
     // Manejar cambios en los inputs de filtro
     function handleChange(e) {
-        const { name, value } = e.target;
+        const { name, value } = e.target; // <-- THIS LINE still expects e.target (or simulated e.target)
+
+        let newForm = { ...formData };
+
+        // Handle 'profesional' filter: Clear other filters if professional is set/cleared
         if (name === 'profesional') {
-            setFormData({ ciudad: '', entidad: '', sede: '', aula: '', idCurso: '', profesional: value });
-            fetchData({ profesional_codigo: value });
-            return;
+            newForm = { ciudad: '', entidad: '', sede: '', aula: '', idCurso: '', profesional: value };
+        } else {
+            // Update the specific field that changed
+            newForm[name] = value;
+
+            // Logic to reset dependent filters (kept the same)
+            if (name === 'ciudad') {
+                newForm.entidad = '';
+                newForm.sede = '';
+                newForm.aula = '';
+                newForm.idCurso = '';
+            }
+            if (name === 'entidad') {
+                newForm.sede = '';
+                newForm.aula = '';
+                newForm.idCurso = '';
+            }
+            if (name === 'sede') {
+                newForm.aula = '';
+                newForm.idCurso = '';
+            }
+            if (name === 'aula') {
+                newForm.idCurso = '';
+            }
+            // No need to reset others if idCurso or profesional changes (they are leaf nodes)
         }
-        const newForm = { ...formData, [name]: value };
-        if (name === 'ciudad') {
-            newForm.entidad = '';
-            newForm.sede = '';
-            newForm.aula = '';
-            newForm.idCurso = '';
-        }
-        if (name === 'entidad') {
-            newForm.sede = '';
-            newForm.aula = '';
-            newForm.idCurso = '';
-        }
-        if (name === 'sede') {
-            newForm.aula = '';
-            newForm.idCurso = '';
-        }
-        if (name === 'aula') {
-            newForm.idCurso = '';
-        }
+
+        // Update state - THIS IS THE ONLY JOB LEFT HERE FOR REGULAR CHANGES.
+        // The useEffect listening to formData will handle the data fetching.
         setFormData(newForm);
-        const params = {};
-        if (newForm.ciudad) params.ciudad_id = newForm.ciudad;
-        if (newForm.entidad) params.entidad_id = newForm.entidad;
-        if (newForm.sede) params.aula_sede = newForm.sede;
-        if (newForm.aula) params.idAula = newForm.aula;
-        if (newForm.idCurso) params.idCurso = newForm.idCurso;
-        if (newForm.profesional && name !== 'profesional') params.profesional_codigo = newForm.profesional;
-        if (Object.keys(params).length) fetchData(params);
-        else fetchData();
+
+        // --- REMOVE ALL direct calls to fetchData() from this function ---
+        // E.g., remove:
+        // if (Object.keys(params).length) fetchData(params); else fetchData();
+        // And remove the specific fetchData call inside the profesional block.
     }
+
+    useEffect(() => {
+        console.log("formData changed, refetching schedule..."); // Optional log
+        // fetchData now reads the necessary parameters directly from the current formData state
+        fetchData(); // <-- Centralized call to fetchData based on state
+    }, [formData]);
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -640,16 +666,20 @@ export default function PrincipalSchedule({ formData, setFormData }) {
                         {/* NEW: Curso Filter - Using structure similar to ClassForm */}
                         <div className="space-y-2 min-w-[200px]"> {/* Adjusted min-width slightly */}
                             <InputLabel htmlFor="idCurso" value="Curso" className="text-sm" />
-{/*                             <SelectInput
+                            {/*                             <SelectInput
                                 id="idCurso"
                                 name="idCurso"
                                 value={formData.idCurso}
                                 onChange={handleChange}
                                 options={[{ value: '', label: 'Todos los Cursos' }, ...filteredCourses.map(c => ({ value: c.idCurso, label: c.codigoGrupo }))]}
                             /> */}
-                            <SearchableSelect id="idCurso" name="idCurso" value={formData.idCurso} onChange={handleChange}
-                                options={[{ value: '', label: 'Todos los Cursos' }, ...filteredCourses.map(c => ({ value: c.idCurso, label: c.codigoGrupo }))]}
-                                required
+                            <SearchableSelect
+                                id="idCurso"
+                                name="idCurso"
+                                value={formData.idCurso}
+                                onChange={handleSearchableSelectChange} // <-- NOW calls the adapter function
+                                options={[{ value: '', label: 'Todos los Cursos' }, ...filteredCourses.map(c => ({ value: c.idCurso, label: c.codigoGrupo || c.nombre || c.idCurso }))]}
+                                required={false} // Consider removing `required` unless validation requires a selection
                             />
                         </div>
                         {/* Profesional Filter */}
