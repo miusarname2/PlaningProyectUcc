@@ -17,19 +17,20 @@ return new class extends Migration
             $table->unsignedInteger('idAula')->nullable();
             $table->date('fecha_inicio')->nullable();
             $table->date('fecha_fin')->nullable();
+            $table->enum('estado', ['Activo', 'Inactivo']);
             $table->timestamps();
-        
+
             // FK a curso
             $table->foreign('idCurso')
                   ->references('idCurso')->on('curso')
                   ->onDelete('cascade');
-        
+
             // FK a aula, con SET NULL al borrar el aula
             $table->foreign('idAula')
                   ->references('idAula')->on('aula')
                   ->onDelete('set null');
         });
-        
+
     }
 
     /**
