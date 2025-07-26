@@ -19,9 +19,8 @@ return new class extends Migration
             $table->enum('tipo', ['Virtual', 'Física']);
             $table->string('acceso', 255)->nullable();
             $table->unsignedInteger('idCiudad')->nullable();
-            $table->unsignedInteger('idEntidadPropietaria')->after('idCiudad');
+            $table->unsignedInteger('idEntidadPropietaria');
             $table->foreign('idCiudad')->references('idCiudad')->on('ciudad')->onDelete('set null');
-            $table->foreign('idEntidadPropietaria')->references('idEntidad')->on('entidad')->onDelete('restrict')->onUpdate('cascade');
             $table->timestamps();
         });
     }
