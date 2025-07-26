@@ -53,6 +53,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
 
             selectedProfessionals: initialProfessionals,
             selectedScheduleSlots: initialScheduleSlots,
+            estado: initialData?.estado || "Activo",
         };
     });
 
@@ -501,6 +502,28 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
                                 <p className="text-red-500 text-sm">{errors.fecha_fin[0]}</p>
                             )}
                         </div>
+
+                        {/* Estado */}
+                        <div className="space-y-2">
+                            <InputLabel htmlFor="estado" value="Estado" />
+                            <SelectInput
+                                id="estado"
+                                name="estado"
+                                value={formData.estado}
+                                onChange={handleChange}
+                                options={[
+                                    { value: "Activo", label: "Activo" },
+                                    { value: "Inactivo", label: "Inactivo" },
+                                ]}
+                                required
+                                isInvalid={!!errors.estado}
+                                className={errors.estado ? "border-red-500" : ""}
+                            />
+                            {errors.estado && (
+                                <p className="text-red-500 text-sm">{errors.estado[0]}</p>
+                            )}
+                        </div>
+
 
 
                         {/* Sección para Asignar Profesionales (ocupa dos columnas) */}
