@@ -16,7 +16,8 @@ class Horario extends Model
         'idCurso',
         'idAula',
         'fecha_inicio',
-        'fecha_fin'
+        'fecha_fin',
+        'estado'
     ];
 
 
