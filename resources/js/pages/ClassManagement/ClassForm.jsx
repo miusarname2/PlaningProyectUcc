@@ -337,6 +337,7 @@ export default function ClassForm({ onCancel, initialData = null, onSubmitSucces
             idAula: Number(formData.idAula),
             fecha_inicio: formData.fecha_inicio,
             fecha_fin: formData.fecha_fin,
+            estado: formData.estado,            // ← aquí añadido
             docentes: formData.selectedProfessionals.map(p => ({
                 idProfesional: p.idProfesional,
                 idRolDocente: Number(p.role)
