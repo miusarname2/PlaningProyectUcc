@@ -672,7 +672,7 @@ class HorarioController extends Controller
                 $map[$label][$diaNombre][] = sprintf(
                     '%s (Aula %s)%s%s',
                     $h->curso->codigo,
-                    $h->aula->codigo,
+                    '('.$h->aula->codigo.') '.$h->aula->nombre,
                     PHP_EOL,
                     $h->aula->sede->nombre
                 );
