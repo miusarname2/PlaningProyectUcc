@@ -672,7 +672,7 @@ class HorarioController extends Controller
                 $map[$label][$diaNombre][] = sprintf(
                     '%s (Aula %s)%s%s',
                     $h->curso->codigo,
-                    '(' . $h->aula->codigo . ') ' . $h->aula->nombre,
+                    $h->aula->codigo,
                     PHP_EOL,
                     $h->aula->sede->nombre
                 );
@@ -760,7 +760,7 @@ class HorarioController extends Controller
             $ubicacion = trim(implode(' - ', array_filter([$acceso, $ciudad])));
             $entidad = optional($h->aula->sede->propietario)->nombre;
             $sede = optional($h->aula->sede)->nombre;
-            $aula = $h->aula->codigo;
+            $aula = '(' . $h->aula->codigo . ') ' . $h->aula->nombre;
 
             // Roles
             $ej = $mo = $me = [];
