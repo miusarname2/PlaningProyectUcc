@@ -300,7 +300,7 @@ export default function PrincipalSchedule({ formData, setFormData }) {
         setScheduleData(transformed);
     }, [rawData, currentWeekStart, es]); // Depende de rawData, la semana actual, y locale
 
-    const days = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
+    const days = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
     // Generar slots de tiempo de 6 a 20 (8pm)
     const timeSlots = Array.from({ length: 17 }, (_, i) => {
         const hour = 6 + i; // Hours 6, 7, ..., 22
