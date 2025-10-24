@@ -28,7 +28,6 @@ Route::get('/user', function (Request $request) {
 
 Route::post('login', [UsuarioController::class, 'login']);
 Route::post('register', [UsuarioController::class, 'store']);
-Route::get('login/config', [UsuarioController::class, 'getLoginConfig']);
 
 Route::get('user/search', [UsuarioController::class, 'search']);
 
@@ -59,7 +58,6 @@ Route::middleware(['auth:sanctum', 'throttle:search'])
         Route::put('perfilRol/{idPerfil}/{idRol}',     [PerfilRolController::class, 'update']);
         Route::delete('perfilRol/{idPerfil}/{idRol}',     [PerfilRolController::class, 'destroy']);
         Route::get('user/{user}/permisos', [UsuarioController::class, 'permisos']);
-        Route::put('login/config', [UsuarioController::class, 'updateLoginConfig']);
         Route::post('horario/export-xlsx', [HorarioController::class, 'exportXls']);
         Route::get( 'curso/export-xlsx',[CursoController::class,'exportCursosXls']);
         Route::get( 'profesional/export-xlsx', [ProfesionalController::class,'exportProfesionalesXls']);

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Configuracion;
 use App\Models\Usuario;
 use Exception;
 use Illuminate\Http\Request;
@@ -111,40 +110,9 @@ class UsuarioController extends Controller
 
     /**
      * Realiza el login del usuario comprobando las credenciales.
-     * Si el login está deshabilitado, autentica automáticamente con usuario ID 1.
      */
     public function login(Request $request)
     {
-        // Verificar si el login está habilitado
-        if (!Configuracion::isLoginEnabled()) {
-            // Autenticación automática con usuario ID 1
-            $usuario = Usuario::find(1);
-
-            if (!$usuario) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Usuario administrador no encontrado',
-                    'errors' => ['general' => ['Usuario administrador no configurado']]
-                ], 500);
-            }
-
-            // Actualizar último acceso
-            $usuario->ultimoAcceso = now();
-            $usuario->save();
-
-            // Genera token de API (Sanctum)
-            $token = $usuario->createToken('auth_token')->plainTextToken;
-
-            return response()->json([
-                'message' => 'Login automático exitoso',
-                'usuario' => $usuario->load('roles'),
-                'token' => $token,
-                'token_type' => 'Bearer',
-                'auto_login' => true
-            ]);
-        }
-
-        // Login normal si está habilitado
         $credentials = $request->validate([
             'email'    => 'required|email',
             'password' => 'required|string'
@@ -171,8 +139,7 @@ class UsuarioController extends Controller
             'message' => 'Login exitoso',
             'usuario' => $usuario->load('roles'),
             'token' => $token,
-            'token_type' => 'Bearer',
-            'auto_login' => false
+            'token_type' => 'Bearer'
         ]);
     }
 
@@ -195,39 +162,11 @@ class UsuarioController extends Controller
     }
 
     /**
-     * Obtener el estado de configuración del login
-     */
-    public function getLoginConfig()
-    {
-        return response()->json([
-            'login_enabled' => Configuracion::isLoginEnabled(),
-            'auto_login_user' => Configuracion::isLoginEnabled() ? null : Usuario::find(1)?->only(['idUsuario', 'username', 'email', 'nombreCompleto'])
-        ]);
-    }
-
-    /**
-     * Actualizar la configuración del login
-     */
-    public function updateLoginConfig(Request $request)
-    {
-        $request->validate([
-            'login_enabled' => 'required|boolean'
-        ]);
-
-        Configuracion::setLoginEnabled($request->login_enabled);
-
-        return response()->json([
-            'message' => 'Configuración de login actualizada correctamente',
-            'login_enabled' => $request->login_enabled
-        ]);
-    }
-
-    /**
      * Método para buscar usuarios por username, email, estado, password o nombreCompleto.
-      *
-      * @param Request $request
-      * @return \Illuminate\Http\JsonResponse
-      */
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function search(Request $request)
     {
         // Validación de la entrada: cada campo es opcional y se valida su tipo.
