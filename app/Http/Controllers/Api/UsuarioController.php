@@ -113,13 +113,18 @@ class UsuarioController extends Controller
      */
     public function login(Request $request)
     {
+        Log::info('🔐 Intentando login con email: ' . $request->email);
+
         $credentials = $request->validate([
             'email'    => 'required|email',
             'password' => 'required|string'
         ]);
 
+        Log::info('✅ Credenciales validadas');
+
         // Intenta autenticar al usuario usando la sesión
         if (!Auth::attempt($credentials)) {
+            Log::warning('❌ Credenciales incorrectas para email: ' . $request->email);
             return response()->json([
                 'success' => false,
                 'message' => 'Credenciales incorrectas',
@@ -127,13 +132,19 @@ class UsuarioController extends Controller
             ], 401);
         }
 
+        Log::info('✅ Usuario autenticado exitosamente');
+
         // Usuario autenticado (sesión activa)
         $usuario = Auth::user();
         $usuario->ultimoAcceso = now();
         $usuario->save();
 
+        Log::info('💾 Último acceso actualizado para usuario: ' . $usuario->email);
+
         // Genera token de API (Sanctum)
         $token = $usuario->createToken('auth_token')->plainTextToken;
+
+        Log::info('🎫 Token generado exitosamente');
 
         return response()->json([
             'message' => 'Login exitoso',

@@ -16,7 +16,7 @@ import { getApi } from '@/utils/generalFunctions';
 const api = getApi();
 var email = localStorage.getItem("Email");
 const response = await api.get(`/user/search?email=${encodeURIComponent(email)}`);
-const idUsuario = response.data.data.data[0].idUsuario;
+const idUsuario = response.data?.data?.data[0]?.idUsuario == undefined ? 1 : response.data.data.data[0].idUsuario;
 const responsePermisos = await api.get(`/user/${idUsuario}/permisos`);
 /**
  * Filtra el array de secciones según los permisos.

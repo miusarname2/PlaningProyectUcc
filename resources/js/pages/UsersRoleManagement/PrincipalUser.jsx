@@ -5,7 +5,7 @@ import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import UserForm from "@/pages/UsersRoleManagement/UserForm";
-import { Pencil, Trash2, UserX, UserCheck } from "lucide-react";
+import { Pencil, Trash2, UserX, UserCheck, Settings } from "lucide-react";
 import { filtered } from "@/Components/SideBar";
 const columns = [
     { title: "Nombre", key: "nombreCompleto" },
@@ -30,6 +30,8 @@ export default function PrincipalUser() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [loginEnabled, setLoginEnabled] = useState(true);
+    const [configLoading, setConfigLoading] = useState(false);
 
 
     function handleEdit(row) {
@@ -80,7 +82,36 @@ export default function PrincipalUser() {
 
     useEffect(() => {
         fetchData();
+        fetchLoginConfig();
     }, []);
+
+    const fetchLoginConfig = async () => {
+        try {
+            const response = await api.get('/configuracion/value/login_enabled');
+            setLoginEnabled(response.data.valor);
+        } catch (error) {
+            console.error('Error fetching login config:', error);
+            setLoginEnabled(true); // Por defecto habilitado
+        }
+    };
+
+    const toggleLoginEnabled = async () => {
+        setConfigLoading(true);
+        try {
+            const newValue = !loginEnabled;
+            await api.post(`/configuracion/value/login_enabled`, {
+                valor: newValue.toString(),
+                tipo: 'boolean',
+                descripcion: 'Controla si el login está habilitado o deshabilitado'
+            });
+            setLoginEnabled(newValue);
+        } catch (error) {
+            console.error('Error updating login config:', error);
+            alert('Error al actualizar la configuración de login');
+        } finally {
+            setConfigLoading(false);
+        }
+    };
 
     function getSearchType(value) {
         if (value.includes("@")) return "email";
@@ -120,6 +151,42 @@ export default function PrincipalUser() {
                     showButton={!showForm}
                     verifyPermission={true}
                 />
+
+                {/* Configuración de Login */}
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                            <Settings className="h-5 w-5 text-gray-600" />
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-900">Configuración de Login</h3>
+                                <p className="text-xs text-gray-600">
+                                    {loginEnabled
+                                        ? "El login está habilitado. Los usuarios deben autenticarse manualmente."
+                                        : "El login está deshabilitado. Se realiza autenticación automática con credenciales por defecto."
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                            <span className="text-sm text-gray-600">
+                                {loginEnabled ? "Habilitado" : "Deshabilitado"}
+                            </span>
+                            <button
+                                onClick={toggleLoginEnabled}
+                                disabled={configLoading}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                                    loginEnabled ? 'bg-indigo-600' : 'bg-gray-200'
+                                } ${configLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                <span
+                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                        loginEnabled ? 'translate-x-6' : 'translate-x-1'
+                                    }`}
+                                />
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 {!showForm ? (
                     <div className="space-y-4">
                         <InputSearch
