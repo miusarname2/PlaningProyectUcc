@@ -5,7 +5,7 @@ import { getApi } from "@/utils/generalFunctions";
 import { useState, useEffect } from "react";
 import StatusBadge from "@/Components/StatusBadge";
 import UserForm from "@/pages/UsersRoleManagement/UserForm";
-import { Pencil, Trash2, UserX, UserCheck } from "lucide-react";
+import { Pencil, Trash2, UserX, UserCheck, Settings } from "lucide-react";
 import { filtered } from "@/Components/SideBar";
 const columns = [
     { title: "Nombre", key: "nombreCompleto" },
@@ -30,6 +30,8 @@ export default function PrincipalUser() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [loginEnabled, setLoginEnabled] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
 
 
     function handleEdit(row) {
@@ -80,7 +82,29 @@ export default function PrincipalUser() {
 
     useEffect(() => {
         fetchData();
+        fetchLoginConfig();
     }, []);
+
+    const fetchLoginConfig = async () => {
+        try {
+            const response = await api.get('/login/config');
+            setLoginEnabled(response.data.login_enabled);
+        } catch (error) {
+            console.error('Error fetching login config:', error);
+        }
+    };
+
+    const toggleLoginEnabled = async () => {
+        try {
+            const newValue = !loginEnabled;
+            await api.put('/login/config', { login_enabled: newValue });
+            setLoginEnabled(newValue);
+            alert(`Login ${newValue ? 'habilitado' : 'deshabilitado'} correctamente`);
+        } catch (error) {
+            console.error('Error updating login config:', error);
+            alert('Error al actualizar la configuración del login');
+        }
+    };
 
     function getSearchType(value) {
         if (value.includes("@")) return "email";
@@ -120,6 +144,41 @@ export default function PrincipalUser() {
                     showButton={!showForm}
                     verifyPermission={true}
                 />
+
+                {/* Configuración del Login */}
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                            <Settings className="h-5 w-5 text-gray-600" />
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-900">Configuración de Login</h3>
+                                <p className="text-xs text-gray-500">
+                                    {loginEnabled
+                                        ? "Login manual habilitado - Los usuarios deben autenticarse"
+                                        : "Login automático habilitado - Se autentica automáticamente con usuario admin"
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                            <span className="text-sm text-gray-600">
+                                {loginEnabled ? "Habilitado" : "Deshabilitado"}
+                            </span>
+                            <button
+                                onClick={toggleLoginEnabled}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                                    loginEnabled ? 'bg-indigo-600' : 'bg-gray-200'
+                                }`}
+                            >
+                                <span
+                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                        loginEnabled ? 'translate-x-6' : 'translate-x-1'
+                                    }`}
+                                />
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 {!showForm ? (
                     <div className="space-y-4">
                         <InputSearch

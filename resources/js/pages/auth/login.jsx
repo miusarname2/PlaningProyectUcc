@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import axios from "axios";
 import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
@@ -16,12 +16,52 @@ export default function Login({ status, canResetPassword }) {
         password: ''
     });
 
+    const [loginEnabled, setLoginEnabled] = useState(null);
+    const [autoLoginUser, setAutoLoginUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
+        checkLoginConfig();
         return () => {
             // reset('email');
             reset('password');
         };
     }, []);
+
+    const checkLoginConfig = async () => {
+        try {
+            const response = await axios.get('/api/login/config');
+            setLoginEnabled(response.data.login_enabled);
+            setAutoLoginUser(response.data.auto_login_user);
+
+            // Si el login está deshabilitado, hacer login automático
+            if (!response.data.login_enabled) {
+                await performAutoLogin();
+            }
+        } catch (error) {
+            console.error('Error checking login config:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const performAutoLogin = async () => {
+        try {
+            // Solo hacer el login por API, el login de sesión ya se hace en el backend
+            await axios.get('/sanctum/csrf-cookie');
+            const response = await axios.post("/api/login");
+
+            const encryptedToken = await encrypOrDesencrypAES(response.data.token);
+            localStorage.setItem("Token", encryptedToken);
+            localStorage.setItem("Username", response.data.usuario.username);
+            localStorage.setItem("Email", response.data.usuario.email);
+
+            router.visit('/dashboard');
+        } catch (error) {
+            console.error('Error en login automático:', error);
+            setError('general', 'Error en autenticación automática');
+        }
+    };
 
     const submit = async (e) => {
         e.preventDefault();
@@ -70,6 +110,36 @@ export default function Login({ status, canResetPassword }) {
             console.error("Error al guardar datos en localStorage:", err);
         }
     };
+
+    if (loading) {
+        return (
+            <GuestLayout>
+                <Head title="Log in" />
+                <div className="text-center">
+                    <p className="text-gray-600">Verificando configuración...</p>
+                </div>
+            </GuestLayout>
+        );
+    }
+
+    if (!loginEnabled) {
+        return (
+            <GuestLayout>
+                <Head title="Log in" />
+                <div className="text-center">
+                    <p className="text-gray-600 mb-4">Login automático activado</p>
+                    {autoLoginUser && (
+                        <p className="text-sm text-gray-500">
+                            Iniciando sesión como: {autoLoginUser.nombreCompleto}
+                        </p>
+                    )}
+                    <div className="mt-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    </div>
+                </div>
+            </GuestLayout>
+        );
+    }
 
     return (
         <GuestLayout>
